@@ -25,8 +25,12 @@ $result = pg_query($conn, $query);
             $delay = 0;
             while ($row = pg_fetch_assoc($result)) {
                 $delay += 100;
-                // Use placeholder image
-                $img_url = "https://picsum.photos/seed/" . $row['id'] . "/600/400";
+                // Use uploaded image if exists, otherwise use placeholder
+                if (!empty($row['gambar']) && file_exists('../../uploads/artikel/' . $row['gambar'])) {
+                    $img_url = BASE_URL . '/uploads/artikel/' . $row['gambar'];
+                } else {
+                    $img_url = "https://picsum.photos/seed/" . $row['id'] . "/600/400";
+                }
                 ?>
                 <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="<?php echo $delay; ?>">
                     <div class="card h-100">

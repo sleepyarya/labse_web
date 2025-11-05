@@ -3,9 +3,28 @@
 require_once 'auth_check.php';
 require_once '../includes/config.php';
 
-$page_title = 'Tambah Artikel';
+$page_title = 'Edit Artikel';
 $error = '';
 $success = false;
+
+// Get ID from URL
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
+if ($id <= 0) {
+    header('Location: manage_artikel.php?error=ID tidak valid');
+    exit();
+}
+
+// Get existing data
+$query = "SELECT * FROM artikel WHERE id = $1";
+$result = pg_query_params($conn, $query, array($id));
+
+if (pg_num_rows($result) == 0) {
+    header('Location: manage_artikel.php?error=Data tidak ditemukan');
+    exit();
+}
+
+$data = pg_fetch_assoc($result);
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -18,7 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $error = 'Judul, isi, dan penulis wajib diisi!';
     } else {
         // Handle file upload
-        $gambar = '';
+        $gambar = $data['gambar']; // Keep existing image
+        
         if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
             $allowed = ['jpg', 'jpeg', 'png', 'gif'];
             $filename = $_FILES['gambar']['name'];
@@ -34,6 +54,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
                 
                 if (move_uploaded_file($_FILES['gambar']['tmp_name'], $upload_dir . $new_filename)) {
+                    // Delete old image if exists
+                    if ($data['gambar'] && file_exists($upload_dir . $data['gambar'])) {
+                        unlink($upload_dir . $data['gambar']);
+                    }
                     $gambar = $new_filename;
                 }
             } else {
@@ -41,17 +65,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
         
-        // Insert to database
+        // Update database
         if (empty($error)) {
-            $query = "INSERT INTO artikel (judul, isi, penulis, gambar) 
-                      VALUES ($1, $2, $3, $4)";
-            $result = pg_query_params($conn, $query, array($judul, $isi, $penulis, $gambar));
+            $query = "UPDATE artikel SET judul = $1, isi = $2, penulis = $3, gambar = $4 
+                      WHERE id = $5";
+            $result = pg_query_params($conn, $query, array($judul, $isi, $penulis, $gambar, $id));
             
             if ($result) {
-                header('Location: manage_artikel.php?success=add');
+                header('Location: manage_artikel.php?success=edit');
                 exit();
             } else {
-                $error = 'Gagal menambahkan artikel: ' . pg_last_error($conn);
+                $error = 'Gagal mengupdate artikel: ' . pg_last_error($conn);
             }
         }
     }
@@ -67,12 +91,12 @@ include 'includes/admin_sidebar.php';
     <!-- Top Bar -->
     <div class="admin-topbar">
         <div>
-            <h4 class="mb-0">Tambah Artikel Baru</h4>
+            <h4 class="mb-0">Edit Artikel</h4>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item"><a href="index.php">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="manage_artikel.php">Kelola Artikel</a></li>
-                    <li class="breadcrumb-item active">Tambah Baru</li>
+                    <li class="breadcrumb-item active">Edit</li>
                 </ol>
             </nav>
         </div>
@@ -83,8 +107,8 @@ include 'includes/admin_sidebar.php';
         <div class="row">
             <div class="col-lg-9">
                 <div class="card" data-aos="fade-up">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0"><i class="bi bi-file-plus me-2"></i>Form Tambah Artikel</h5>
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Form Edit Artikel</h5>
                     </div>
                     <div class="card-body">
                         
@@ -100,45 +124,51 @@ include 'includes/admin_sidebar.php';
                             <div class="mb-3">
                                 <label class="form-label">Judul Artikel <span class="text-danger">*</span></label>
                                 <input type="text" name="judul" class="form-control" required 
-                                       value="<?php echo isset($_POST['judul']) ? htmlspecialchars($_POST['judul']) : ''; ?>"
+                                       value="<?php echo htmlspecialchars($data['judul']); ?>"
                                        placeholder="Masukkan judul artikel yang menarik">
                             </div>
                             
                             <div class="mb-3">
                                 <label class="form-label">Penulis <span class="text-danger">*</span></label>
                                 <input type="text" name="penulis" class="form-control" required 
-                                       value="<?php echo isset($_POST['penulis']) ? htmlspecialchars($_POST['penulis']) : htmlspecialchars($_SESSION['admin_nama']); ?>"
+                                       value="<?php echo htmlspecialchars($data['penulis']); ?>"
                                        placeholder="Nama penulis artikel">
-                                <small class="text-muted">Default: <?php echo htmlspecialchars($_SESSION['admin_nama']); ?></small>
                             </div>
                             
                             <div class="mb-3">
                                 <label class="form-label">Isi Artikel <span class="text-danger">*</span></label>
                                 <textarea name="isi" id="isiArtikel" class="form-control" rows="15" required 
-                                          placeholder="Tulis isi artikel di sini..."><?php echo isset($_POST['isi']) ? htmlspecialchars($_POST['isi']) : ''; ?></textarea>
+                                          placeholder="Tulis isi artikel di sini..."><?php echo htmlspecialchars($data['isi']); ?></textarea>
                                 <small class="text-muted">Gunakan editor untuk format teks (bold, italic, list, dll)</small>
                             </div>
                             
                             <div class="mb-3">
                                 <label class="form-label">Gambar Artikel</label>
+                                
+                                <?php if ($data['gambar']): ?>
+                                <div class="mb-2">
+                                    <img src="<?php echo BASE_URL . '/uploads/artikel/' . htmlspecialchars($data['gambar']); ?>" 
+                                         class="img-thumbnail" style="max-width: 300px;" id="currentImage">
+                                    <p class="text-muted mb-0 mt-1"><small>Gambar saat ini</small></p>
+                                </div>
+                                <?php endif; ?>
+                                
                                 <input type="file" name="gambar" class="form-control" accept="image/*" id="gambarInput">
-                                <small class="text-muted">Format: JPG, PNG, GIF. Maksimal 5MB. Gambar utama untuk artikel.</small>
+                                <small class="text-muted">Format: JPG, PNG, GIF. Maksimal 5MB. Kosongkan jika tidak ingin mengubah gambar.</small>
                                 <div id="previewContainer" class="mt-3" style="display: none;">
                                     <img id="previewImage" src="" class="img-thumbnail" style="max-width: 300px;">
+                                    <p class="text-muted mb-0 mt-1"><small>Preview gambar baru</small></p>
                                 </div>
                             </div>
                             
                             <hr>
                             
                             <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-success">
-                                    <i class="bi bi-save me-2"></i>Simpan Artikel
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="bi bi-save me-2"></i>Update Artikel
                                 </button>
-                                <button type="reset" class="btn btn-secondary">
-                                    <i class="bi bi-arrow-counterclockwise me-2"></i>Reset
-                                </button>
-                                <a href="manage_artikel.php" class="btn btn-outline-danger">
-                                    <i class="bi bi-x-circle me-2"></i>Batal
+                                <a href="manage_artikel.php" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left me-2"></i>Kembali
                                 </a>
                             </div>
                             
@@ -151,40 +181,37 @@ include 'includes/admin_sidebar.php';
             <div class="col-lg-3">
                 <div class="card" data-aos="fade-up" data-aos-delay="100">
                     <div class="card-header bg-info text-white">
-                        <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Petunjuk</h6>
+                        <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Informasi</h6>
                     </div>
                     <div class="card-body">
                         <ul class="list-unstyled mb-0">
                             <li class="mb-2">
-                                <i class="bi bi-check-circle text-success me-2"></i>
-                                <strong>Judul</strong> harus menarik dan deskriptif
+                                <strong>ID:</strong> #<?php echo $data['id']; ?>
+                            </li>
+                            <li class="mb-2">
+                                <strong>Dibuat:</strong><br>
+                                <small class="text-muted"><?php echo date('d M Y H:i', strtotime($data['created_at'])); ?></small>
                             </li>
                             <li class="mb-2">
                                 <i class="bi bi-check-circle text-success me-2"></i>
-                                <strong>Isi</strong> minimal 100 karakter
+                                Kosongkan gambar jika tidak ingin mengubah
                             </li>
                             <li class="mb-2">
                                 <i class="bi bi-check-circle text-success me-2"></i>
-                                <strong>Gambar</strong> mendukung JPG, PNG, GIF
-                            </li>
-                            <li class="mb-2">
-                                <i class="bi bi-check-circle text-success me-2"></i>
-                                Gunakan paragraf dan heading untuk struktur
+                                Gambar lama akan terhapus jika upload baru
                             </li>
                         </ul>
                     </div>
                 </div>
                 
                 <div class="card mt-3" data-aos="fade-up" data-aos-delay="200">
-                    <div class="card-header bg-warning text-dark">
-                        <h6 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Tips</h6>
+                    <div class="card-header bg-secondary text-white">
+                        <h6 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Statistik</h6>
                     </div>
                     <div class="card-body">
                         <small class="text-muted">
-                            <p class="mb-2">• Buat judul yang SEO-friendly</p>
-                            <p class="mb-2">• Gunakan gambar berkualitas tinggi</p>
-                            <p class="mb-2">• Struktur artikel dengan heading</p>
-                            <p class="mb-0">• Pastikan konten original</p>
+                            <p class="mb-2"><strong>Jumlah Karakter:</strong> <span id="charCount">0</span></p>
+                            <p class="mb-0"><strong>Jumlah Kata:</strong> <span id="wordCount">0</span></p>
                         </small>
                     </div>
                 </div>
@@ -196,8 +223,8 @@ include 'includes/admin_sidebar.php';
 
 <style>
     .form-control:focus, .form-select:focus {
-        border-color: #198754;
-        box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+        border-color: #ffc107;
+        box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
     }
     
     .btn {
@@ -226,6 +253,8 @@ document.getElementById('gambarInput').addEventListener('change', function(e) {
             document.getElementById('previewContainer').style.display = 'block';
         }
         reader.readAsDataURL(file);
+    } else {
+        document.getElementById('previewContainer').style.display = 'none';
     }
 });
 
@@ -250,20 +279,31 @@ document.getElementById('formArtikel').addEventListener('submit', function(e) {
     // Show loading
     const submitBtn = this.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Mengupdate...';
 });
 
-// Character counter for isi
-document.getElementById('isiArtikel').addEventListener('input', function() {
-    const length = this.value.length;
-    const minLength = 50;
+// Character and word counter
+function updateStats() {
+    const text = document.getElementById('isiArtikel').value;
+    const charCount = text.length;
+    const wordCount = text.trim().split(/\s+/).filter(word => word.length > 0).length;
     
-    if (length < minLength) {
-        this.style.borderColor = '#dc3545';
+    document.getElementById('charCount').textContent = charCount;
+    document.getElementById('wordCount').textContent = wordCount;
+    
+    // Border color based on length
+    const textarea = document.getElementById('isiArtikel');
+    if (charCount < 50) {
+        textarea.style.borderColor = '#dc3545';
     } else {
-        this.style.borderColor = '#198754';
+        textarea.style.borderColor = '#ffc107';
     }
-});
+}
+
+document.getElementById('isiArtikel').addEventListener('input', updateStats);
+
+// Initial count
+updateStats();
 </script>
 
 <?php

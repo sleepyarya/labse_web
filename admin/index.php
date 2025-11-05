@@ -41,7 +41,7 @@ include 'includes/admin_sidebar.php';
                         ?>
                     </h3>
                     <p class="text-muted">Personil</p>
-                    <a href="add_personil.php" class="btn btn-sm btn-outline-primary">Kelola</a>
+                    <a href="manage_personil.php" class="btn btn-sm btn-outline-primary">Kelola</a>
                 </div>
             </div>
         </div>
@@ -58,7 +58,7 @@ include 'includes/admin_sidebar.php';
                         ?>
                     </h3>
                     <p class="text-muted">Artikel</p>
-                    <a href="add_artikel.php" class="btn btn-sm btn-outline-success">Kelola</a>
+                    <a href="manage_artikel.php" class="btn btn-sm btn-outline-success">Kelola</a>
                 </div>
             </div>
         </div>
@@ -75,7 +75,7 @@ include 'includes/admin_sidebar.php';
                         ?>
                     </h3>
                     <p class="text-muted">Mahasiswa</p>
-                    <a href="add_mahasiswa.php" class="btn btn-sm btn-outline-warning">Kelola</a>
+                    <a href="manage_mahasiswa.php" class="btn btn-sm btn-outline-warning">Kelola</a>
                 </div>
             </div>
         </div>
@@ -108,18 +108,18 @@ include 'includes/admin_sidebar.php';
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <a href="add_personil.php" class="btn btn-outline-primary w-100">
-                                <i class="bi bi-person-plus me-2"></i>Tambah Personil
+                            <a href="manage_personil.php" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-people me-2"></i>Kelola Personil
                             </a>
                         </div>
                         <div class="col-md-4">
-                            <a href="add_artikel.php" class="btn btn-outline-success w-100">
-                                <i class="bi bi-file-plus me-2"></i>Tambah Artikel
+                            <a href="manage_artikel.php" class="btn btn-outline-success w-100">
+                                <i class="bi bi-file-text me-2"></i>Kelola Artikel
                             </a>
                         </div>
                         <div class="col-md-4">
-                            <a href="add_mahasiswa.php" class="btn btn-outline-warning w-100">
-                                <i class="bi bi-person-badge me-2"></i>Lihat Pendaftar
+                            <a href="manage_mahasiswa.php" class="btn btn-outline-warning w-100">
+                                <i class="bi bi-person-badge me-2"></i>Kelola Mahasiswa
                             </a>
                         </div>
                     </div>

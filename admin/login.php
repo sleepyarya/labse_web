@@ -29,12 +29,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             // Verifikasi password
             if (password_verify($password, $admin['password'])) {
+                // Regenerate session ID untuk keamanan
+                session_regenerate_id(true);
+                
+                // Generate unique session token
+                $session_token = bin2hex(random_bytes(32));
+                
                 // Login berhasil
                 $_SESSION['admin_logged_in'] = true;
                 $_SESSION['admin_id'] = $admin['id'];
                 $_SESSION['admin_username'] = $admin['username'];
                 $_SESSION['admin_nama'] = $admin['nama_lengkap'];
                 $_SESSION['admin_email'] = $admin['email'];
+                $_SESSION['admin_session_token'] = $session_token;
+                $_SESSION['admin_last_activity'] = time();
+                $_SESSION['fresh_login'] = true; // Flag untuk bypass direct access check
                 
                 // Update last login
                 $update_query = "UPDATE admin_users SET last_login = NOW() WHERE id = $1";
@@ -213,6 +222,20 @@ pg_close($conn);
             <?php if (isset($_GET['logout']) && $_GET['logout'] == 'success' && !$error): ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 <i class="bi bi-check-circle me-2"></i>Anda telah berhasil logout.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <?php endif; ?>
+            
+            <?php if (isset($_GET['timeout']) && $_GET['timeout'] == '1' && !$error): ?>
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <i class="bi bi-clock-history me-2"></i>Sesi Anda telah berakhir karena tidak ada aktivitas. Silakan login kembali.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <?php endif; ?>
+            
+            <?php if (isset($_GET['direct']) && $_GET['direct'] == '1' && !$error): ?>
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="bi bi-info-circle me-2"></i>Untuk keamanan, Anda harus login untuk mengakses dashboard admin.
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
             <?php endif; ?>

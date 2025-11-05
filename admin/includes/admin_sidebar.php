@@ -21,24 +21,24 @@
         
         <div class="menu-label">Content Management</div>
         
-        <a href="<?php echo BASE_URL; ?>/admin/add_personil.php" class="menu-item <?php echo basename($_SERVER['PHP_SELF']) == 'add_personil.php' ? 'active' : ''; ?>">
+        <a href="<?php echo BASE_URL; ?>/admin/manage_personil.php" class="menu-item <?php echo in_array(basename($_SERVER['PHP_SELF']), ['manage_personil.php', 'add_personil.php', 'edit_personil.php']) ? 'active' : ''; ?>">
             <i class="bi bi-people"></i>
             <span>Kelola Personil</span>
         </a>
         
-        <a href="<?php echo BASE_URL; ?>/admin/add_artikel.php" class="menu-item <?php echo basename($_SERVER['PHP_SELF']) == 'add_artikel.php' ? 'active' : ''; ?>">
+        <a href="<?php echo BASE_URL; ?>/admin/manage_artikel.php" class="menu-item <?php echo in_array(basename($_SERVER['PHP_SELF']), ['manage_artikel.php', 'add_artikel.php', 'edit_artikel.php']) ? 'active' : ''; ?>">
             <i class="bi bi-file-text"></i>
             <span>Kelola Artikel</span>
         </a>
         
-        <a href="<?php echo BASE_URL; ?>/admin/add_mahasiswa.php" class="menu-item <?php echo basename($_SERVER['PHP_SELF']) == 'add_mahasiswa.php' ? 'active' : ''; ?>">
+        <a href="<?php echo BASE_URL; ?>/admin/manage_mahasiswa.php" class="menu-item <?php echo in_array(basename($_SERVER['PHP_SELF']), ['manage_mahasiswa.php', 'add_mahasiswa.php', 'edit_mahasiswa.php']) ? 'active' : ''; ?>">
             <i class="bi bi-person-badge"></i>
             <span>Kelola Mahasiswa</span>
         </a>
         
         <div class="menu-label">Website</div>
         
-        <a href="<?php echo BASE_URL; ?>/" class="menu-item" target="_blank">
+        <a href="<?php echo BASE_URL; ?>/admin/view_website.php" class="menu-item">
             <i class="bi bi-globe"></i>
             <span>Lihat Website</span>
         </a>

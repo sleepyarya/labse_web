@@ -3,9 +3,28 @@
 require_once 'auth_check.php';
 require_once '../includes/config.php';
 
-$page_title = 'Tambah Personil';
+$page_title = 'Edit Personil';
 $error = '';
 $success = false;
+
+// Get ID from URL
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
+if ($id <= 0) {
+    header('Location: manage_personil.php?error=ID tidak valid');
+    exit();
+}
+
+// Get existing data
+$query = "SELECT * FROM personil WHERE id = $1";
+$result = pg_query_params($conn, $query, array($id));
+
+if (pg_num_rows($result) == 0) {
+    header('Location: manage_personil.php?error=Data tidak ditemukan');
+    exit();
+}
+
+$data = pg_fetch_assoc($result);
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -21,7 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $error = 'Format email tidak valid!';
     } else {
         // Handle file upload
-        $foto = '';
+        $foto = $data['foto']; // Keep existing photo
+        
         if (isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
             $allowed = ['jpg', 'jpeg', 'png', 'gif'];
             $filename = $_FILES['foto']['name'];
@@ -37,6 +57,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
                 
                 if (move_uploaded_file($_FILES['foto']['tmp_name'], $upload_dir . $new_filename)) {
+                    // Delete old photo if exists
+                    if ($data['foto'] && file_exists($upload_dir . $data['foto'])) {
+                        unlink($upload_dir . $data['foto']);
+                    }
                     $foto = $new_filename;
                 }
             } else {
@@ -44,17 +68,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
         
-        // Insert to database
+        // Update database
         if (empty($error)) {
-            $query = "INSERT INTO personil (nama, jabatan, deskripsi, foto, email) 
-                      VALUES ($1, $2, $3, $4, $5)";
-            $result = pg_query_params($conn, $query, array($nama, $jabatan, $deskripsi, $foto, $email));
+            $query = "UPDATE personil SET nama = $1, jabatan = $2, deskripsi = $3, foto = $4, email = $5 
+                      WHERE id = $6";
+            $result = pg_query_params($conn, $query, array($nama, $jabatan, $deskripsi, $foto, $email, $id));
             
             if ($result) {
-                header('Location: manage_personil.php?success=add');
+                header('Location: manage_personil.php?success=edit');
                 exit();
             } else {
-                $error = 'Gagal menambahkan personil: ' . pg_last_error($conn);
+                $error = 'Gagal mengupdate personil: ' . pg_last_error($conn);
             }
         }
     }
@@ -70,12 +94,12 @@ include 'includes/admin_sidebar.php';
     <!-- Top Bar -->
     <div class="admin-topbar">
         <div>
-            <h4 class="mb-0">Tambah Personil Baru</h4>
+            <h4 class="mb-0">Edit Personil</h4>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item"><a href="index.php">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="manage_personil.php">Kelola Personil</a></li>
-                    <li class="breadcrumb-item active">Tambah Baru</li>
+                    <li class="breadcrumb-item active">Edit</li>
                 </ol>
             </nav>
         </div>
@@ -86,8 +110,8 @@ include 'includes/admin_sidebar.php';
         <div class="row">
             <div class="col-lg-8">
                 <div class="card" data-aos="fade-up">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0"><i class="bi bi-person-plus me-2"></i>Form Tambah Personil</h5>
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Form Edit Personil</h5>
                     </div>
                     <div class="card-body">
                         
@@ -103,7 +127,7 @@ include 'includes/admin_sidebar.php';
                             <div class="mb-3">
                                 <label class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
                                 <input type="text" name="nama" class="form-control" required 
-                                       value="<?php echo isset($_POST['nama']) ? htmlspecialchars($_POST['nama']) : ''; ?>"
+                                       value="<?php echo htmlspecialchars($data['nama']); ?>"
                                        placeholder="Masukkan nama lengkap">
                             </div>
                             
@@ -111,48 +135,55 @@ include 'includes/admin_sidebar.php';
                                 <label class="form-label">Jabatan <span class="text-danger">*</span></label>
                                 <select name="jabatan" class="form-select" required>
                                     <option value="">-- Pilih Jabatan --</option>
-                                    <option value="Dosen" <?php echo (isset($_POST['jabatan']) && $_POST['jabatan'] == 'Dosen') ? 'selected' : ''; ?>>Dosen</option>
-                                    <option value="Ketua Lab" <?php echo (isset($_POST['jabatan']) && $_POST['jabatan'] == 'Ketua Lab') ? 'selected' : ''; ?>>Ketua Lab</option>
-                                    <option value="Sekretaris Lab" <?php echo (isset($_POST['jabatan']) && $_POST['jabatan'] == 'Sekretaris Lab') ? 'selected' : ''; ?>>Sekretaris Lab</option>
-                                    <option value="Asisten Lab" <?php echo (isset($_POST['jabatan']) && $_POST['jabatan'] == 'Asisten Lab') ? 'selected' : ''; ?>>Asisten Lab</option>
-                                    <option value="Staff" <?php echo (isset($_POST['jabatan']) && $_POST['jabatan'] == 'Staff') ? 'selected' : ''; ?>>Staff</option>
+                                    <option value="Dosen" <?php echo $data['jabatan'] == 'Dosen' ? 'selected' : ''; ?>>Dosen</option>
+                                    <option value="Ketua Lab" <?php echo $data['jabatan'] == 'Ketua Lab' ? 'selected' : ''; ?>>Ketua Lab</option>
+                                    <option value="Sekretaris Lab" <?php echo $data['jabatan'] == 'Sekretaris Lab' ? 'selected' : ''; ?>>Sekretaris Lab</option>
+                                    <option value="Asisten Lab" <?php echo $data['jabatan'] == 'Asisten Lab' ? 'selected' : ''; ?>>Asisten Lab</option>
+                                    <option value="Staff" <?php echo $data['jabatan'] == 'Staff' ? 'selected' : ''; ?>>Staff</option>
                                 </select>
                             </div>
                             
                             <div class="mb-3">
                                 <label class="form-label">Email <span class="text-danger">*</span></label>
                                 <input type="email" name="email" class="form-control" required 
-                                       value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>"
+                                       value="<?php echo htmlspecialchars($data['email']); ?>"
                                        placeholder="contoh@email.com">
                             </div>
                             
                             <div class="mb-3">
                                 <label class="form-label">Deskripsi</label>
                                 <textarea name="deskripsi" class="form-control" rows="4" 
-                                          placeholder="Deskripsi singkat tentang personil..."><?php echo isset($_POST['deskripsi']) ? htmlspecialchars($_POST['deskripsi']) : ''; ?></textarea>
+                                          placeholder="Deskripsi singkat tentang personil..."><?php echo htmlspecialchars($data['deskripsi']); ?></textarea>
                                 <small class="text-muted">Opsional - Informasi tambahan tentang personil</small>
                             </div>
                             
                             <div class="mb-3">
                                 <label class="form-label">Foto</label>
+                                
+                                <?php if ($data['foto']): ?>
+                                <div class="mb-2">
+                                    <img src="<?php echo BASE_URL . '/uploads/personil/' . htmlspecialchars($data['foto']); ?>" 
+                                         class="img-thumbnail" style="max-width: 200px;" id="currentPhoto">
+                                    <p class="text-muted mb-0 mt-1"><small>Foto saat ini</small></p>
+                                </div>
+                                <?php endif; ?>
+                                
                                 <input type="file" name="foto" class="form-control" accept="image/*" id="fotoInput">
-                                <small class="text-muted">Format: JPG, PNG, GIF. Maksimal 2MB</small>
+                                <small class="text-muted">Format: JPG, PNG, GIF. Maksimal 2MB. Kosongkan jika tidak ingin mengubah foto.</small>
                                 <div id="previewContainer" class="mt-3" style="display: none;">
                                     <img id="previewImage" src="" class="img-thumbnail" style="max-width: 200px;">
+                                    <p class="text-muted mb-0 mt-1"><small>Preview foto baru</small></p>
                                 </div>
                             </div>
                             
                             <hr>
                             
                             <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-save me-2"></i>Simpan
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="bi bi-save me-2"></i>Update
                                 </button>
-                                <button type="reset" class="btn btn-secondary">
-                                    <i class="bi bi-arrow-counterclockwise me-2"></i>Reset
-                                </button>
-                                <a href="manage_personil.php" class="btn btn-outline-danger">
-                                    <i class="bi bi-x-circle me-2"></i>Batal
+                                <a href="manage_personil.php" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left me-2"></i>Kembali
                                 </a>
                             </div>
                             
@@ -165,25 +196,24 @@ include 'includes/admin_sidebar.php';
             <div class="col-lg-4">
                 <div class="card" data-aos="fade-up" data-aos-delay="100">
                     <div class="card-header bg-info text-white">
-                        <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Petunjuk</h6>
+                        <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Informasi</h6>
                     </div>
                     <div class="card-body">
                         <ul class="list-unstyled mb-0">
                             <li class="mb-2">
-                                <i class="bi bi-check-circle text-success me-2"></i>
-                                <strong>Nama, Jabatan, Email</strong> wajib diisi
+                                <strong>ID:</strong> #<?php echo $data['id']; ?>
+                            </li>
+                            <li class="mb-2">
+                                <strong>Ditambahkan:</strong><br>
+                                <small class="text-muted"><?php echo date('d M Y H:i', strtotime($data['created_at'])); ?></small>
                             </li>
                             <li class="mb-2">
                                 <i class="bi bi-check-circle text-success me-2"></i>
-                                Format foto: JPG, PNG, atau GIF
+                                Kosongkan foto jika tidak ingin mengubah
                             </li>
                             <li class="mb-2">
                                 <i class="bi bi-check-circle text-success me-2"></i>
-                                Ukuran foto maksimal 2MB
-                            </li>
-                            <li class="mb-2">
-                                <i class="bi bi-check-circle text-success me-2"></i>
-                                Gunakan email valid yang aktif
+                                Foto lama akan terhapus jika upload foto baru
                             </li>
                         </ul>
                     </div>
@@ -196,8 +226,8 @@ include 'includes/admin_sidebar.php';
 
 <style>
     .form-control:focus, .form-select:focus {
-        border-color: #0d6efd;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        border-color: #ffc107;
+        box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
     }
     
     .btn {
@@ -221,6 +251,8 @@ document.getElementById('fotoInput').addEventListener('change', function(e) {
             document.getElementById('previewContainer').style.display = 'block';
         }
         reader.readAsDataURL(file);
+    } else {
+        document.getElementById('previewContainer').style.display = 'none';
     }
 });
 
@@ -239,7 +271,7 @@ document.getElementById('formPersonil').addEventListener('submit', function(e) {
     // Show loading
     const submitBtn = this.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Mengupdate...';
 });
 </script>
 

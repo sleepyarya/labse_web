@@ -3,9 +3,28 @@
 require_once 'auth_check.php';
 require_once '../includes/config.php';
 
-$page_title = 'Tambah Data Mahasiswa';
+$page_title = 'Edit Data Mahasiswa';
 $error = '';
 $success = false;
+
+// Get ID from URL
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
+if ($id <= 0) {
+    header('Location: manage_mahasiswa.php?error=ID tidak valid');
+    exit();
+}
+
+// Get existing data
+$query = "SELECT * FROM mahasiswa WHERE id = $1";
+$result = pg_query_params($conn, $query, array($id));
+
+if (pg_num_rows($result) == 0) {
+    header('Location: manage_mahasiswa.php?error=Data tidak ditemukan');
+    exit();
+}
+
+$data = pg_fetch_assoc($result);
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -21,24 +40,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Format email tidak valid!';
     } else {
-        // Check NIM duplicate
-        $check_query = "SELECT COUNT(*) as total FROM mahasiswa WHERE nim = $1";
-        $check_result = pg_query_params($conn, $check_query, array($nim));
+        // Check NIM duplicate (exclude current record)
+        $check_query = "SELECT COUNT(*) as total FROM mahasiswa WHERE nim = $1 AND id != $2";
+        $check_result = pg_query_params($conn, $check_query, array($nim, $id));
         $check_data = pg_fetch_assoc($check_result);
         
         if ($check_data['total'] > 0) {
-            $error = 'NIM sudah terdaftar! Gunakan NIM yang berbeda.';
+            $error = 'NIM sudah digunakan mahasiswa lain!';
         } else {
-            // Insert to database
-            $query = "INSERT INTO mahasiswa (nama, nim, jurusan, email, alasan) 
-                      VALUES ($1, $2, $3, $4, $5)";
-            $result = pg_query_params($conn, $query, array($nama, $nim, $jurusan, $email, $alasan));
+            // Update database
+            $query = "UPDATE mahasiswa SET nama = $1, nim = $2, jurusan = $3, email = $4, alasan = $5 
+                      WHERE id = $6";
+            $result = pg_query_params($conn, $query, array($nama, $nim, $jurusan, $email, $alasan, $id));
             
             if ($result) {
-                header('Location: manage_mahasiswa.php?success=add');
+                header('Location: manage_mahasiswa.php?success=edit');
                 exit();
             } else {
-                $error = 'Gagal menambahkan data: ' . pg_last_error($conn);
+                $error = 'Gagal mengupdate data: ' . pg_last_error($conn);
             }
         }
     }
@@ -54,12 +73,12 @@ include 'includes/admin_sidebar.php';
     <!-- Top Bar -->
     <div class="admin-topbar">
         <div>
-            <h4 class="mb-0">Tambah Data Mahasiswa</h4>
+            <h4 class="mb-0">Edit Data Mahasiswa</h4>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item"><a href="index.php">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="manage_mahasiswa.php">Kelola Mahasiswa</a></li>
-                    <li class="breadcrumb-item active">Tambah Baru</li>
+                    <li class="breadcrumb-item active">Edit</li>
                 </ol>
             </nav>
         </div>
@@ -71,7 +90,7 @@ include 'includes/admin_sidebar.php';
             <div class="col-lg-8">
                 <div class="card" data-aos="fade-up">
                     <div class="card-header bg-warning text-dark">
-                        <h5 class="mb-0"><i class="bi bi-person-plus me-2"></i>Form Tambah Mahasiswa</h5>
+                        <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Form Edit Mahasiswa</h5>
                     </div>
                     <div class="card-body">
                         
@@ -87,7 +106,7 @@ include 'includes/admin_sidebar.php';
                             <div class="mb-3">
                                 <label class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
                                 <input type="text" name="nama" class="form-control" required 
-                                       value="<?php echo isset($_POST['nama']) ? htmlspecialchars($_POST['nama']) : ''; ?>"
+                                       value="<?php echo htmlspecialchars($data['nama']); ?>"
                                        placeholder="Masukkan nama lengkap mahasiswa">
                             </div>
                             
@@ -96,7 +115,7 @@ include 'includes/admin_sidebar.php';
                                     <div class="mb-3">
                                         <label class="form-label">NIM <span class="text-danger">*</span></label>
                                         <input type="text" name="nim" class="form-control" required 
-                                               value="<?php echo isset($_POST['nim']) ? htmlspecialchars($_POST['nim']) : ''; ?>"
+                                               value="<?php echo htmlspecialchars($data['nim']); ?>"
                                                placeholder="Contoh: 2141762001"
                                                pattern="[0-9]{10}"
                                                title="NIM harus 10 digit angka">
@@ -108,10 +127,10 @@ include 'includes/admin_sidebar.php';
                                         <label class="form-label">Jurusan <span class="text-danger">*</span></label>
                                         <select name="jurusan" class="form-select" required>
                                             <option value="">-- Pilih Jurusan --</option>
-                                            <option value="Teknik Informatika" <?php echo (isset($_POST['jurusan']) && $_POST['jurusan'] == 'Teknik Informatika') ? 'selected' : ''; ?>>Teknik Informatika</option>
-                                            <option value="Sistem Informasi Bisnis" <?php echo (isset($_POST['jurusan']) && $_POST['jurusan'] == 'Sistem Informasi Bisnis') ? 'selected' : ''; ?>>Sistem Informasi Bisnis</option>
-                                            <option value="D4 Teknik Informatika" <?php echo (isset($_POST['jurusan']) && $_POST['jurusan'] == 'D4 Teknik Informatika') ? 'selected' : ''; ?>>D4 Teknik Informatika</option>
-                                            <option value="D4 Sistem Informasi Bisnis" <?php echo (isset($_POST['jurusan']) && $_POST['jurusan'] == 'D4 Sistem Informasi Bisnis') ? 'selected' : ''; ?>>D4 Sistem Informasi Bisnis</option>
+                                            <option value="Teknik Informatika" <?php echo $data['jurusan'] == 'Teknik Informatika' ? 'selected' : ''; ?>>Teknik Informatika</option>
+                                            <option value="Sistem Informasi Bisnis" <?php echo $data['jurusan'] == 'Sistem Informasi Bisnis' ? 'selected' : ''; ?>>Sistem Informasi Bisnis</option>
+                                            <option value="D4 Teknik Informatika" <?php echo $data['jurusan'] == 'D4 Teknik Informatika' ? 'selected' : ''; ?>>D4 Teknik Informatika</option>
+                                            <option value="D4 Sistem Informasi Bisnis" <?php echo $data['jurusan'] == 'D4 Sistem Informasi Bisnis' ? 'selected' : ''; ?>>D4 Sistem Informasi Bisnis</option>
                                         </select>
                                     </div>
                                 </div>
@@ -120,7 +139,7 @@ include 'includes/admin_sidebar.php';
                             <div class="mb-3">
                                 <label class="form-label">Email <span class="text-danger">*</span></label>
                                 <input type="email" name="email" class="form-control" required 
-                                       value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>"
+                                       value="<?php echo htmlspecialchars($data['email']); ?>"
                                        placeholder="contoh@student.polinema.ac.id">
                                 <small class="text-muted">Gunakan email aktif mahasiswa</small>
                             </div>
@@ -128,7 +147,7 @@ include 'includes/admin_sidebar.php';
                             <div class="mb-3">
                                 <label class="form-label">Alasan Bergabung</label>
                                 <textarea name="alasan" class="form-control" rows="5" 
-                                          placeholder="Tuliskan alasan ingin bergabung dengan Lab Software Engineering..."><?php echo isset($_POST['alasan']) ? htmlspecialchars($_POST['alasan']) : ''; ?></textarea>
+                                          placeholder="Tuliskan alasan ingin bergabung dengan Lab Software Engineering..."><?php echo htmlspecialchars($data['alasan']); ?></textarea>
                                 <small class="text-muted">Opsional - Alasan atau motivasi bergabung dengan lab</small>
                             </div>
                             
@@ -136,13 +155,10 @@ include 'includes/admin_sidebar.php';
                             
                             <div class="d-flex gap-2">
                                 <button type="submit" class="btn btn-warning">
-                                    <i class="bi bi-save me-2"></i>Simpan
+                                    <i class="bi bi-save me-2"></i>Update
                                 </button>
-                                <button type="reset" class="btn btn-secondary">
-                                    <i class="bi bi-arrow-counterclockwise me-2"></i>Reset
-                                </button>
-                                <a href="manage_mahasiswa.php" class="btn btn-outline-danger">
-                                    <i class="bi bi-x-circle me-2"></i>Batal
+                                <a href="manage_mahasiswa.php" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left me-2"></i>Kembali
                                 </a>
                             </div>
                             
@@ -155,21 +171,16 @@ include 'includes/admin_sidebar.php';
             <div class="col-lg-4">
                 <div class="card" data-aos="fade-up" data-aos-delay="100">
                     <div class="card-header bg-info text-white">
-                        <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Petunjuk</h6>
+                        <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Informasi</h6>
                     </div>
                     <div class="card-body">
                         <ul class="list-unstyled mb-0">
                             <li class="mb-2">
-                                <i class="bi bi-check-circle text-success me-2"></i>
-                                <strong>Nama, NIM, Jurusan, Email</strong> wajib diisi
+                                <strong>ID:</strong> #<?php echo $data['id']; ?>
                             </li>
                             <li class="mb-2">
-                                <i class="bi bi-check-circle text-success me-2"></i>
-                                NIM harus <strong>10 digit angka</strong>
-                            </li>
-                            <li class="mb-2">
-                                <i class="bi bi-check-circle text-success me-2"></i>
-                                Email harus valid dan aktif
+                                <strong>Terdaftar:</strong><br>
+                                <small class="text-muted"><?php echo date('d M Y H:i', strtotime($data['created_at'])); ?></small>
                             </li>
                             <li class="mb-2">
                                 <i class="bi bi-check-circle text-success me-2"></i>
@@ -177,21 +188,9 @@ include 'includes/admin_sidebar.php';
                             </li>
                             <li class="mb-2">
                                 <i class="bi bi-check-circle text-success me-2"></i>
-                                Alasan bersifat opsional
+                                Pastikan data akurat
                             </li>
                         </ul>
-                    </div>
-                </div>
-                
-                <div class="card mt-3" data-aos="fade-up" data-aos-delay="200">
-                    <div class="card-header bg-secondary text-white">
-                        <h6 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Info</h6>
-                    </div>
-                    <div class="card-body">
-                        <small class="text-muted">
-                            <p class="mb-2"><strong>Data ini</strong> berisi mahasiswa yang mendaftar atau tertarik bergabung dengan Lab Software Engineering.</p>
-                            <p class="mb-0">Pastikan data yang diinput akurat dan valid.</p>
-                        </small>
                     </div>
                 </div>
             </div>
@@ -240,7 +239,7 @@ document.getElementById('formMahasiswa').addEventListener('submit', function(e) 
     // Show loading
     const submitBtn = this.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Mengupdate...';
 });
 
 // Auto format NIM (only numbers)
