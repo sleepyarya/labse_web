@@ -1,11 +1,8 @@
 <?php
-// Proteksi halaman - harus login dulu
-require_once 'auth_check.php';
-require_once '../includes/config.php';
-
-$page_title = 'Tambah Data Mahasiswa';
-$error = '';
-$success = false;
+// Redirect to new view structure
+header('Location: views/mahasiswa_form.php' . ($_SERVER['QUERY_STRING'] ? '?' . $_SERVER['QUERY_STRING'] : ''));
+exit();
+?>
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -213,6 +210,70 @@ include 'includes/admin_sidebar.php';
     .btn:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    /* Responsive Form Styles */
+    @media (max-width: 768px) {
+        .card-header h5 {
+            font-size: 1rem;
+        }
+        
+        .form-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .form-control,
+        .form-select {
+            font-size: 0.9rem;
+        }
+        
+        .btn {
+            font-size: 0.875rem;
+            padding: 0.5rem 1rem;
+        }
+        
+        .d-flex.gap-2 {
+            flex-direction: column;
+            gap: 0.5rem !important;
+        }
+        
+        .d-flex.gap-2 .btn {
+            width: 100%;
+        }
+        
+        textarea.form-control {
+            min-height: 120px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .card-body {
+            padding: 1rem;
+        }
+        
+        .form-label {
+            font-size: 0.85rem;
+        }
+        
+        .form-control,
+        .form-select {
+            font-size: 0.85rem;
+            padding: 0.5rem;
+        }
+        
+        small.text-muted {
+            font-size: 0.75rem;
+        }
+        
+        .btn {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
+        }
+        
+        textarea.form-control {
+            min-height: 100px;
+        }
     }
 </style>
 

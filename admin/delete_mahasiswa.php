@@ -1,15 +1,8 @@
 <?php
-// Proteksi halaman - harus login dulu
-require_once 'auth_check.php';
-require_once '../includes/config.php';
-
-// Get ID from URL
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-
-if ($id <= 0) {
-    header('Location: manage_mahasiswa.php?error=' . urlencode('ID tidak valid'));
-    exit();
-}
+// Redirect to new view structure - delete action now handled in manage view
+header('Location: views/manage_mahasiswa.php?action=delete&' . $_SERVER['QUERY_STRING']);
+exit();
+?>
 
 // Check if data exists
 $query = "SELECT id FROM mahasiswa WHERE id = $1";

@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/config.php';
+require_once __DIR__ . '/core/database.php';
 $page_title = 'Home';
 include 'includes/header.php';
 include 'includes/navbar.php';
@@ -13,17 +13,17 @@ include 'includes/navbar.php';
                 <h1 class="hero-title">Laboratorium Software Engineering</h1>
                 <p class="hero-subtitle">Berinovasi, Berkolaborasi, dan Berkembang bersama Teknologi Masa Depan</p>
                 <div class="mt-4">
-                    <a href="<?php echo BASE_URL; ?>/pages/profile/tentang.php" class="btn btn-primary btn-lg me-3">
+                    <a href="<?php echo BASE_URL; ?>/views/tentang.php" class="btn btn-primary btn-lg me-3">
                         <i class="bi bi-info-circle me-2"></i>Tentang Kami
                     </a>
-                    <a href="<?php echo BASE_URL; ?>/pages/recruitment/" class="btn btn-outline-primary btn-lg">
+                    <a href="<?php echo BASE_URL; ?>/views/recruitment/" class="btn btn-outline-primary btn-lg">
                         <i class="bi bi-people me-2"></i>Gabung Sekarang
                     </a>
                 </div>
             </div>
             <div class="col-lg-6" data-aos="fade-left">
                 <div class="text-center">
-                    <i class="bi bi-code-slash" style="font-size: 300px; opacity: 0.2;"></i>
+                    <img src="<?php echo BASE_URL; ?>/public/img/logo-se.png" alt="Lab Software Engineering" class="img-fluid" style="max-width: 450px;">
                 </div>
             </div>
         </div>
@@ -146,7 +146,7 @@ include 'includes/navbar.php';
     <div class="container text-center" data-aos="zoom-in">
         <h2 class="mb-4">Tertarik Bergabung dengan Kami?</h2>
         <p class="lead mb-4">Kami terbuka untuk mahasiswa yang ingin mengembangkan kemampuan di bidang software engineering</p>
-        <a href="<?php echo BASE_URL; ?>/pages/recruitment/" class="btn btn-primary btn-lg">
+        <a href="<?php echo BASE_URL; ?>/views/recruitment/" class="btn btn-primary btn-lg">
             <i class="bi bi-pencil-square me-2"></i>Daftar Sekarang
         </a>
     </div>

@@ -1,33 +1,8 @@
 <?php
-// Proteksi halaman - harus login dulu
-require_once 'auth_check.php';
-require_once '../includes/config.php';
-
-$page_title = 'Kelola Artikel';
-include 'includes/admin_header.php';
-include 'includes/admin_sidebar.php';
-
-// Handle success/error messages
-$success = isset($_GET['success']) ? $_GET['success'] : '';
-$error = isset($_GET['error']) ? $_GET['error'] : '';
-
-// Pagination
-$limit = 10;
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$offset = ($page - 1) * $limit;
-
-// Search functionality
-$search = isset($_GET['search']) ? pg_escape_string($conn, $_GET['search']) : '';
-$where = $search ? "WHERE judul ILIKE '%$search%' OR penulis ILIKE '%$search%' OR isi ILIKE '%$search%'" : '';
-
-// Get total records
-$count_query = "SELECT COUNT(*) as total FROM artikel $where";
-$count_result = pg_query($conn, $count_query);
-$total_records = pg_fetch_assoc($count_result)['total'];
-$total_pages = ceil($total_records / $limit);
-
-// Get artikel data
-$query = "SELECT * FROM artikel $where ORDER BY created_at DESC LIMIT $limit OFFSET $offset";
+// Redirect to new view structure
+header('Location: views/manage_artikel.php' . ($_SERVER['QUERY_STRING'] ? '?' . $_SERVER['QUERY_STRING'] : ''));
+exit();
+?>
 $result = pg_query($conn, $query);
 ?>
 
@@ -260,13 +235,11 @@ $result = pg_query($conn, $query);
     }
     
     .table tbody tr {
-        transition: all 0.3s ease;
+        transition: background-color 0.2s ease;
     }
     
     .table tbody tr:hover {
         background-color: #f8f9fa;
-        transform: scale(1.01);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     
     .btn-group .btn {
@@ -275,6 +248,82 @@ $result = pg_query($conn, $query);
     
     .btn-group .btn:hover {
         transform: translateY(-2px);
+    }
+    
+    /* Responsive Table Styles */
+    @media (max-width: 768px) {
+        .table-responsive {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .table {
+            min-width: 900px;
+            font-size: 0.85rem;
+        }
+        
+        .table th,
+        .table td {
+            padding: 0.5rem;
+            white-space: nowrap;
+        }
+        
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .btn-group .btn {
+            width: 100%;
+            margin: 0;
+        }
+        
+        .card-header h5 {
+            font-size: 1rem;
+        }
+        
+        .pagination {
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+        
+        .page-link {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+        }
+        
+        .artikel-image {
+            max-width: 80px;
+            height: auto;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .table {
+            font-size: 0.75rem;
+            min-width: 800px;
+        }
+        
+        .table th,
+        .table td {
+            padding: 0.375rem;
+        }
+        
+        .btn-sm {
+            padding: 0.2rem 0.4rem;
+            font-size: 0.7rem;
+        }
+        
+        .badge {
+            font-size: 0.7rem;
+            padding: 0.25em 0.5em;
+        }
+        
+        .artikel-image {
+            max-width: 60px;
+        }
     }
 </style>
 

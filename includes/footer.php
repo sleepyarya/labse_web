@@ -10,10 +10,10 @@
             <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="100">
                 <h5 class="fw-bold mb-3">Quick Links</h5>
                 <ul class="list-unstyled">
-                    <li class="mb-2"><a href="<?php echo BASE_URL; ?>/pages/profile/tentang.php" class="text-light text-decoration-none">Tentang Kami</a></li>
-                    <li class="mb-2"><a href="<?php echo BASE_URL; ?>/pages/personil/" class="text-light text-decoration-none">Personil</a></li>
-                    <li class="mb-2"><a href="<?php echo BASE_URL; ?>/pages/blog/" class="text-light text-decoration-none">Blog</a></li>
-                    <li class="mb-2"><a href="<?php echo BASE_URL; ?>/pages/recruitment/" class="text-light text-decoration-none">Recruitment</a></li>
+                    <li class="mb-2"><a href="<?php echo BASE_URL; ?>/views/tentang.php" class="text-light text-decoration-none">Tentang Kami</a></li>
+                    <li class="mb-2"><a href="<?php echo BASE_URL; ?>/views/personil/" class="text-light text-decoration-none">Personil</a></li>
+                    <li class="mb-2"><a href="<?php echo BASE_URL; ?>/views/blog/" class="text-light text-decoration-none">Blog</a></li>
+                    <li class="mb-2"><a href="<?php echo BASE_URL; ?>/views/recruitment/" class="text-light text-decoration-none">Recruitment</a></li>
                 </ul>
             </div>
             <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
@@ -45,7 +45,7 @@
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
 <!-- Custom JS -->
-<script src="<?php echo BASE_URL; ?>/assets/js/main.js"></script>
+<script src="<?php echo BASE_URL; ?>/public/js/main.js"></script>
 
 </body>
 </html>

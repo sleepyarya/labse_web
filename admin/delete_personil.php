@@ -1,15 +1,8 @@
 <?php
-// Proteksi halaman - harus login dulu
-require_once 'auth_check.php';
-require_once '../includes/config.php';
-
-// Get ID from URL
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-
-if ($id <= 0) {
-    header('Location: manage_personil.php?error=' . urlencode('ID tidak valid'));
-    exit();
-}
+// Redirect to new view structure - delete action now handled in manage view
+header('Location: views/manage_personil.php?action=delete&' . $_SERVER['QUERY_STRING']);
+exit();
+?>
 
 // Get data untuk hapus foto
 $query = "SELECT foto FROM personil WHERE id = $1";

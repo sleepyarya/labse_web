@@ -2,7 +2,7 @@
 // File untuk cek apakah user sudah login
 // Include file ini di setiap halaman admin yang perlu proteksi
 
-session_start();
+require_once __DIR__ . '/../core/session.php';
 
 // Timeout inactivity (dalam detik) - 10 menit
 define('SESSION_TIMEOUT', 600);
@@ -12,7 +12,7 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
     // Jika belum login, redirect ke halaman login
     session_unset();
     session_destroy();
-    header('Location: login.php');
+    header('Location: ../login.php');
     exit();
 }
 
@@ -24,7 +24,7 @@ if (isset($_SESSION['admin_last_activity'])) {
         // Session expired karena inactivity
         session_unset();
         session_destroy();
-        header('Location: login.php?timeout=1');
+        header('Location: ../login.php?timeout=1');
         exit();
     }
 }
@@ -49,7 +49,7 @@ if (in_array($current_page, ['index.php', ''])) {
             // Direct access atau tab baru detected - clear session
             session_unset();
             session_destroy();
-            header('Location: login.php?direct=1');
+            header('Location: ../login.php?direct=1');
             exit();
         }
     } else {
@@ -66,7 +66,7 @@ function admin_logout() {
     session_start();
     session_unset();
     session_destroy();
-    header('Location: login.php');
+    header('Location: ../login.php');
     exit();
 }
 ?>

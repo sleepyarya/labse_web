@@ -7,11 +7,44 @@ if (session_status() === PHP_SESSION_NONE) {
 // Cek apakah admin sedang preview website (bukan hanya login)
 // Hanya muncul jika admin klik "Lihat Website" dari dashboard
 $is_viewing_from_admin = isset($_SESSION['viewing_from_admin']) && $_SESSION['viewing_from_admin'] === true;
+
+// Deteksi halaman aktif berdasarkan URL
+$current_page = '';
+$request_uri = $_SERVER['REQUEST_URI'];
+$script_name = $_SERVER['SCRIPT_NAME'];
+
+// Ambil path relatif dari BASE_URL
+$base_path = parse_url(BASE_URL, PHP_URL_PATH) ?: '';
+$current_path = str_replace($base_path, '', $request_uri);
+
+// Hapus query string jika ada
+$current_path = strtok($current_path, '?');
+
+// Tentukan halaman aktif
+if ($current_path == '/' || $current_path == '/index.php' || $current_path == '' || $current_path == '/views/index.php') {
+    $current_page = 'home';
+} elseif (strpos($current_path, '/views/blog/') !== false || strpos($current_path, 'blog') !== false) {
+    $current_page = 'blog';
+} elseif (strpos($current_path, '/views/personil/') !== false || strpos($current_path, 'personil') !== false) {
+    $current_page = 'personil';
+} elseif (strpos($current_path, '/views/recruitment/') !== false || strpos($current_path, 'recruitment') !== false) {
+    $current_page = 'recruitment';
+} elseif (strpos($current_path, '/views/tentang.php') !== false || 
+          strpos($current_path, '/views/visi_misi.php') !== false || 
+          strpos($current_path, '/views/roadmap.php') !== false || 
+          strpos($current_path, '/views/focus_scope.php') !== false ||
+          strpos($current_path, 'tentang') !== false ||
+          strpos($current_path, 'visi_misi') !== false ||
+          strpos($current_path, 'roadmap') !== false ||
+          strpos($current_path, 'focus_scope') !== false) {
+    $current_page = 'profil';
+}
 ?>
+<!-- Debug: Current page = <?php echo $current_page; ?>, Path = <?php echo $current_path; ?> -->
 <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
     <div class="container">
         <a class="navbar-brand d-flex align-items-start" href="<?php echo BASE_URL; ?>/" style="padding-top: 0.5rem;">
-            <img src="<?php echo BASE_URL; ?>/assets/img/logo-pnm.png" alt="Logo Politeknik Negeri Malang" class="navbar-logo me-3">
+            <img src="<?php echo BASE_URL; ?>/public/img/logo-pnm.png" alt="Logo Politeknik Negeri Malang" class="navbar-logo me-3">
             <div class="brand-text">
                 <div class="fw-bold text-primary" style="font-size: 1rem; line-height: 1.3;">Jurusan Teknologi Informasi</div>
                 <div class="text-muted" style="font-size: 0.85rem; line-height: 1.3;">Politeknik Negeri Malang</div>
@@ -23,27 +56,27 @@ $is_viewing_from_admin = isset($_SESSION['viewing_from_admin']) && $_SESSION['vi
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="<?php echo BASE_URL; ?>/">Home</a>
+                    <a class="nav-link <?php echo $current_page == 'home' ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>/">Home</a>
                 </li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                    <a class="nav-link dropdown-toggle <?php echo $current_page == 'profil' ? 'active' : ''; ?>" href="#" role="button" data-bs-toggle="dropdown">
                         Profil
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/pages/profile/tentang.php">Tentang</a></li>
-                        <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/pages/profile/visi_misi.php">Visi & Misi</a></li>
-                        <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/pages/profile/roadmap.php">Roadmap</a></li>
-                        <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/pages/profile/focus_scope.php">Focus & Scope</a></li>
+                        <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/views/tentang.php">Tentang</a></li>
+                        <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/views/visi_misi.php">Visi & Misi</a></li>
+                        <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/views/roadmap.php">Roadmap</a></li>
+                        <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/views/focus_scope.php">Focus & Scope</a></li>
                     </ul>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="<?php echo BASE_URL; ?>/pages/personil/">Personil</a>
+                    <a class="nav-link <?php echo $current_page == 'personil' ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>/views/personil/">Personil</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="<?php echo BASE_URL; ?>/pages/blog/">Blog</a>
+                    <a class="nav-link <?php echo $current_page == 'blog' ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>/views/blog/">Blog</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="<?php echo BASE_URL; ?>/pages/recruitment/">Recruitment</a>
+                    <a class="nav-link <?php echo $current_page == 'recruitment' ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>/views/recruitment/">Recruitment</a>
                 </li>
             </ul>
         </div>

@@ -1,6 +1,17 @@
-<div class="admin-sidebar">
+<!-- Mobile Toggle Button -->
+<button class="mobile-toggle" id="sidebarToggle">
+    <i class="bi bi-list"></i>
+</button>
+
+<!-- Backdrop Overlay -->
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<div class="admin-sidebar" id="adminSidebar">
     <!-- Sidebar Header -->
     <div class="sidebar-header">
+        <button class="sidebar-close" id="sidebarClose">
+            <i class="bi bi-x-lg"></i>
+        </button>
         <a href="<?php echo BASE_URL; ?>/admin/index.php" class="sidebar-brand" style="align-items: flex-start;">
             <img src="<?php echo BASE_URL; ?>/assets/img/logo-pnm.png" alt="Logo PNM" style="width: 55px; height: 55px; object-fit: contain; margin-right: 12px; margin-top: -2px;">
             <div style="padding-top: 3px;">
@@ -36,6 +47,18 @@
             <span>Kelola Mahasiswa</span>
         </a>
         
+        <div class="menu-label">System</div>
+        
+        <a href="<?php echo BASE_URL; ?>/admin/views/manage_users.php" class="menu-item <?php echo basename($_SERVER['PHP_SELF']) == 'manage_users.php' ? 'active' : ''; ?>">
+            <i class="bi bi-people-fill"></i>
+            <span>Manajemen User</span>
+        </a>
+        
+        <a href="<?php echo BASE_URL; ?>/admin/views/edit_profile.php" class="menu-item <?php echo basename($_SERVER['PHP_SELF']) == 'edit_profile.php' ? 'active' : ''; ?>">
+            <i class="bi bi-person-gear"></i>
+            <span>Edit Profil</span>
+        </a>
+        
         <div class="menu-label">Website</div>
         
         <a href="<?php echo BASE_URL; ?>/admin/view_website.php" class="menu-item">
@@ -52,8 +75,38 @@
     <!-- User Info -->
     <div class="user-info">
         <div class="d-flex align-items-center">
+            <?php
+            // Get admin photo (with error handling for missing column)
+            $admin_photo = '';
+            if (isset($_SESSION['admin_id'])) {
+                try {
+                    // Check if foto column exists first
+                    $column_check = "SELECT column_name FROM information_schema.columns 
+                                   WHERE table_name = 'admin_users' AND column_name = 'foto'";
+                    $column_result = pg_query($conn, $column_check);
+                    
+                    if ($column_result && pg_num_rows($column_result) > 0) {
+                        // Column exists, safe to query
+                        $photo_query = "SELECT foto FROM admin_users WHERE id = $1";
+                        $photo_result = pg_query_params($conn, $photo_query, array($_SESSION['admin_id']));
+                        if ($photo_result && pg_num_rows($photo_result) > 0) {
+                            $photo_data = pg_fetch_assoc($photo_result);
+                            $admin_photo = $photo_data['foto'];
+                        }
+                    }
+                } catch (Exception $e) {
+                    // Silently handle error - column doesn't exist yet
+                    $admin_photo = '';
+                }
+            }
+            ?>
             <div class="user-avatar">
-                <i class="bi bi-person"></i>
+                <?php if (!empty($admin_photo) && file_exists(__DIR__ . '/../../uploads/admin/' . $admin_photo)): ?>
+                    <img src="<?php echo BASE_URL; ?>/uploads/admin/<?php echo htmlspecialchars($admin_photo); ?>" 
+                         alt="Admin Photo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                <?php else: ?>
+                    <i class="bi bi-person"></i>
+                <?php endif; ?>
             </div>
             <div class="flex-grow-1">
                 <div style="font-size: 0.9rem; font-weight: 600;">
