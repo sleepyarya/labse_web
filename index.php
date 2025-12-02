@@ -1,6 +1,14 @@
 <?php
 require_once __DIR__ . '/core/database.php';
 $page_title = 'Home';
+
+// Check recruitment status
+$recruitment_query = "SELECT is_open, message FROM recruitment_settings WHERE id = 1";
+$recruitment_result = pg_query($conn, $recruitment_query);
+$recruitment_settings = pg_fetch_assoc($recruitment_result);
+$is_recruitment_open = ($recruitment_settings && ($recruitment_settings['is_open'] == 't' || $recruitment_settings['is_open'] == '1'));
+$recruitment_message = $recruitment_settings ? $recruitment_settings['message'] : 'Maaf, Lab SE sedang tidak membuka recruitment saat ini.';
+
 include 'includes/header.php';
 include 'includes/navbar.php';
 ?>
@@ -16,9 +24,11 @@ include 'includes/navbar.php';
                     <a href="<?php echo BASE_URL; ?>/views/tentang.php" class="btn btn-primary btn-lg me-3">
                         <i class="bi bi-info-circle me-2"></i>Tentang Kami
                     </a>
+                    <?php if ($is_recruitment_open): ?>
                     <a href="<?php echo BASE_URL; ?>/views/recruitment/" class="btn btn-outline-primary btn-lg">
                         <i class="bi bi-people me-2"></i>Gabung Sekarang
                     </a>
+                    <?php endif; ?>
                 </div>
             </div>
             <div class="col-lg-6" data-aos="fade-left">
@@ -187,10 +197,17 @@ include 'includes/navbar.php';
 <section class="content-section bg-light-section">
     <div class="container text-center" data-aos="zoom-in">
         <h2 class="mb-4">Tertarik Bergabung dengan Kami?</h2>
-        <p class="lead mb-4">Kami terbuka untuk mahasiswa yang ingin mengembangkan kemampuan di bidang software engineering</p>
-        <a href="<?php echo BASE_URL; ?>/views/recruitment/" class="btn btn-primary btn-lg">
-            <i class="bi bi-pencil-square me-2"></i>Daftar Sekarang
-        </a>
+        <?php if ($is_recruitment_open): ?>
+            <p class="lead mb-4">Kami terbuka untuk mahasiswa yang ingin mengembangkan kemampuan di bidang software engineering</p>
+            <a href="<?php echo BASE_URL; ?>/views/recruitment/" class="btn btn-primary btn-lg">
+                <i class="bi bi-pencil-square me-2"></i>Daftar Sekarang
+            </a>
+        <?php else: ?>
+            <div class="alert alert-warning d-inline-block" role="alert">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong><?php echo htmlspecialchars($recruitment_message); ?></strong>
+            </div>
+        <?php endif; ?>
     </div>
 </section>
 

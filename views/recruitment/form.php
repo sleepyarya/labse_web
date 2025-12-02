@@ -2,6 +2,18 @@
 require_once '../../includes/config.php';
 $page_title = 'Form Pendaftaran';
 
+// Check recruitment status first
+$recruitment_query = "SELECT is_open FROM recruitment_settings WHERE id = 1";
+$recruitment_result = pg_query($conn, $recruitment_query);
+$recruitment_settings = pg_fetch_assoc($recruitment_result);
+$is_recruitment_open = ($recruitment_settings && ($recruitment_settings['is_open'] == 't' || $recruitment_settings['is_open'] == '1'));
+
+// Redirect if recruitment is closed
+if (!$is_recruitment_open) {
+    header('Location: index.php?error=closed');
+    exit();
+}
+
 $success = false;
 $error = '';
 

@@ -47,6 +47,11 @@
             <span>Kelola Mahasiswa</span>
         </a>
         
+        <a href="<?php echo BASE_URL; ?>/admin/manage_recruitment.php" class="menu-item <?php echo basename($_SERVER['PHP_SELF']) == 'manage_recruitment.php' ? 'active' : ''; ?>">
+            <i class="bi bi-people-fill"></i>
+            <span>Kelola Recruitment</span>
+        </a>
+        
         <a href="<?php echo BASE_URL; ?>/admin/manage_pengabdian.php" class="menu-item <?php echo in_array(basename($_SERVER['PHP_SELF']), ['manage_pengabdian.php', 'add_pengabdian.php', 'edit_pengabdian.php']) ? 'active' : ''; ?>">
             <i class="bi bi-people-fill"></i>
             <span>Kelola Pengabdian</span>

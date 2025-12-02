@@ -1,6 +1,17 @@
 <?php
 require_once '../../includes/config.php';
 $page_title = 'Recruitment';
+
+// Check recruitment status
+$recruitment_query = "SELECT is_open, message FROM recruitment_settings WHERE id = 1";
+$recruitment_result = pg_query($conn, $recruitment_query);
+$recruitment_settings = pg_fetch_assoc($recruitment_result);
+$is_recruitment_open = ($recruitment_settings && ($recruitment_settings['is_open'] == 't' || $recruitment_settings['is_open'] == '1'));
+$recruitment_message = $recruitment_settings ? $recruitment_settings['message'] : 'Maaf, Lab SE sedang tidak membuka recruitment saat ini.';
+
+// Check if redirected from form with error
+$show_closed_error = isset($_GET['error']) && $_GET['error'] == 'closed';
+
 include '../../includes/header.php';
 include '../../includes/navbar.php';
 
@@ -17,7 +28,20 @@ $result = pg_query($conn, $query);
     </div>
 </div>
 
+<?php if ($show_closed_error): ?>
+<section class="content-section pt-0">
+    <div class="container">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Recruitment sedang ditutup.</strong> Anda tidak dapat mengakses form pendaftaran saat ini.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
 <!-- Call to Action -->
+<?php if ($is_recruitment_open): ?>
 <section class="content-section">
     <div class="container">
         <div class="row justify-content-center">
@@ -35,6 +59,21 @@ $result = pg_query($conn, $query);
         </div>
     </div>
 </section>
+<?php else: ?>
+<section class="content-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="alert alert-warning p-5 text-center" role="alert" data-aos="zoom-in">
+                    <i class="bi bi-exclamation-circle" style="font-size: 3rem;"></i>
+                    <h3 class="mt-3 mb-3"><?php echo htmlspecialchars($recruitment_message); ?></h3>
+                    <p class="mb-0">Pantau terus halaman ini untuk informasi pembukaan recruitment selanjutnya.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
 
 <!-- Benefits Section -->
 <section class="content-section bg-light-section">
@@ -129,11 +168,13 @@ $result = pg_query($conn, $query);
         </div>
         <?php endif; ?>
         
+        <?php if ($is_recruitment_open): ?>
         <div class="text-center mt-5" data-aos="fade-up">
             <a href="form.php" class="btn btn-primary btn-lg">
                 <i class="bi bi-plus-circle me-2"></i>Daftar Bergabung
             </a>
         </div>
+        <?php endif; ?>
     </div>
 </section>
 
