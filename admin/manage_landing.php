@@ -42,6 +42,45 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
     }
+    
+    // Handle Hero Image Upload
+    if (isset($_FILES['hero_image_file']) && $_FILES['hero_image_file']['error'] == 0) {
+        $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+        $filename = $_FILES['hero_image_file']['name'];
+        $filetype = $_FILES['hero_image_file']['type'];
+        $filesize = $_FILES['hero_image_file']['size'];
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        
+        if (!in_array($ext, $allowed)) {
+            $error_msg = "Format file tidak diizinkan untuk Hero Image. Gunakan JPG, PNG, GIF, SVG, atau WEBP.";
+        } else {
+            // Create directory if not exists
+            $upload_dir = '../public/img/';
+            if (!file_exists($upload_dir)) {
+                mkdir($upload_dir, 0777, true);
+            }
+            
+            $new_filename = 'hero-' . time() . '.' . $ext;
+            $destination = $upload_dir . $new_filename;
+            
+            if (move_uploaded_file($_FILES['hero_image_file']['tmp_name'], $destination)) {
+                // Update database with new path
+                $image_path = '/public/img/' . $new_filename;
+                $query = "UPDATE landing_page_content SET content_value = $1, updated_at = NOW() 
+                          WHERE section_name = 'hero' AND key_name = 'image_path'";
+                $update_result = pg_query_params($conn, $query, array($image_path));
+                
+                // If no row was updated, insert new row
+                if ($update_result && pg_affected_rows($update_result) == 0) {
+                    $query = "INSERT INTO landing_page_content (section_name, key_name, content_value, content_type) 
+                              VALUES ('hero', 'image_path', $1, 'image')";
+                    pg_query_params($conn, $query, array($image_path));
+                }
+            } else {
+                $error_msg = "Gagal mengupload Hero Image.";
+            }
+        }
+    }
 
     foreach ($_POST as $key => $value) {
         if (strpos($key, 'content_') === 0) {
@@ -137,6 +176,30 @@ function getContent($section, $key, $map) {
                     <!-- HERO SECTION -->
                     <div class="tab-pane fade show active" id="hero" role="tabpanel">
                         <h5 class="mb-4 text-primary">Hero Section Settings</h5>
+                        
+                        <!-- Hero Image -->
+                        <div class="mb-4 p-3 bg-light rounded">
+                            <label class="form-label fw-bold"><i class="bi bi-image me-2"></i>Hero Image</label>
+                            <div class="d-flex align-items-center mb-3">
+                                <?php 
+                                $hero_image = getContent('hero', 'image_path', $content_map);
+                                if (empty($hero_image)) {
+                                    $hero_image = '/public/img/logo-se.png';
+                                }
+                                ?>
+                                <img src="<?php echo BASE_URL . $hero_image; ?>" alt="Hero Image" style="max-height: 150px; margin-right: 15px; border: 2px solid #ddd; padding: 10px; border-radius: 10px; background: white;">
+                                <div class="flex-grow-1">
+                                    <input type="file" class="form-control" name="hero_image_file" accept="image/*">
+                                    <div class="form-text mt-2">
+                                        <i class="bi bi-info-circle me-1"></i>Upload gambar untuk hero section (kanan halaman depan).<br>
+                                        Format: JPG, PNG, SVG, WEBP. Ukuran rekomendasi: 450x450px atau lebih.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
                         <div class="mb-3">
                             <label class="form-label fw-bold">Main Title</label>
                             <input type="text" class="form-control" name="content_hero_title" value="<?php echo getContent('hero', 'title', $content_map); ?>" required>

@@ -33,7 +33,10 @@ include 'includes/navbar.php';
             </div>
             <div class="col-lg-6" data-aos="fade-left">
                 <div class="text-center">
-                    <img src="<?php echo BASE_URL; ?>/public/img/logo-se.png" alt="Lab Software Engineering" class="img-fluid" style="max-width: 450px;">
+                    <?php 
+                    $hero_image = get_content('hero', 'image_path', '/public/img/logo-se.png');
+                    ?>
+                    <img src="<?php echo BASE_URL . $hero_image; ?>" alt="Lab Software Engineering" class="img-fluid" style="max-width: 450px;">
                 </div>
             </div>
         </div>
