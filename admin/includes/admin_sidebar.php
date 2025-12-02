@@ -52,6 +52,16 @@
             <span>Kelola Pengabdian</span>
         </a>
         
+        <a href="<?php echo BASE_URL; ?>/admin/manage_penelitian.php" class="menu-item <?php echo in_array(basename($_SERVER['PHP_SELF']), ['manage_penelitian.php', 'penelitian_form.php']) ? 'active' : ''; ?>">
+            <i class="bi bi-journal-text"></i>
+            <span>Kelola Penelitian</span>
+        </a>
+        
+        <a href="<?php echo BASE_URL; ?>/admin/manage_produk.php" class="menu-item <?php echo in_array(basename($_SERVER['PHP_SELF']), ['manage_produk.php', 'produk_form.php']) ? 'active' : ''; ?>">
+            <i class="bi bi-box-seam"></i>
+            <span>Kelola Produk</span>
+        </a>
+        
         <div class="menu-label">System</div>
         
         <a href="<?php echo BASE_URL; ?>/admin/views/manage_users.php" class="menu-item <?php echo basename($_SERVER['PHP_SELF']) == 'manage_users.php' ? 'active' : ''; ?>">

@@ -1,9 +1,39 @@
 <?php
-// Redirect to new view structure
-header('Location: views/manage_artikel.php' . ($_SERVER['QUERY_STRING'] ? '?' . $_SERVER['QUERY_STRING'] : ''));
-exit();
-?>
+require_once 'auth_check.php';
+require_once '../includes/config.php';
+
+// Pagination
+$items_per_page = 10;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($page - 1) * $items_per_page;
+
+// Search
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
+$where = '';
+if ($search) {
+    $where = "WHERE judul ILIKE '%$search%' OR deskripsi ILIKE '%$search%' OR abstrak ILIKE '%$search%' OR kategori ILIKE '%$search%'";
+}
+
+// Get total
+$count_query = "SELECT COUNT(*) as total FROM hasil_penelitian $where";
+$count_result = pg_query($conn, $count_query);
+$total_items = pg_fetch_assoc($count_result)['total'];
+$total_pages = ceil($total_items / $items_per_page);
+
+// Get data with personil name
+$query = "SELECT hp.*, p.nama as personil_nama 
+          FROM hasil_penelitian hp
+          LEFT JOIN personil p ON hp.personil_id = p.id
+          $where 
+          ORDER BY hp.tahun DESC, hp.created_at DESC 
+          LIMIT $items_per_page OFFSET $offset";
 $result = pg_query($conn, $query);
+
+$success = isset($_GET['success']) ? $_GET['success'] : '';
+$error = isset($_GET['error']) ? $_GET['error'] : '';
+
+include 'includes/admin_header.php';
+include 'includes/admin_sidebar.php';
 ?>
 
 <!-- Main Content -->
@@ -12,11 +42,11 @@ $result = pg_query($conn, $query);
     <!-- Top Bar -->
     <div class="admin-topbar">
         <div>
-            <h4 class="mb-0">Kelola Artikel</h4>
+            <h4 class="mb-0">Kelola Hasil Penelitian</h4>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item"><a href="index.php">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Kelola Artikel</li>
+                    <li class="breadcrumb-item active">Kelola Penelitian</li>
                 </ol>
             </nav>
         </div>
@@ -29,9 +59,9 @@ $result = pg_query($conn, $query);
         <div class="alert alert-success alert-dismissible fade show" role="alert" data-aos="fade-down">
             <i class="bi bi-check-circle me-2"></i>
             <?php 
-            if ($success == 'add') echo 'Artikel berhasil ditambahkan!';
-            elseif ($success == 'edit') echo 'Artikel berhasil diupdate!';
-            elseif ($success == 'delete') echo 'Artikel berhasil dihapus!';
+            if ($success == 'add') echo 'Penelitian berhasil ditambahkan!';
+            elseif ($success == 'edit') echo 'Penelitian berhasil diupdate!';
+            elseif ($success == 'delete') echo 'Penelitian berhasil dihapus!';
             ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
@@ -50,18 +80,18 @@ $result = pg_query($conn, $query);
             <div class="card-body">
                 <div class="row align-items-center">
                     <div class="col-md-6">
-                        <a href="add_artikel.php" class="btn btn-success">
-                            <i class="bi bi-plus-circle me-2"></i>Tambah Artikel
+                        <a href="penelitian_form.php" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i>Tambah Penelitian
                         </a>
                     </div>
                     <div class="col-md-6">
                         <form method="GET" class="d-flex gap-2">
-                            <input type="text" name="search" class="form-control" placeholder="Cari judul, penulis, atau konten..." value="<?php echo htmlspecialchars($search); ?>">
-                            <button type="submit" class="btn btn-outline-success">
+                            <input type="text" name="search" class="form-control" placeholder="Cari judul, kategori, atau deskripsi..." value="<?php echo htmlspecialchars($search); ?>">
+                            <button type="submit" class="btn btn-outline-primary">
                                 <i class="bi bi-search"></i>
                             </button>
                             <?php if ($search): ?>
-                            <a href="manage_artikel.php" class="btn btn-outline-secondary">
+                            <a href="manage_penelitian.php" class="btn btn-outline-secondary">
                                 <i class="bi bi-x-circle"></i>
                             </a>
                             <?php endif; ?>
@@ -73,8 +103,8 @@ $result = pg_query($conn, $query);
         
         <!-- Data Table -->
         <div class="card" data-aos="fade-up" data-aos-delay="100">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0"><i class="bi bi-file-text me-2"></i>Daftar Artikel</h5>
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-journal-text me-2"></i>Daftar Hasil Penelitian</h5>
             </div>
             <div class="card-body">
                 
@@ -85,12 +115,13 @@ $result = pg_query($conn, $query);
                         <thead class="table-light">
                             <tr>
                                 <th width="5%">No</th>
-                                <th width="10%">Gambar</th>
+                                <th width="10%">Cover</th>
                                 <th width="25%">Judul</th>
-                                <th width="30%">Isi</th>
-                                <th width="12%">Penulis</th>
-                                <th width="10%">Tanggal</th>
-                                <th width="8%" class="text-center">Aksi</th>
+                                <th width="8%">Tahun</th>
+                                <th width="12%">Kategori</th>
+                                <th width="15%">Personil</th>
+                                <th width="10%">File</th>
+                                <th width="10%" class="text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -102,39 +133,49 @@ $result = pg_query($conn, $query);
                                 <td><?php echo $no++; ?></td>
                                 <td>
                                     <?php if ($row['gambar']): ?>
-                                    <img src="<?php echo BASE_URL . '/uploads/artikel/' . htmlspecialchars($row['gambar']); ?>" 
-                                         alt="Gambar" class="img-thumbnail" style="width: 80px; height: 60px; object-fit: cover;">
+                                    <img src="<?php echo BASE_URL . '/uploads/penelitian/' . htmlspecialchars($row['gambar']); ?>" 
+                                         alt="Cover" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
                                     <?php else: ?>
                                     <div class="bg-secondary text-white d-flex align-items-center justify-content-center" 
-                                         style="width: 80px; height: 60px; border-radius: 5px;">
-                                        <i class="bi bi-image fs-5"></i>
+                                         style="width: 60px; height: 60px; border-radius: 5px;">
+                                        <i class="bi bi-journal-text"></i>
                                     </div>
                                     <?php endif; ?>
                                 </td>
                                 <td>
                                     <strong><?php echo htmlspecialchars($row['judul']); ?></strong>
+                                    <?php if ($row['file_pdf']): ?>
+                                    <br><small class="text-danger"><i class="bi bi-file-pdf"></i> PDF</small>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
-                                    <small class="text-muted">
-                                        <?php 
-                                        $isi = strip_tags($row['isi']);
-                                        echo strlen($isi) > 100 ? substr($isi, 0, 100) . '...' : $isi; 
-                                        ?>
-                                    </small>
+                                    <span class="badge bg-primary"><?php echo $row['tahun']; ?></span>
                                 </td>
                                 <td>
-                                    <span class="badge bg-info">
-                                        <?php echo htmlspecialchars($row['penulis']); ?>
-                                    </span>
+                                    <?php if ($row['kategori']): ?>
+                                    <span class="badge bg-info"><?php echo htmlspecialchars($row['kategori']); ?></span>
+                                    <?php else: ?>
+                                    <span class="text-muted">-</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
-                                    <small class="text-muted">
-                                        <?php echo date('d M Y', strtotime($row['created_at'])); ?>
-                                    </small>
+                                    <?php if ($row['personil_nama']): ?>
+                                    <small><?php echo htmlspecialchars($row['personil_nama']); ?></small>
+                                    <?php else: ?>
+                                    <span class="text-muted">-</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if ($row['file_pdf']): ?>
+                                    <a href="<?php echo BASE_URL . '/uploads/penelitian/' . htmlspecialchars($row['file_pdf']); ?>" 
+                                       class="btn btn-sm btn-outline-danger" target="_blank" title="Download PDF">
+                                        <i class="bi bi-file-pdf"></i>
+                                    </a>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group" role="group">
-                                        <a href="edit_artikel.php?id=<?php echo $row['id']; ?>" 
+                                        <a href="penelitian_form.php?id=<?php echo $row['id']; ?>" 
                                            class="btn btn-sm btn-warning" title="Edit">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
@@ -155,14 +196,12 @@ $result = pg_query($conn, $query);
                 <?php if ($total_pages > 1): ?>
                 <nav aria-label="Page navigation" class="mt-4">
                     <ul class="pagination justify-content-center">
-                        <!-- Previous -->
                         <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
                             <a class="page-link" href="?page=<?php echo $page-1; ?><?php echo $search ? '&search='.urlencode($search) : ''; ?>">
                                 <i class="bi bi-chevron-left"></i>
                             </a>
                         </li>
                         
-                        <!-- Pages -->
                         <?php for ($i = 1; $i <= $total_pages; $i++): ?>
                         <li class="page-item <?php echo $i == $page ? 'active' : ''; ?>">
                             <a class="page-link" href="?page=<?php echo $i; ?><?php echo $search ? '&search='.urlencode($search) : ''; ?>">
@@ -171,7 +210,6 @@ $result = pg_query($conn, $query);
                         </li>
                         <?php endfor; ?>
                         
-                        <!-- Next -->
                         <li class="page-item <?php echo $page >= $total_pages ? 'disabled' : ''; ?>">
                             <a class="page-link" href="?page=<?php echo $page+1; ?><?php echo $search ? '&search='.urlencode($search) : ''; ?>">
                                 <i class="bi bi-chevron-right"></i>
@@ -184,11 +222,11 @@ $result = pg_query($conn, $query);
                 <?php else: ?>
                 
                 <div class="text-center py-5">
-                    <i class="bi bi-file-text text-muted" style="font-size: 4rem;"></i>
-                    <h5 class="text-muted mt-3">Tidak ada artikel</h5>
-                    <p class="text-muted">Silakan tambahkan artikel baru</p>
-                    <a href="add_artikel.php" class="btn btn-success">
-                        <i class="bi bi-plus-circle me-2"></i>Tambah Artikel
+                    <i class="bi bi-journal-text text-muted" style="font-size: 4rem;"></i>
+                    <h5 class="text-muted mt-3">Tidak ada data penelitian</h5>
+                    <p class="text-muted">Silakan tambahkan penelitian baru</p>
+                    <a href="penelitian_form.php" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>Tambah Penelitian
                     </a>
                 </div>
                 
@@ -210,9 +248,9 @@ $result = pg_query($conn, $query);
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>Apakah Anda yakin ingin menghapus artikel:</p>
-                <h6 id="deleteArtikelJudul" class="text-danger"></h6>
-                <p class="text-muted mb-0"><small>Data yang dihapus tidak dapat dikembalikan!</small></p>
+                <p>Apakah Anda yakin ingin menghapus penelitian:</p>
+                <h6 id="deleteJudul" class="text-danger"></h6>
+                <p class="text-muted mb-0"><small>Data, gambar, dan PDF yang dihapus tidak dapat dikembalikan!</small></p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -233,104 +271,12 @@ $result = pg_query($conn, $query);
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
     }
-    
-    .table tbody tr {
-        transition: background-color 0.2s ease;
-    }
-    
-    .table tbody tr:hover {
-        background-color: #f8f9fa;
-    }
-    
-    .btn-group .btn {
-        transition: all 0.3s ease;
-    }
-    
-    .btn-group .btn:hover {
-        transform: translateY(-2px);
-    }
-    
-    /* Responsive Table Styles */
-    @media (max-width: 768px) {
-        .table-responsive {
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-        }
-        
-        .table {
-            min-width: 900px;
-            font-size: 0.85rem;
-        }
-        
-        .table th,
-        .table td {
-            padding: 0.5rem;
-            white-space: nowrap;
-        }
-        
-        .btn-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-        
-        .btn-group .btn {
-            width: 100%;
-            margin: 0;
-        }
-        
-        .card-header h5 {
-            font-size: 1rem;
-        }
-        
-        .pagination {
-            flex-wrap: wrap;
-            gap: 0.25rem;
-        }
-        
-        .page-link {
-            padding: 0.375rem 0.75rem;
-            font-size: 0.875rem;
-        }
-        
-        .artikel-image {
-            max-width: 80px;
-            height: auto;
-        }
-    }
-    
-    @media (max-width: 480px) {
-        .table {
-            font-size: 0.75rem;
-            min-width: 800px;
-        }
-        
-        .table th,
-        .table td {
-            padding: 0.375rem;
-        }
-        
-        .btn-sm {
-            padding: 0.2rem 0.4rem;
-            font-size: 0.7rem;
-        }
-        
-        .badge {
-            font-size: 0.7rem;
-            padding: 0.25em 0.5em;
-        }
-        
-        .artikel-image {
-            max-width: 60px;
-        }
-    }
 </style>
 
 <script>
 function confirmDelete(id, judul) {
-    document.getElementById('deleteArtikelJudul').textContent = judul;
-    document.getElementById('confirmDeleteBtn').href = 'delete_artikel.php?id=' + id;
+    document.getElementById('deleteJudul').textContent = judul;
+    document.getElementById('confirmDeleteBtn').href = 'delete_penelitian.php?id=' + id;
     new bootstrap.Modal(document.getElementById('deleteModal')).show();
 }
 

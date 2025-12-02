@@ -8,9 +8,8 @@ include 'includes/sidebar.php';
 
 // Get student data
 $student_id = $_SESSION['student_id'];
-$query = "SELECT m.*, p.nama as dosen_nama 
+$query = "SELECT m.* 
           FROM mahasiswa m 
-          LEFT JOIN personil p ON m.dosen_pembimbing_id = p.id 
           WHERE m.id = $1";
 $result = pg_query_params($conn, $query, array($student_id));
 $student = pg_fetch_assoc($result);
@@ -62,26 +61,6 @@ $total_penelitian = pg_fetch_result($result_penelitian, 0, 0);
                         </div>
                         <div class="col-auto">
                             <i class="bi bi-person-circle fa-2x text-gray-300" style="font-size: 3rem; opacity: 0.3;"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Dosen Pembimbing Card -->
-        <div class="col-xl-6 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Dosen Pembimbing</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?php echo htmlspecialchars($student['dosen_nama'] ?? 'Belum dipilih'); ?>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-person-badge fa-2x text-gray-300" style="font-size: 2rem; opacity: 0.3;"></i>
                         </div>
                     </div>
                 </div>

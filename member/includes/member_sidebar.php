@@ -52,12 +52,27 @@
             <span>Tambah Pengabdian</span>
         </a>
 
-        <div class="menu-label">Bimbingan</div>
-
-        <a href="<?php echo BASE_URL; ?>/member/review_penelitian.php" class="menu-item <?php echo in_array(basename($_SERVER['PHP_SELF']), ['review_penelitian.php', 'detail_penelitian.php', 'detail_penelitian_clean.php']) ? 'active' : ''; ?>">
-            <i class="bi bi-people"></i>
-            <span>Review Penelitian</span>
+        <a href="<?php echo BASE_URL; ?>/member/my_penelitian.php" class="menu-item <?php echo in_array(basename($_SERVER['PHP_SELF']), ['my_penelitian.php', 'edit_penelitian.php', 'view_penelitian.php']) ? 'active' : ''; ?>">
+            <i class="bi bi-journal-text"></i>
+            <span>Penelitian Saya</span>
         </a>
+        
+        <a href="<?php echo BASE_URL; ?>/member/add_penelitian.php" class="menu-item <?php echo basename($_SERVER['PHP_SELF']) == 'add_penelitian.php' ? 'active' : ''; ?>">
+            <i class="bi bi-journal-plus"></i>
+            <span>Tambah Penelitian</span>
+        </a>
+
+        <a href="<?php echo BASE_URL; ?>/member/my_produk.php" class="menu-item <?php echo in_array(basename($_SERVER['PHP_SELF']), ['my_produk.php', 'edit_produk.php', 'view_produk.php']) ? 'active' : ''; ?>">
+            <i class="bi bi-box-seam"></i>
+            <span>Produk Saya</span>
+        </a>
+        
+        <a href="<?php echo BASE_URL; ?>/member/add_produk.php" class="menu-item <?php echo basename($_SERVER['PHP_SELF']) == 'add_produk.php' ? 'active' : ''; ?>">
+            <i class="bi bi-plus-square"></i>
+            <span>Tambah Produk</span>
+        </a>
+
+        <div class="menu-label">Pengaturan</div>
         
         <a href="<?php echo BASE_URL; ?>/member/edit_profile.php" class="menu-item <?php echo basename($_SERVER['PHP_SELF']) == 'edit_profile.php' ? 'active' : ''; ?>">
             <i class="bi bi-person-circle"></i>

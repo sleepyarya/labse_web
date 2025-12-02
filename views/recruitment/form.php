@@ -28,11 +28,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $error = 'NIM sudah terdaftar! Gunakan NIM yang berbeda.';
         } else {
             // Insert into database with pending status
-            $dosen_pembimbing = trim($_POST['dosen_pembimbing']);
-            
-            $query = "INSERT INTO mahasiswa (nama, nim, jurusan, email, alasan, dosen_pembimbing_id, status_approval, created_at) 
-                      VALUES ($1, $2, $3, $4, $5, $6, 'pending', NOW())";
-            $result = pg_query_params($conn, $query, array($nama, $nim, $jurusan, $email, $alasan, $dosen_pembimbing));
+            $query = "INSERT INTO mahasiswa (nama, nim, jurusan, email, alasan, status_approval, created_at) 
+                      VALUES ($1, $2, $3, $4, $5, 'pending', NOW())";
+            $result = pg_query_params($conn, $query, array($nama, $nim, $jurusan, $email, $alasan));
             
             if ($result) {
                 $success = true;
@@ -143,23 +141,6 @@ include '../../includes/navbar.php';
                                 <input type="email" class="form-control" id="email" name="email" required placeholder="nama@email.com">
                                 <div class="invalid-feedback">
                                     Email harus diisi dengan format yang valid.
-                                </div>
-                            </div>
-
-                            <div class="mb-4">
-                                <label for="dosen_pembimbing" class="form-label">Dosen Pembimbing <span class="text-danger">*</span></label>
-                                <select class="form-select" id="dosen_pembimbing" name="dosen_pembimbing" required>
-                                    <option value="" selected disabled>Pilih Dosen Pembimbing</option>
-                                    <?php
-                                    $query_dosen = "SELECT id, nama, jabatan FROM personil ORDER BY nama ASC";
-                                    $result_dosen = pg_query($conn, $query_dosen);
-                                    while ($dosen = pg_fetch_assoc($result_dosen)) {
-                                        echo '<option value="' . $dosen['id'] . '">' . htmlspecialchars($dosen['nama']) . ' - ' . htmlspecialchars($dosen['jabatan']) . '</option>';
-                                    }
-                                    ?>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Silakan pilih dosen pembimbing.
                                 </div>
                             </div>
                             

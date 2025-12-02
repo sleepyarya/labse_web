@@ -46,7 +46,7 @@ class MahasiswaController {
                     $result = pg_query_params($this->conn, $query, array($nama, $nim, $jurusan, $email, $alasan));
                     
                     if ($result) {
-                        header('Location: ../admin/views/manage_mahasiswa.php?success=add');
+                        header('Location: ../views/manage_mahasiswa.php?success=add');
                         exit();
                     } else {
                         $error = 'Gagal menambahkan data: ' . pg_last_error($this->conn);
@@ -122,12 +122,12 @@ class MahasiswaController {
             $delete_result = pg_query_params($this->conn, $delete_query, array($id));
             
             if ($delete_result) {
-                header('Location: ../admin/views/manage_mahasiswa.php?success=delete');
+                header('Location: ../views/manage_mahasiswa.php?success=delete');
             } else {
-                header('Location: ../admin/views/manage_mahasiswa.php?error=delete');
+                header('Location: ../views/manage_mahasiswa.php?error=delete');
             }
         } else {
-            header('Location: ../admin/views/manage_mahasiswa.php?error=invalid');
+            header('Location: ../views/manage_mahasiswa.php?error=invalid');
         }
         exit();
     }

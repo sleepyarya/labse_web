@@ -2,9 +2,6 @@
 # 📁 IGNORE FILES FOR LABSE_WEB (PHP + PostgreSQL)
 # ============================================
 
-# Sensitive configuration file
-includes/config.php
-
 # Local environment files
 .env
 *.env
