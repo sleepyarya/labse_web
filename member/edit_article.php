@@ -41,17 +41,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $error = 'Ukuran file terlalu besar! Maksimal 2MB.';
                 } else {
                     $new_filename = uniqid() . '.' . $ext;
-                    $upload_path = '../uploads/artikel/' . $new_filename;
+                    $upload_path = '../public/uploads/artikel/' . $new_filename;
                     
                     // Create directory if not exists
-                    if (!file_exists('../uploads/artikel/')) {
-                        mkdir('../uploads/artikel/', 0777, true);
+                    if (!file_exists('../public/uploads/artikel/')) {
+                        mkdir('../public/uploads/artikel/', 0777, true);
                     }
                     
                     if (move_uploaded_file($_FILES['gambar']['tmp_name'], $upload_path)) {
                         // Delete old image
                         if (!empty($artikel['gambar'])) {
-                            $old_path = '../uploads/artikel/' . $artikel['gambar'];
+                            $old_path = '../public/uploads/artikel/' . $artikel['gambar'];
                             if (file_exists($old_path)) {
                                 unlink($old_path);
                             }
@@ -163,7 +163,7 @@ include 'includes/member_sidebar.php';
                 <div class="mb-3">
                     <label class="form-label">Gambar Saat Ini</label>
                     <div id="currentImage">
-                        <img src="<?php echo BASE_URL; ?>/uploads/artikel/<?php echo htmlspecialchars($artikel['gambar']); ?>" 
+                        <img src="<?php echo BASE_URL; ?>/public/uploads/artikel/<?php echo htmlspecialchars($artikel['gambar']); ?>" 
                              alt="Current Image" class="img-thumbnail" style="max-width: 300px;">
                     </div>
                 </div>

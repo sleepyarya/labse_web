@@ -103,7 +103,7 @@ class MahasiswaController {
                     $result = pg_query_params($this->conn, $query, array($nama, $nim, $jurusan, $email, $alasan, $id));
                     
                     if ($result) {
-                        header('Location: ../admin/views/manage_mahasiswa.php?success=edit');
+                        header('Location: ../views/manage_mahasiswa.php?success=edit');
                         exit();
                     } else {
                         $error = 'Gagal mengupdate data: ' . pg_last_error($this->conn);

@@ -103,7 +103,7 @@ $result = pg_query_params($conn, $query, array($member_id, $items_per_page, $off
                                 <td><?php echo $no++; ?></td>
                                 <td>
                                     <?php if (!empty($article['gambar'])): ?>
-                                        <img src="<?php echo BASE_URL; ?>/uploads/artikel/<?php echo htmlspecialchars($article['gambar']); ?>" 
+                                        <img src="<?php echo BASE_URL; ?>/public/uploads/artikel/<?php echo htmlspecialchars($article['gambar']); ?>" 
                                              alt="Thumbnail" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;"
                                              onerror="this.src='<?php echo BASE_URL; ?>/assets/img/no-image.png'">
                                     <?php else: ?>

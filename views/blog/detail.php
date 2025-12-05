@@ -123,8 +123,8 @@ $img_url = "https://picsum.photos/seed/" . $artikel['id'] . "/1200/600";
             while ($row = pg_fetch_assoc($result_related)) {
                 $delay += 100;
                 // Use uploaded image if exists, otherwise use placeholder
-                if (!empty($row['gambar']) && file_exists('../../uploads/artikel/' . $row['gambar'])) {
-                    $related_img = BASE_URL . '/uploads/artikel/' . $row['gambar'];
+                if (!empty($row['gambar']) && file_exists('../../public/uploads/artikel/' . $row['gambar'])) {
+                    $related_img = BASE_URL . '/public/uploads/artikel/' . $row['gambar'];
                 } else {
                     $related_img = "https://picsum.photos/seed/" . $row['id'] . "/600/400";
                 }

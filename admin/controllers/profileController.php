@@ -73,19 +73,40 @@ class ProfileController {
                 return ['success' => false, 'message' => 'Konfirmasi password tidak cocok!'];
             }
             
-            // Verify current password
-            $current_admin = $this->getProfile($admin_id);
-            if (!$current_admin || !password_verify($current_password, $current_admin['password'])) {
+            // Verify current password from users table
+            $password_query = "SELECT password FROM users WHERE role = 'admin' AND reference_id = $1";
+            $password_result = pg_query_params($this->conn, $password_query, array($admin_id));
+            
+            if (!$password_result || pg_num_rows($password_result) === 0) {
+                return ['success' => false, 'message' => 'Data user tidak ditemukan!'];
+            }
+            
+            $user_data = pg_fetch_assoc($password_result);
+            if (!password_verify($current_password, $user_data['password'])) {
                 return ['success' => false, 'message' => 'Password saat ini tidak benar!'];
             }
             
-            // Update with new password
+            // Update profile in admin_users (without password)
+            $update_admin_query = "UPDATE admin_users 
+                                  SET nama_lengkap = $1, username = $2, email = $3, updated_at = NOW() 
+                                  WHERE id = $4";
+            $result = pg_query_params($this->conn, $update_admin_query, 
+                array($nama_lengkap, $username, $email, $admin_id));
+            
+            if (!$result) {
+                return ['success' => false, 'message' => 'Gagal memperbarui profil!'];
+            }
+            
+            // Update password in users table
             $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-            $update_query = "UPDATE admin_users 
-                           SET nama_lengkap = $1, username = $2, email = $3, password = $4, updated_at = NOW() 
-                           WHERE id = $5";
-            $result = pg_query_params($this->conn, $update_query, 
-                array($nama_lengkap, $username, $email, $hashed_password, $admin_id));
+            $update_password_query = "UPDATE users SET password = $1, updated_at = NOW() 
+                                     WHERE role = 'admin' AND reference_id = $2";
+            $password_update = pg_query_params($this->conn, $update_password_query, 
+                array($hashed_password, $admin_id));
+            
+            if (!$password_update) {
+                return ['success' => false, 'message' => 'Gagal memperbarui password!'];
+            }
         } else {
             // Update without password change
             $update_query = "UPDATE admin_users 

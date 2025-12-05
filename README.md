@@ -4,35 +4,149 @@ Website resmi Laboratorium Software Engineering yang dibangun dengan PHP Native,
 
 ## 🎨 Fitur Utama
 
-- **Desain Modern & Responsif**: Menggunakan Bootstrap 5 dengan animasi AOS (Animate On Scroll) dan tata letak yang responsif untuk semua perangkat.
-- **Multi-Role System**:
-    - **Admin**: Kontrol penuh atas konten, pengguna, dan pengaturan situs.
-    - **Member (Personil)**: Manajemen profil mandiri dan portofolio (Penelitian, Pengabdian, Produk, Artikel).
-    - **Student**: Area khusus mahasiswa untuk interaksi dan manajemen profil.
-- **Manajemen Konten Dinamis**:
-    - **Landing Page**: Hero section, Visi Misi, dan konten beranda dapat diedit langsung dari Admin.
-    - **Portofolio**: Manajemen data Penelitian, Pengabdian Masyarakat, dan Produk Hilirisasi.
-    - **Blog/Artikel**: Sistem publikasi artikel dengan editor teks.
-- **Fitur Khusus**:
-    - **Recruitment Toggle**: Admin dapat membuka/tutup pendaftaran mahasiswa baru.
-    - **Activity Log**: Pemantauan aktivitas admin untuk keamanan dan audit.
-    - **Social Media Integration**: Tautan sosial media dinamis untuk setiap personil.
+### 💫 Desain Modern & Responsif
+- Interface modern menggunakan **Bootstrap 5** dengan animasi **AOS (Animate On Scroll)**
+- Tata letak responsif yang optimal untuk semua perangkat (Desktop, Tablet, Mobile)
+- Desain card-based dengan shadow dan hover effects
+- Gradient backgrounds dan color schemes yang menarik
+
+### 👥 Multi-Role Authentication System
+- **Admin Area**: Kontrol penuh atas semua aspek website
+  - Manajemen semua konten (Artikel, Penelitian, Pengabdian, Produk)
+  - Manajemen user (Personil & Mahasiswa)
+  - Pengaturan sistem dan monitoring
+- **Member/Personil Area**: Dashboard personal untuk dosen/staff
+  - Manajemen profil pribadi dengan foto dan biodata
+  - CRUD portofolio mandiri (Penelitian, Pengabdian, Produk, Artikel)
+  - Statistik kontribusi personal
+- **Student Area**: Area khusus untuk mahasiswa
+  - Profil mahasiswa
+  - Akses informasi lab
+
+### 📝 Manajemen Konten Dinamis
+- **Landing Page Editor**: Admin dapat mengedit semua konten homepage
+  - Hero Section (Judul, Deskripsi, Background)
+  - About Section (Tentang Lab)
+  - Vision & Mission (Visi & Misi)
+  - Focus Areas (Area Fokus Penelitian)
+- **Portofolio Management**: 
+  - **Hasil Penelitian**: Judul, abstrak, kategori, tahun, file PDF, link publikasi
+  - **Pengabdian Masyarakat**: Dokumentasi kegiatan pelatihan dan pengabdian
+  - **Produk Hilirisasi**: Showcase produk Software/Hardware hasil riset
+- **Blog/Artikel System**: 
+  - Editor artikel dengan upload gambar
+  - Artikel terkait dengan personil sebagai penulis
+  - Tampilan detail artikel dengan informasi penulis
+
+### 🎯 Fitur Khusus & Advanced
+
+#### 🔄 Recruitment Toggle System
+- Admin dapat membuka/menutup pendaftaran recruitment
+- Custom message ketika recruitment ditutup
+- Toggle otomatis menyembunyikan form dan button pendaftaran
+- Tracking history perubahan (updated_by, updated_at)
+
+#### 📊 Activity Log & Monitoring
+- Real-time monitoring aktivitas personil
+- Logging otomatis untuk:
+  - Login/Logout events
+  - CRUD Artikel (Create, Edit, Delete)
+  - CRUD Penelitian (Create, Edit, Delete)
+  - CRUD Pengabdian (Create, Edit, Delete)
+  - CRUD Produk (Create, Edit, Delete)
+- Filter & Search capabilities:
+  - Filter berdasarkan personil
+  - Filter berdasarkan jenis aktivitas
+  - Filter berdasarkan tanggal
+  - Pencarian keyword di deskripsi
+- Pagination untuk performa optimal
+- IP Address tracking
+
+#### 🔗 Social Media Integration
+- Setiap personil dapat menambahkan link sosial media:
+  - LinkedIn
+  - Google Scholar
+  - GitHub
+  - Personal Website
+- Tampilan icon sosial media di profil personil
+
+### ⚡ Advanced Database Features
+- **Materialized Views** untuk performa query dashboard yang cepat:
+  - Dashboard Statistics (agregasi semua data)
+  - Personil Contributions (ranking kontribusi)
+  - Recent Activities (timeline aktivitas)
+  - Yearly Research Summary (statistik penelitian per tahun)
+  - Popular Content (konten terpopuler)
+- **Stored Procedures** untuk operasi CRUD yang aman dan konsisten
+- **Trigger Functions** untuk auto-update timestamp
+- **Helper Functions** untuk kalkulasi score dan refresh views
+
+### 🔐 Security Features
+- Password hashing menggunakan bcrypt
+- Session-based authentication dengan role validation
+- SQL Injection protection dengan prepared statements
+- CSRF protection untuk form submissions
+- Validasi input server-side dan client-side
 
 ## 📁 Struktur Folder
 
 ```
 labse_web/
-├── admin/                   # Dashboard & fitur Admin (Manajemen User, Konten, Landing Page)
-├── member/                  # Dashboard Member/Personil (Kelola portofolio mandiri)
-├── student/                 # Area Mahasiswa (Profil, Komentar)
-├── views/                   # Komponen tampilan publik (Landing page sections)
-├── assets/                  # CSS, JS, Images, Vendor libraries
-├── includes/                # Konfigurasi DB, Header, Footer, Navbar
-├── uploads/                 # Direktori penyimpanan file upload (Foto, Dokumen)
-├── database/                # Skema database (SQL)
+├── admin/                   # Admin Area - Dashboard & Manajemen Sistem
+│   ├── controllers/         # Controllers untuk CRUD operations
+│   ├── includes/            # Admin header, footer, sidebar
+│   ├── views/               # Admin view components
+│   └── *.php                # Admin pages (dashboard, manage_*, activity_logs, dll)
+│
+├── member/                  # Member/Personil Area - Dashboard Personal
+│   ├── controllers/         # Member CRUD controllers
+│   ├── includes/            # Member header, footer, sidebar
+│   └── *.php                # Member pages (dashboard, my_*, edit_*, add_*)
+│
+├── student/                 # Student Area - Area Mahasiswa
+│   └── *.php                # Student pages dan features
+│
+├── views/                   # Public Views - Komponen Landing Page
+│   ├── artikel/             # Artikel views (index, detail)
+│   ├── penelitian/          # Penelitian views
+│   ├── pengabdian/          # Pengabdian views
+│   ├── produk/              # Produk views
+│   ├── personil/            # Personil profile views
+│   └── recruitment/         # Recruitment views
+│
+├── core/                    # Core System Files
+│   └── database.php         # Database connection utility
+│
+├── includes/                # Global Includes
+│   ├── config.php           # Database configuration
+│   ├── header.php           # Public header
+│   ├── footer.php           # Public footer
+│   ├── navbar.php           # Public navigation
+│   └── activity_logger.php  # Activity logging utility
+│
+├── assets/                  # Static Assets
+│   ├── css/                 # Stylesheets
+│   ├── js/                  # JavaScript files
+│   └── img/                 # Images
+│
+├── uploads/                 # Upload Directory (File Storage)
+│   ├── personil/            # Foto profil personil
+│   ├── penelitian/          # Gambar & PDF penelitian
+│   ├── pengabdian/          # Foto pengabdian
+│   ├── produk/              # Gambar produk
+│   └── artikel/             # Cover artikel
+│
+├── database/                # Database Schema & Migrations
+│   ├── labse.sql            # Main database schema
+│   ├── migrations/          # Migration files
+│   ├── create_*.sql         # Table creation scripts
+│   └── README_*.md          # Database documentation
+│
+├── public/                  # Public accessible files
+│
 ├── index.php                # Landing Page Utama
-├── login.php                # Halaman Login Terpusat
-└── README.md                # Dokumentasi Proyek
+├── login.php                # Halaman Login Terpusat (Multi-role)
+└── README.md                # Dokumentasi Proyek (File ini)
 ```
 
 ## 🔑 Hak Akses & Modul
@@ -46,22 +160,137 @@ labse_web/
 - **Recruitment**: Form pendaftaran anggota baru (jika dibuka).
 
 ### 2. Admin Area (`/admin`)
-- **Dashboard**: Statistik ringkas.
-- **Manajemen User**: Tambah/Edit/Hapus Personil dan Mahasiswa.
-- **Manajemen Konten**: Kelola Artikel, Penelitian, Pengabdian, Produk.
-- **Manajemen Landing Page**: Edit teks Hero, About, Visi Misi, dll.
-- **Pengaturan**: Toggle status pendaftaran (Recruitment), Lihat Activity Log.
+**Dashboard Utama**
+- Statistik overview (Total Personil, Mahasiswa, Artikel, Penelitian, dll)
+- Recent activities timeline
+- Quick actions untuk manajemen konten
+
+**Manajemen Pengguna**
+- **Kelola Personil**:
+  - Tambah/Edit/Hapus data personil (dosen/staff)
+  - Upload foto profil
+  - Manajemen jabatan dan biodata
+  - Setting status member (enable/disable akses member area)
+  - Generate password untuk member login
+- **Kelola Mahasiswa**:
+  - Lihat daftar mahasiswa yang mendaftar
+  - Edit/Hapus data mahasiswa
+  - View detail pendaftaran (NIM, Jurusan, Alasan)
+
+**Manajemen Konten**
+- **Artikel**: CRUD artikel (Admin dapat kelola semua artikel)
+- **Hasil Penelitian**: CRUD penelitian untuk semua personil
+  - Upload PDF dan gambar
+  - Link ke publikasi jurnal/conference
+  - Kategorisasi (Fundamental, Terapan, Pengembangan)
+- **Pengabdian Masyarakat**: CRUD kegiatan pengabdian
+  - Upload dokumentasi foto
+  - Detail lokasi dan penyelenggara
+- **Produk Hilirisasi**: CRUD produk hasil riset
+  - Kategori Software/Hardware
+  - Link demo dan repository
+  - Stack teknologi yang digunakan
+
+**Manajemen Landing Page**
+- Edit Hero Section (Judul, Subjudul, Deskripsi)
+- Edit About Lab (Tentang Laboratorium)
+- Edit Vision & Mission (Visi & Misi)
+- Edit Focus Areas (Area Fokus Penelitian)
+- Preview langsung sebelum publish
+
+**Monitoring & Pengaturan**
+- **Activity Logs**: 
+  - Real-time monitoring aktivitas personil
+  - Filter berdasarkan personil, jenis aktivitas, dan tanggal
+  - Search functionality
+  - Pagination (50 records per halaman)
+  - Hapus log (bulk delete)
+- **Recruitment Management**:
+  - Toggle ON/OFF pendaftaran recruitment
+  - Custom message ketika recruitment ditutup
+  - Tracking history perubahan
 
 ### 3. Member Area (`/member`)
-- **Dashboard**: Ringkasan aktivitas pribadi.
-- **Profil Saya**: Update biodata, foto, dan password.
-- **Portofolio Saya**: Tambah/Edit/Hapus Penelitian, Pengabdian, dan Produk milik sendiri.
-- **Artikel Saya**: Tulis dan kelola artikel pribadi.
+**Dashboard Personal**
+- Statistik kontribusi pribadi (Total Penelitian, Pengabdian, Produk, Artikel)
+- Recent activities (aktivitas terbaru)
+- Quick access ke semua portofolio
+
+**Profil Saya**
+- Edit biodata lengkap (Nama, Jabatan, Deskripsi)
+- Upload dan update foto profil
+- Social Media Links:
+  - LinkedIn
+  - Google Scholar
+  - GitHub
+  - Personal Website
+- Change password
+- Session logout otomatis untuk keamanan
+
+**Portofolio Management**
+- **Penelitian Saya**:
+  - Tambah/Edit/Hapus penelitian pribadi
+  - Upload PDF hasil penelitian
+  - Upload gambar ilustrasi
+  - Kategori (Fundamental, Terapan, Pengembangan)
+  - Link publikasi jurnal/conference
+  - View detail penelitian
+- **Pengabdian Saya**:
+  - Tambah/Edit/Hapus kegiatan pengabdian
+  - Upload foto dokumentasi
+  - Detail tanggal, lokasi, penyelenggara
+  - View detail pengabdian
+- **Produk Saya**:
+  - Tambah/Edit/Hapus produk hilirisasi
+  - Kategori Software/Hardware
+  - Upload gambar produk
+  - Link demo dan repository
+  - Stack teknologi
+  - View detail produk
+
+**Artikel Saya**
+- Tulis artikel baru dengan editor
+- Edit artikel pribadi
+- Hapus artikel
+- Upload gambar cover artikel
+- Artikel otomatis linked ke profile personil
 
 ### 4. Student Area (`/student`)
-- **Dashboard**: Informasi mahasiswa.
-- **Profil**: Update data diri.
-- **Interaksi**: Fitur komentar pada konten tertentu.
+- **Dashboard**: Informasi mahasiswa dan overview lab.
+- **Profil**: Update data diri mahasiswa.
+- **Interaksi**: Fitur komentar pada konten tertentu (dalam pengembangan).
+
+## 🛠️ Teknologi yang Digunakan
+
+### Backend
+- **PHP Native** (7.4+) - Server-side scripting
+- **PostgreSQL** (12+) - Relational Database Management System
+- **pg_connect / pdo_pgsql** - PHP PostgreSQL extension
+
+### Frontend
+- **HTML5** - Markup structure
+- **CSS3** - Styling dan animasi
+- **Bootstrap 5** - Responsive framework
+- **JavaScript (Vanilla)** - Client-side interactivity
+- **AOS (Animate On Scroll)** - Scroll animations
+- **Bootstrap Icons** - Icon library
+
+### Database Features
+- **Materialized Views** - Untuk query performa tinggi
+- **Stored Procedures** - Business logic di database
+- **Trigger Functions** - Auto-update dan logging
+- **Foreign Key Constraints** - Data integrity dengan CASCADE
+
+### Security
+- **Password Hashing** - bcrypt algorithm
+- **Session Management** - PHP native sessions
+- **Prepared Statements** - SQL injection prevention
+- **Input Validation** - Server-side & client-side
+
+### File Management
+- **File Upload System** - Untuk gambar dan PDF
+- **Organized Storage** - Struktur folder terorganisir (`/uploads`)
+- **Unique Filename Generation** - Anti konflik file
 
 ## 🚀 Instalasi & Konfigurasi
 
@@ -416,6 +645,118 @@ Nama file di-generate unik menggunakan `time()` atau `uniqid()` untuk menghindar
 - **CSRF Protection**: Token validation untuk form submission (khususnya di admin area)
 - **Input Validation**: Server-side validation untuk semua input form
 
+## 🔍 Activity Log System
+
+Sistem Activity Log memungkinkan admin untuk memonitor semua aktivitas personil secara real-time.
+
+### Aktivitas yang Dilog
+
+**Authentication Events:**
+- `LOGIN` - Saat personil login
+- `LOGOUT` - Saat personil logout
+
+**Content Management:**
+- Artikel: `CREATE_ARTICLE`, `EDIT_ARTICLE`, `DELETE_ARTICLE`
+- Penelitian: `CREATE_PENELITIAN`, `EDIT_PENELITIAN`, `DELETE_PENELITIAN`
+- Pengabdian: `CREATE_PENGABDIAN`, `EDIT_PENGABDIAN`, `DELETE_PENGABDIAN`
+- Produk: `CREATE_PRODUK`, `EDIT_PRODUK`, `DELETE_PRODUK`
+
+### Data yang Tersimpan
+- Personil ID dan Nama
+- Jenis aktivitas (action_type)
+- Deskripsi detail aktivitas
+- Target type dan ID (artikel/penelitian/dll)
+- IP Address
+- Timestamp
+
+### Fitur Filter & Search
+- Filter berdasarkan personil
+- Filter berdasarkan jenis aktivitas
+- Filter berdasarkan rentang tanggal
+- Pencarian keyword di deskripsi
+- Pagination untuk performa optimal
+
+### Akses Activity Logs
+Admin dapat mengakses Activity Logs melalui:
+```
+/admin/activity_logs.php
+```
+
+## ⚡ Advanced Database Features
+
+Sistem ini dilengkapi dengan **Materialized Views** dan **Stored Procedures** untuk meningkatkan performa database.
+
+### Materialized Views
+1. `mv_dashboard_statistics` - Statistik dashboard yang cepat
+2. `mv_personil_contributions` - Ranking kontribusi personil
+3. `mv_recent_activities` - Timeline aktivitas terbaru
+4. `mv_yearly_research_summary` - Statistik penelitian per tahun
+5. `mv_popular_content` - Konten terpopuler
+
+### Stored Procedures
+- CRUD operations untuk Artikel, Penelitian, Pengabdian, Produk
+- Get personil detail dengan semua kontribusi
+- Dashboard statistics aggregation
+- Content search engine
+- Bulk delete operations
+
+### Trigger Functions
+- Auto-update `updated_at` timestamp
+- Auto-logging aktivitas (optional)
+
+### Cara Instalasi Advanced Features
+
+**Metode Otomatis (Recommended):**
+```bash
+php database/migrations/run_advanced_migration.php
+```
+
+**Metode Manual:**
+```bash
+psql -U postgres -d labse
+\i database/create_materialized_views.sql
+\i database/create_stored_procedures.sql
+\i database/create_trigger_functions.sql
+```
+
+### Refresh Materialized Views
+```sql
+-- Refresh semua views sekaligus
+SELECT fn_refresh_all_materialized_views();
+
+-- Atau refresh satu per satu
+REFRESH MATERIALIZED VIEW mv_dashboard_statistics;
+```
+
+**Detail lengkap**: Lihat file `database/README_ADVANCED_FEATURES.md`
+
+## 📚 Dokumentasi Tambahan
+
+Untuk dokumentasi lebih detail, silakan lihat file-file berikut:
+
+- **`database/README_ADVANCED_FEATURES.md`** - Panduan lengkap Materialized Views & Stored Procedures
+- **`IMPLEMENTATION_GUIDE.md`** - Panduan implementasi sistem
+- **`MEMBER_SETUP_GUIDE.md`** - Panduan setup member area
+- **`FITUR_MANAJEMEN_USER.md`** - Panduan manajemen user
+- **`SECURITY_FEATURES.md`** - Dokumentasi fitur keamanan
+- **`admin/README_ADMIN.md`** - Panduan admin area
+- **`member/README.md`** - Panduan member area
+
+## 🚀 Roadmap & Future Improvements
+
+- [ ] Dashboard analytics dengan charts/graphs
+- [ ] Export data ke PDF/Excel
+- [ ] Email notifications untuk aktivitas penting
+- [ ] Advanced search dengan full-text search
+- [ ] API endpoints untuk mobile app
+- [ ] Multi-language support (EN/ID)
+- [ ] Dark mode theme
+
 ## 📄 Lisensi
 
-Proyek ini dikembangkan untuk Laboratorium Software Engineering. Silakan hubungi administrator lab untuk penggunaan lebih lanjut.
+Proyek ini dikembangkan untuk **Laboratorium Software Engineering**. Silakan hubungi administrator lab untuk penggunaan lebih lanjut.
+
+---
+
+**Developed with ❤️ by Lab Software Engineering Team**  
+**Last Updated**: Desember 2025

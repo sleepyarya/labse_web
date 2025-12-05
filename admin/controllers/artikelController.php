@@ -14,6 +14,17 @@ class ArtikelController {
         $this->conn = $conn;
     }
     
+    // Get list of personil for dropdown
+    public function getPersonilList() {
+        $query = "SELECT id, nama FROM personil ORDER BY nama ASC";
+        $result = pg_query($this->conn, $query);
+        $personil_list = [];
+        while ($row = pg_fetch_assoc($result)) {
+            $personil_list[] = $row;
+        }
+        return $personil_list;
+    }
+
     // Add new artikel
     public function add() {
         $error = '';
@@ -22,7 +33,19 @@ class ArtikelController {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $judul = pg_escape_string($this->conn, trim($_POST['judul']));
             $isi = pg_escape_string($this->conn, trim($_POST['isi']));
-            $penulis = pg_escape_string($this->conn, trim($_POST['penulis']));
+            
+            // Handle personil selection
+            $personil_id = !empty($_POST['personil_id']) ? (int)$_POST['personil_id'] : 'NULL';
+            
+            // If personil selected, use their name. Otherwise use manual input
+            if ($personil_id !== 'NULL') {
+                $query_personil = "SELECT nama FROM personil WHERE id = $1";
+                $result_personil = pg_query_params($this->conn, $query_personil, array($personil_id));
+                $personil_data = pg_fetch_assoc($result_personil);
+                $penulis = pg_escape_string($this->conn, $personil_data['nama']);
+            } else {
+                $penulis = pg_escape_string($this->conn, trim($_POST['penulis']));
+            }
             
             // Validation
             if (empty($judul) || empty($isi) || empty($penulis)) {
@@ -37,6 +60,7 @@ class ArtikelController {
                     
                     if (in_array($ext, $allowed)) {
                         $new_filename = 'artikel_' . time() . '_' . uniqid() . '.' . $ext;
+                        // FIX: Use correct public path
                         $upload_dir = '../public/uploads/artikel/';
                         
                         // Create directory if not exists
@@ -54,12 +78,21 @@ class ArtikelController {
                 
                 // Insert to database
                 if (empty($error)) {
-                    $query = "INSERT INTO artikel (judul, isi, penulis, gambar) 
-                              VALUES ($1, $2, $3, $4)";
-                    $result = pg_query_params($this->conn, $query, array($judul, $isi, $penulis, $gambar));
+                    $query = "INSERT INTO artikel (judul, isi, penulis, gambar, personil_id) 
+                              VALUES ($1, $2, $3, $4, $5)";
+                    
+                    // Handle NULL for personil_id correctly in pg_query_params
+                    $params = array($judul, $isi, $penulis, $gambar);
+                    if ($personil_id === 'NULL') {
+                        $params[] = null;
+                    } else {
+                        $params[] = $personil_id;
+                    }
+                    
+                    $result = pg_query_params($this->conn, $query, $params);
                     
                     if ($result) {
-                        header('Location: ../admin/views/manage_artikel.php?success=add');
+                        header('Location: ../views/manage_artikel.php?success=add');
                         exit();
                     } else {
                         $error = 'Gagal menambahkan artikel: ' . pg_last_error($this->conn);
@@ -92,7 +125,18 @@ class ArtikelController {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $judul = pg_escape_string($this->conn, trim($_POST['judul']));
             $isi = pg_escape_string($this->conn, trim($_POST['isi']));
-            $penulis = pg_escape_string($this->conn, trim($_POST['penulis']));
+            
+            // Handle personil selection
+            $personil_id = !empty($_POST['personil_id']) ? (int)$_POST['personil_id'] : 'NULL';
+            
+            if ($personil_id !== 'NULL') {
+                $query_personil = "SELECT nama FROM personil WHERE id = $1";
+                $result_personil = pg_query_params($this->conn, $query_personil, array($personil_id));
+                $personil_data = pg_fetch_assoc($result_personil);
+                $penulis = pg_escape_string($this->conn, $personil_data['nama']);
+            } else {
+                $penulis = pg_escape_string($this->conn, trim($_POST['penulis']));
+            }
             
             // Validation
             if (empty($judul) || empty($isi) || empty($penulis)) {
@@ -107,6 +151,7 @@ class ArtikelController {
                     
                     if (in_array($ext, $allowed)) {
                         $new_filename = 'artikel_' . time() . '_' . uniqid() . '.' . $ext;
+                        // FIX: Use correct public path
                         $upload_dir = '../public/uploads/artikel/';
                         
                         // Create directory if not exists
@@ -128,12 +173,21 @@ class ArtikelController {
                 
                 // Update database
                 if (empty($error)) {
-                    $query = "UPDATE artikel SET judul = $1, isi = $2, penulis = $3, gambar = $4, updated_at = NOW() 
-                              WHERE id = $5";
-                    $result = pg_query_params($this->conn, $query, array($judul, $isi, $penulis, $gambar, $id));
+                    $query = "UPDATE artikel SET judul = $1, isi = $2, penulis = $3, gambar = $4, personil_id = $5, updated_at = NOW() 
+                              WHERE id = $6";
+                    
+                    $params = array($judul, $isi, $penulis, $gambar);
+                    if ($personil_id === 'NULL') {
+                        $params[] = null;
+                    } else {
+                        $params[] = $personil_id;
+                    }
+                    $params[] = $id;
+                    
+                    $result = pg_query_params($this->conn, $query, $params);
                     
                     if ($result) {
-                        header('Location: ../admin/views/manage_artikel.php?success=edit');
+                        header('Location: ../views/manage_artikel.php?success=edit');
                         exit();
                     } else {
                         $error = 'Gagal mengupdate artikel: ' . pg_last_error($this->conn);
@@ -160,18 +214,19 @@ class ArtikelController {
                 
                 if ($delete_result) {
                     // Delete image file
+                    // FIX: Use correct public path
                     if ($artikel['gambar'] && file_exists('../public/uploads/artikel/' . $artikel['gambar'])) {
                         unlink('../public/uploads/artikel/' . $artikel['gambar']);
                     }
-                    header('Location: ../admin/views/manage_artikel.php?success=delete');
+                    header('Location: ../views/manage_artikel.php?success=delete');
                 } else {
-                    header('Location: ../admin/views/manage_artikel.php?error=delete');
+                    header('Location: ../views/manage_artikel.php?error=delete');
                 }
             } else {
-                header('Location: ../admin/views/manage_artikel.php?error=notfound');
+                header('Location: ../views/manage_artikel.php?error=notfound');
             }
         } else {
-            header('Location: ../admin/views/manage_artikel.php?error=invalid');
+            header('Location: ../views/manage_artikel.php?error=invalid');
         }
         exit();
     }

@@ -107,7 +107,7 @@ class PersonilController {
                             }
                         }
                         
-                        header('Location: ../admin/views/manage_personil.php?success=add');
+                        header('Location: ../views/manage_personil.php?success=add');
                         exit();
                     } else {
                         $error = 'Gagal menambahkan data: ' . pg_last_error($this->conn);
@@ -232,7 +232,7 @@ class PersonilController {
                             $this->userSyncService->deleteUser($id, 'personil');
                         }
                         
-                        header('Location: ../admin/views/manage_personil.php?success=edit');
+                        header('Location: ../views/manage_personil.php?success=edit');
                         exit();
                     } else {
                         $error = 'Gagal mengupdate data: ' . pg_last_error($this->conn);
@@ -265,15 +265,15 @@ class PersonilController {
                     if ($personil['foto'] && file_exists('../public/uploads/personil/' . $personil['foto'])) {
                         unlink('../public/uploads/personil/' . $personil['foto']);
                     }
-                    header('Location: ../admin/views/manage_personil.php?success=delete');
+                    header('Location: ../views/manage_personil.php?success=delete');
                 } else {
-                    header('Location: ../admin/views/manage_personil.php?error=delete');
+                    header('Location: ../views/manage_personil.php?error=delete');
                 }
             } else {
-                header('Location: ../admin/views/manage_personil.php?error=notfound');
+                header('Location: ../views/manage_personil.php?error=notfound');
             }
         } else {
-            header('Location: ../admin/views/manage_personil.php?error=invalid');
+            header('Location: ../views/manage_personil.php?error=invalid');
         }
         exit();
     }

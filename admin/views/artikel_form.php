@@ -68,11 +68,47 @@ include '../includes/admin_sidebar.php';
                             
                             <div class="mb-3">
                                 <label class="form-label">Penulis <span class="text-danger">*</span></label>
-                                <input type="text" name="penulis" class="form-control" required 
-                                       value="<?php echo $artikel ? htmlspecialchars($artikel['penulis']) : (isset($_POST['penulis']) ? htmlspecialchars($_POST['penulis']) : htmlspecialchars($_SESSION['admin_nama'])); ?>"
-                                       placeholder="Nama penulis artikel">
-                                <small class="text-muted">Default: <?php echo htmlspecialchars($_SESSION['admin_nama']); ?></small>
+                                
+                                <!-- Personil Dropdown -->
+                                <div class="mb-2">
+                                    <select name="personil_id" id="personilSelect" class="form-select">
+                                        <option value="">-- Pilih Personil (Opsional) --</option>
+                                        <?php 
+                                        $personil_list = $controller->getPersonilList();
+                                        $current_personil_id = $artikel['personil_id'] ?? '';
+                                        foreach ($personil_list as $p): 
+                                        ?>
+                                            <option value="<?php echo $p['id']; ?>" <?php echo $current_personil_id == $p['id'] ? 'selected' : ''; ?>>
+                                                <?php echo htmlspecialchars($p['nama']); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <small class="text-muted">Pilih personil jika artikel ini milik anggota lab tertentu.</small>
+                                </div>
+
+                                <!-- Manual Input -->
+                                <div id="manualPenulisDiv" style="<?php echo !empty($current_personil_id) ? 'display:none;' : ''; ?>">
+                                    <input type="text" name="penulis" id="penulisInput" class="form-control" 
+                                           value="<?php echo $artikel ? htmlspecialchars($artikel['penulis']) : (isset($_POST['penulis']) ? htmlspecialchars($_POST['penulis']) : htmlspecialchars($_SESSION['admin_nama'])); ?>"
+                                           placeholder="Nama penulis artikel">
+                                    <small class="text-muted">Atau tulis nama penulis secara manual jika bukan personil.</small>
+                                </div>
                             </div>
+
+                            <script>
+                            document.getElementById('personilSelect').addEventListener('change', function() {
+                                const manualDiv = document.getElementById('manualPenulisDiv');
+                                const penulisInput = document.getElementById('penulisInput');
+                                
+                                if (this.value) {
+                                    manualDiv.style.display = 'none';
+                                    // Optional: Clear manual input or set it to selected personil name
+                                    // penulisInput.value = this.options[this.selectedIndex].text.trim();
+                                } else {
+                                    manualDiv.style.display = 'block';
+                                }
+                            });
+                            </script>
                             
                             <div class="mb-3">
                                 <label class="form-label">Isi Artikel <span class="text-danger">*</span></label>

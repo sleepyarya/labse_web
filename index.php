@@ -189,7 +189,7 @@ include 'includes/navbar.php';
             ?>
         </div>
         <div class="text-center mt-5" data-aos="fade-up">
-            <a href="<?php echo BASE_URL; ?>/views/pengabdian/" class="btn btn-success btn-lg">
+            <a href="<?php echo BASE_URL; ?>/views/pengabdian/" class="btn btn-primary btn-lg">
                 Lihat Semua Kegiatan <i class="bi bi-arrow-right ms-2"></i>
             </a>
         </div>

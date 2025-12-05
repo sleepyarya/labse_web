@@ -61,7 +61,7 @@ class PengabdianController {
                     $result = pg_query_params($this->conn, $query, array($judul, $deskripsi, $tanggal, $lokasi, $penyelenggara, $gambar));
                     
                     if ($result) {
-                        header('Location: ../admin/views/manage_pengabdian.php?success=add');
+                        header('Location: ../views/manage_pengabdian.php?success=add');
                         exit();
                     } else {
                         $error = 'Gagal menambahkan pengabdian: ' . pg_last_error($this->conn);
@@ -137,7 +137,7 @@ class PengabdianController {
                     $result = pg_query_params($this->conn, $query, array($judul, $deskripsi, $tanggal, $lokasi, $penyelenggara, $gambar, $id));
                     
                     if ($result) {
-                        header('Location: ../admin/views/manage_pengabdian.php?success=edit');
+                        header('Location: ../views/manage_pengabdian.php?success=edit');
                         exit();
                     } else {
                         $error = 'Gagal mengupdate pengabdian: ' . pg_last_error($this->conn);
@@ -167,15 +167,15 @@ class PengabdianController {
                     if ($pengabdian['gambar'] && file_exists('../public/uploads/pengabdian/' . $pengabdian['gambar'])) {
                         unlink('../public/uploads/pengabdian/' . $pengabdian['gambar']);
                     }
-                    header('Location: ../admin/views/manage_pengabdian.php?success=delete');
+                    header('Location: ../views/manage_pengabdian.php?success=delete');
                 } else {
-                    header('Location: ../admin/views/manage_pengabdian.php?error=delete');
+                    header('Location: ../views/manage_pengabdian.php?error=delete');
                 }
             } else {
-                header('Location: ../admin/views/manage_pengabdian.php?error=notfound');
+                header('Location: ../views/manage_pengabdian.php?error=notfound');
             }
         } else {
-            header('Location: ../admin/views/manage_pengabdian.php?error=invalid');
+            header('Location: ../views/manage_pengabdian.php?error=invalid');
         }
         exit();
     }

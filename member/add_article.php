@@ -29,11 +29,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $error = 'Ukuran file terlalu besar! Maksimal 2MB.';
                 } else {
                     $new_filename = uniqid() . '.' . $ext;
-                    $upload_path = '../uploads/artikel/' . $new_filename;
+                    $upload_path = '../public/uploads/artikel/' . $new_filename;
                     
                     // Create directory if not exists
-                    if (!file_exists('../uploads/artikel/')) {
-                        mkdir('../uploads/artikel/', 0777, true);
+                    if (!file_exists('../public/uploads/artikel/')) {
+                        mkdir('../public/uploads/artikel/', 0777, true);
                     }
                     
                     if (move_uploaded_file($_FILES['gambar']['tmp_name'], $upload_path)) {

@@ -32,17 +32,17 @@
         
         <div class="menu-label">Content Management</div>
         
-        <a href="<?php echo BASE_URL; ?>/admin/manage_personil.php" class="menu-item <?php echo in_array(basename($_SERVER['PHP_SELF']), ['manage_personil.php', 'add_personil.php', 'edit_personil.php']) ? 'active' : ''; ?>">
+        <a href="<?php echo BASE_URL; ?>/admin/views/manage_personil.php" class="menu-item <?php echo in_array(basename($_SERVER['PHP_SELF']), ['manage_personil.php', 'personil_form.php']) ? 'active' : ''; ?>">
             <i class="bi bi-people"></i>
             <span>Kelola Personil</span>
         </a>
         
-        <a href="<?php echo BASE_URL; ?>/admin/manage_artikel.php" class="menu-item <?php echo in_array(basename($_SERVER['PHP_SELF']), ['manage_artikel.php', 'add_artikel.php', 'edit_artikel.php']) ? 'active' : ''; ?>">
+        <a href="<?php echo BASE_URL; ?>/admin/views/manage_artikel.php" class="menu-item <?php echo in_array(basename($_SERVER['PHP_SELF']), ['manage_artikel.php', 'artikel_form.php']) ? 'active' : ''; ?>">
             <i class="bi bi-file-text"></i>
             <span>Kelola Artikel</span>
         </a>
         
-        <a href="<?php echo BASE_URL; ?>/admin/manage_mahasiswa.php" class="menu-item <?php echo in_array(basename($_SERVER['PHP_SELF']), ['manage_mahasiswa.php', 'add_mahasiswa.php', 'edit_mahasiswa.php']) ? 'active' : ''; ?>">
+        <a href="<?php echo BASE_URL; ?>/admin/views/manage_mahasiswa.php" class="menu-item <?php echo in_array(basename($_SERVER['PHP_SELF']), ['manage_mahasiswa.php', 'mahasiswa_form.php']) ? 'active' : ''; ?>">
             <i class="bi bi-person-badge"></i>
             <span>Kelola Mahasiswa</span>
         </a>

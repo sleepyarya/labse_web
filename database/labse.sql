@@ -12,7 +12,8 @@ CREATE TABLE lab_profile (
     judul VARCHAR(255) NOT NULL,
     konten TEXT NOT NULL,
     kategori VARCHAR(100) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create table personil
@@ -23,7 +24,8 @@ CREATE TABLE personil (
     deskripsi TEXT,
     foto VARCHAR(255),
     email VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create table mahasiswa
@@ -34,7 +36,8 @@ CREATE TABLE mahasiswa (
     jurusan VARCHAR(100) NOT NULL,
     email VARCHAR(255) NOT NULL,
     alasan TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create table artikel
@@ -44,19 +47,21 @@ CREATE TABLE artikel (
     isi TEXT NOT NULL,
     penulis VARCHAR(255) NOT NULL,
     gambar VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create table admin_users
 CREATE TABLE admin_users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(100) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
     nama_lengkap VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     last_login TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 -- Insert sample data into lab_profile
 INSERT INTO lab_profile (judul, konten, kategori) VALUES
@@ -97,7 +102,7 @@ INSERT INTO artikel (judul, isi, penulis, gambar) VALUES
 ('Software Testing Strategy: Unit, Integration, dan E2E Testing', 'Testing adalah komponen vital dalam software development lifecycle. Strategi testing yang komprehensif meliputi unit testing, integration testing, dan end-to-end testing. Artikel ini membahas kapan menggunakan masing-masing jenis testing, tools yang dapat digunakan, dan bagaimana mencapai test coverage yang optimal tanpa mengorbankan development velocity.', 'Dewi Lestari, M.T', 'software-testing.jpg');
 
 -- Insert sample data into admin_users
--- Password untuk semua user: "admin123"
-INSERT INTO admin_users (username, password, nama_lengkap, email) VALUES
-('admin', '$2y$10$L5R0jPh0VNP5mZKZJK6.VuYYZQZ5k8h0nYX0nYhKZ5k8h0nYX0nYh.', 'Administrator', 'admin@labse.ac.id'),
-('superadmin', '$2y$10$L5R0jPh0VNP5mZKZJK6.VuYYZQZ5k8h0nYX0nYhKZ5k8h0nYX0nYh.', 'Super Administrator', 'superadmin@labse.ac.id');
+-- Password disimpan di tabel users, bukan di admin_users
+INSERT INTO admin_users (username, nama_lengkap, email) VALUES
+('admin', 'Administrator', 'admin@labse.ac.id'),
+('superadmin', 'Super Administrator', 'superadmin@labse.ac.id');
