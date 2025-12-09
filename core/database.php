@@ -1,32 +1,46 @@
 <?php
 // Core: Database Connection Handler
-// Description: Handles PostgreSQL database connections and configuration
 
-// Database configuration - adjust these values according to your setup
-define('DB_HOST', 'localhost');
-define('DB_PORT', '5433');
+// --- KONFIGURASI DOCKER ---
+define('DB_HOST', 'db_postgres');  // Nama service database di docker-compose
+define('DB_PORT', '5432');         // Port internal container
 define('DB_NAME', 'labse');
-define('DB_USER', 'postgres');
-define('DB_PASS', '12345678');
+define('DB_USER', 'user');
+define('DB_PASS', 'userpass');
 
-// Base URL configuration
-define('BASE_URL', 'http://localhost/labse_web');
-
-// Create database connection
+// Base URL (Port 8888 sesuai Nginx di Docker)
+define('BASE_URL', 'http://localhost:8888/labse_web');
 function getConnection() {
     $conn_string = "host=" . DB_HOST . " port=" . DB_PORT . " dbname=" . DB_NAME . " user=" . DB_USER . " password=" . DB_PASS;
-    $conn = pg_connect($conn_string);
+    
+    // Menggunakan @ untuk menyembunyikan warning php standar
+    $conn = @pg_connect($conn_string);
     
     if (!$conn) {
-        die("Database connection failed: " . pg_last_error());
+        // FIX: Gunakan error_get_last() karena pg_last_error() error jika tidak ada koneksi
+        $error = error_get_last();
+        $error_msg = isset($error['message']) ? $error['message'] : 'Koneksi gagal tanpa pesan error spesifik.';
+
+        // Bersihkan pesan error agar lebih mudah dibaca (opsional)
+        $error_msg = str_replace("pg_connect(): ", "", $error_msg);
+
+        die("<div style='font-family: sans-serif; padding: 20px; border: 1px solid #f5c6cb; background: #f8d7da; color: #721c24; border-radius: 5px;'>
+                <h3>🚫 Koneksi Database Gagal!</h3>
+                <p>Sistem tidak bisa terhubung ke database PostgreSQL di Docker.</p>
+                <hr>
+                <strong>Penyebab Error:</strong><br>
+                <code>" . $error_msg . "</code>
+                <br><br>
+                <strong>Solusi:</strong>
+                <ul>
+                    <li>Pastikan container database bernama <b>db_postgres</b> sudah jalan (cek Docker Desktop).</li>
+                    <li>Pastikan username/password di <b>docker-compose.yml</b> sama dengan di sini.</li>
+                </ul>
+             </div>");
     }
-    
     return $conn;
 }
 
-// Global connection variable
 $conn = getConnection();
-
-// Set timezone
 date_default_timezone_set('Asia/Jakarta');
 ?>

@@ -1,11 +1,11 @@
 <?php
 // Database Configuration for PostgreSQL
 // Check each constant individually to prevent redefinition
-if (!defined('DB_HOST')) define('DB_HOST', 'localhost');
-if (!defined('DB_PORT')) define('DB_PORT', '5433');
+if (!defined('DB_HOST')) define('DB_HOST', 'db_postgres');
+if (!defined('DB_PORT')) define('DB_PORT', '5432');
 if (!defined('DB_NAME')) define('DB_NAME', 'labse');
-if (!defined('DB_USER')) define('DB_USER', 'postgres');
-if (!defined('DB_PASS')) define('DB_PASS', '12345678');
+if (!defined('DB_USER')) define('DB_USER', 'user');
+if (!defined('DB_PASS')) define('DB_PASS', 'userpass');
 
 // Base URL
 if (!defined('BASE_URL')) define('BASE_URL', '/labse_web');

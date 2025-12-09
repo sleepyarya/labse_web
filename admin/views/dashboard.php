@@ -6,6 +6,24 @@ require_once __DIR__ . '/../../core/database.php';
 $page_title = 'Dashboard';
 include '../includes/admin_header.php';
 include '../includes/admin_sidebar.php';
+
+pg_query($conn, "REFRESH MATERIALIZED VIEW mv_dashboard_stats");
+
+// 2. Ambil semua statistik dalam SATU kali query
+$query = "SELECT * FROM mv_dashboard_stats";
+$result = pg_query($conn, $query);
+$stats = pg_fetch_assoc($result);
+
+// Fallback jika data kosong
+if (!$stats) {
+    $stats = [
+        'total_personil' => 0,
+        'total_artikel' => 0,
+        'total_mahasiswa' => 0,
+        'total_profil' => 0,
+        'mahasiswa_pending' => 0
+    ];
+}
 ?>
 
 <!-- Main Content -->

@@ -14,7 +14,7 @@ class MahasiswaController {
         $this->conn = $conn;
     }
     
-    // Add new mahasiswa
+    // Add new mahasiswa (Manual input by Admin)
     public function add() {
         $error = '';
         $success = false;
@@ -41,6 +41,7 @@ class MahasiswaController {
                     $error = 'NIM sudah terdaftar! Gunakan NIM yang berbeda.';
                 } else {
                     // Insert to database with pending status
+                    // Note: Manual add doesn't create user account yet, approval needed
                     $query = "INSERT INTO mahasiswa (nama, nim, jurusan, email, alasan, status_approval, created_at) 
                               VALUES ($1, $2, $3, $4, $5, 'pending', NOW())";
                     $result = pg_query_params($this->conn, $query, array($nama, $nim, $jurusan, $email, $alasan));
@@ -103,7 +104,7 @@ class MahasiswaController {
                     $result = pg_query_params($this->conn, $query, array($nama, $nim, $jurusan, $email, $alasan, $id));
                     
                     if ($result) {
-                        header('Location: ../admin/views/manage_mahasiswa.php?success=edit');
+                        header('Location: ../views/manage_mahasiswa.php?success=edit');
                         exit();
                     } else {
                         $error = 'Gagal mengupdate data: ' . pg_last_error($this->conn);
@@ -118,10 +119,18 @@ class MahasiswaController {
     // Delete mahasiswa
     public function delete($id) {
         if ($id) {
+            // Delete query
             $delete_query = "DELETE FROM mahasiswa WHERE id = $1";
             $delete_result = pg_query_params($this->conn, $delete_query, array($id));
             
             if ($delete_result) {
+                // Clean up users table too (manual cleanup if cascade not set)
+                $cleanup_query = "DELETE FROM users WHERE reference_id = $1 AND role = 'mahasiswa'";
+                pg_query_params($this->conn, $cleanup_query, array($id));
+                
+                // Refresh dashboard stats
+                @pg_query($this->conn, "REFRESH MATERIALIZED VIEW mv_dashboard_stats");
+
                 header('Location: ../views/manage_mahasiswa.php?success=delete');
             } else {
                 header('Location: ../views/manage_mahasiswa.php?error=delete');
@@ -138,28 +147,30 @@ class MahasiswaController {
         
         // Build WHERE clause
         $where_conditions = [];
+        $params = [];
+        $param_index = 1;
         
         if ($search) {
-            $where_conditions[] = "(m.nama ILIKE '%$search%' OR m.nim ILIKE '%$search%' OR m.jurusan ILIKE '%$search%' OR m.email ILIKE '%$search%')";
+            $where_conditions[] = "(m.nama ILIKE $" . $param_index . " OR m.nim ILIKE $" . $param_index . " OR m.jurusan ILIKE $" . $param_index . " OR m.email ILIKE $" . $param_index . ")";
+            $params[] = "%$search%";
+            $param_index++;
         }
         
         if ($status) {
-            $where_conditions[] = "m.status_approval = '$status'";
+            $where_conditions[] = "m.status_approval = $" . $param_index;
+            $params[] = $status;
+            $param_index++;
         }
         
         $where = !empty($where_conditions) ? 'WHERE ' . implode(' AND ', $where_conditions) : '';
         
-        // Get total records with proper alias
+        // Get total records
         $count_query = "SELECT COUNT(*) as total FROM mahasiswa m $where";
-        $count_result = pg_query($this->conn, $count_query);
+        $count_result = pg_query_params($this->conn, $count_query, $params);
         
         if (!$count_result) {
-            error_log("Count query failed: " . pg_last_error($this->conn));
             return [
-                'mahasiswa' => [],
-                'total_records' => 0,
-                'total_pages' => 0,
-                'current_page' => $page
+                'mahasiswa' => [], 'total_records' => 0, 'total_pages' => 0, 'current_page' => $page
             ];
         }
         
@@ -172,22 +183,18 @@ class MahasiswaController {
                   LEFT JOIN admin_users au ON m.approved_by = au.id 
                   $where 
                   ORDER BY m.created_at DESC 
-                  LIMIT $limit OFFSET $offset";
-        $result = pg_query($this->conn, $query);
+                  LIMIT $" . $param_index . " OFFSET $" . ($param_index + 1);
         
-        if (!$result) {
-            error_log("Main query failed: " . pg_last_error($this->conn));
-            return [
-                'mahasiswa' => [],
-                'total_records' => 0,
-                'total_pages' => 0,
-                'current_page' => $page
-            ];
-        }
+        $params[] = $limit;
+        $params[] = $offset;
+        
+        $result = pg_query_params($this->conn, $query, $params);
         
         $mahasiswa = [];
-        while ($row = pg_fetch_assoc($result)) {
-            $mahasiswa[] = $row;
+        if ($result) {
+            while ($row = pg_fetch_assoc($result)) {
+                $mahasiswa[] = $row;
+            }
         }
         
         return [
@@ -198,71 +205,38 @@ class MahasiswaController {
         ];
     }
     
-    // Approve mahasiswa
+    // Approve mahasiswa (OPTIMIZED with Stored Procedure)
     public function approve($id, $admin_id) {
-        // First, get mahasiswa data
-        $query_get = "SELECT * FROM mahasiswa WHERE id = $1";
-        $result_get = pg_query_params($this->conn, $query_get, array($id));
-        $mahasiswa = pg_fetch_assoc($result_get);
+        // Default Dosen Pembimbing ID = 1 (Admin bisa set manual nanti atau pilih di UI jika ada fiturnya)
+        $dosen_id = 1; 
         
-        if (!$mahasiswa) {
-            return ['success' => false, 'message' => 'Data mahasiswa tidak ditemukan!'];
-        }
+        // --- PANGGIL STORED PROCEDURE ---
+        // Procedure ini otomatis:
+        // 1. Update status mahasiswa -> approved
+        // 2. Set dosen pembimbing
+        // 3. Update users -> is_active = true (Memungkinkan Login)
         
-        // Start transaction
-        pg_query($this->conn, "BEGIN");
+        $query = "CALL sp_approve_mahasiswa($1, $2, $3)";
+        $result = pg_query_params($this->conn, $query, array($id, $admin_id, $dosen_id));
         
-        try {
-            // 1. Update status
-            $query_update = "UPDATE mahasiswa 
-                      SET status_approval = 'approved', 
-                          approved_by = $1, 
-                          approved_at = NOW() 
-                      WHERE id = $2";
-            $result_update = pg_query_params($this->conn, $query_update, array($admin_id, $id));
+        if ($result) {
+            // Refresh dashboard stats agar angka pending berkurang di cache
+            @pg_query($this->conn, "REFRESH MATERIALIZED VIEW mv_dashboard_stats");
             
-            if (!$result_update) {
-                throw new Exception("Gagal update status mahasiswa");
+            return ['success' => true, 'message' => 'Mahasiswa berhasil disetujui & Akun Login diaktifkan!'];
+        } else {
+            // Fallback manual jika SP gagal (misal belum dibuat)
+            $manual_query = "UPDATE mahasiswa SET status_approval = 'approved', approved_by = $1, approved_at = NOW() WHERE id = $2";
+            $manual_res = pg_query_params($this->conn, $manual_query, array($admin_id, $id));
+            
+            if ($manual_res) {
+                 // Activate user manually
+                 $user_up = "UPDATE users SET is_active = TRUE WHERE reference_id = $1 AND role = 'mahasiswa'";
+                 pg_query_params($this->conn, $user_up, array($id));
+                 return ['success' => true, 'message' => 'Mahasiswa disetujui (Manual Fallback)'];
             }
             
-            // 2. Create user account
-            // Generate username from name (lowercase, remove spaces)
-            $username = strtolower(str_replace(' ', '', $mahasiswa['nama']));
-            // Ensure unique username by appending random number if needed
-            // For simplicity in this step, we'll just append a random 3 digit number if it's too common, 
-            // but let's try to be smarter: check if exists first.
-            
-            $check_user = pg_query_params($this->conn, "SELECT COUNT(*) FROM users WHERE username = $1", array($username));
-            if (pg_fetch_result($check_user, 0, 0) > 0) {
-                $username = $username . rand(100, 999);
-            }
-            
-            $password = password_hash('mahasiswa123', PASSWORD_DEFAULT);
-            $email = $mahasiswa['email'];
-            
-            // Check if email already exists in users
-            $check_email = pg_query_params($this->conn, "SELECT COUNT(*) FROM users WHERE email = $1", array($email));
-            if (pg_fetch_result($check_email, 0, 0) > 0) {
-                // User already exists with this email, maybe just update role or reference?
-                // For now, let's assume we skip creation if email exists to avoid error
-                // or throw exception
-                 throw new Exception("Email sudah terdaftar sebagai user!");
-            }
-            
-            $query_user = "INSERT INTO users (username, email, password, role, reference_id, is_active, created_at) 
-                           VALUES ($1, $2, $3, 'mahasiswa', $4, TRUE, NOW())";
-            $result_user = pg_query_params($this->conn, $query_user, array($username, $email, $password, $id));
-            
-            if (!$result_user) {
-                throw new Exception("Gagal membuat user account: " . pg_last_error($this->conn));
-            }
-            
-            pg_query($this->conn, "COMMIT");
-            return ['success' => true, 'message' => 'Mahasiswa berhasil disetujui dan akun user telah dibuat (Username: ' . $username . ', Password: mahasiswa123)'];
-            
-        } catch (Exception $e) {
-            pg_query($this->conn, "ROLLBACK");
-            return ['success' => false, 'message' => 'Gagal: ' . $e->getMessage()];
+            return ['success' => false, 'message' => 'Gagal menyetujui: ' . pg_last_error($this->conn)];
         }
     }
     
@@ -272,35 +246,22 @@ class MahasiswaController {
                   SET status_approval = 'rejected', 
                       approved_by = $1, 
                       approved_at = NOW(), 
-                      rejection_reason = $3 
-                  WHERE id = $2";
-        $result = pg_query_params($this->conn, $query, array($admin_id, $id, $reason));
+                      rejection_reason = $2 
+                  WHERE id = $3";
+        $result = pg_query_params($this->conn, $query, array($admin_id, $reason, $id));
         
         if ($result) {
+            // Deactivate user if exists (Prevent login if rejected)
+            $user_down = "UPDATE users SET is_active = FALSE WHERE reference_id = $1 AND role = 'mahasiswa'";
+            pg_query_params($this->conn, $user_down, array($id));
+            
+            // Refresh dashboard stats
+            @pg_query($this->conn, "REFRESH MATERIALIZED VIEW mv_dashboard_stats");
+
             return ['success' => true, 'message' => 'Mahasiswa berhasil ditolak!'];
         } else {
             return ['success' => false, 'message' => 'Gagal menolak mahasiswa!'];
         }
-    }
-    
-    // Get statistics
-    public function getStatistics() {
-        $stats = [];
-        
-        // Total mahasiswa
-        $total_query = "SELECT COUNT(*) as total FROM mahasiswa";
-        $stats['total'] = pg_fetch_result(pg_query($this->conn, $total_query), 0, 0);
-        
-        // By status
-        $status_query = "SELECT status_approval, COUNT(*) as count FROM mahasiswa GROUP BY status_approval";
-        $status_result = pg_query($this->conn, $status_query);
-        
-        $stats['by_status'] = [];
-        while ($row = pg_fetch_assoc($status_result)) {
-            $stats['by_status'][$row['status_approval']] = $row['count'];
-        }
-        
-        return $stats;
     }
 }
 ?>

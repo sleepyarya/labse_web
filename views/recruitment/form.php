@@ -2,16 +2,16 @@
 require_once '../../includes/config.php';
 $page_title = 'Form Pendaftaran';
 
-// Check recruitment status first
+// Check recruitment status
 $recruitment_query = "SELECT is_open FROM recruitment_settings WHERE id = 1";
-$recruitment_result = pg_query($conn, $recruitment_query);
-$recruitment_settings = pg_fetch_assoc($recruitment_result);
-$is_recruitment_open = ($recruitment_settings && ($recruitment_settings['is_open'] == 't' || $recruitment_settings['is_open'] == '1'));
-
-// Redirect if recruitment is closed
-if (!$is_recruitment_open) {
-    header('Location: index.php?error=closed');
-    exit();
+$recruitment_result = @pg_query($conn, $recruitment_query);
+if ($recruitment_result) {
+    $recruitment_settings = pg_fetch_assoc($recruitment_result);
+    $is_recruitment_open = ($recruitment_settings && ($recruitment_settings['is_open'] == 't' || $recruitment_settings['is_open'] == '1'));
+    if (!$is_recruitment_open) {
+        header('Location: index.php?error=closed');
+        exit();
+    }
 }
 
 $success = false;
@@ -23,31 +23,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nim = trim($_POST['nim']);
     $jurusan = trim($_POST['jurusan']);
     $email = trim($_POST['email']);
+    $password = trim($_POST['password']); // Input baru
     $alasan = trim($_POST['alasan']);
     
-    // Validation
-    if (empty($nama) || empty($nim) || empty($jurusan) || empty($email) || empty($alasan)) {
+    if (empty($nama) || empty($nim) || empty($jurusan) || empty($email) || empty($password) || empty($alasan)) {
         $error = 'Semua field harus diisi!';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Format email tidak valid!';
+    } elseif (strlen($password) < 6) {
+        $error = 'Password minimal 6 karakter!';
     } else {
-        // Check NIM duplicate
-        $check_query = "SELECT COUNT(*) as total FROM mahasiswa WHERE nim = $1";
-        $check_result = pg_query_params($conn, $check_query, array($nim));
-        $check_data = pg_fetch_assoc($check_result);
-        
-        if ($check_data['total'] > 0) {
-            $error = 'NIM sudah terdaftar! Gunakan NIM yang berbeda.';
+        // Cek Duplikat NIM dulu
+        $check = pg_query_params($conn, "SELECT COUNT(*) FROM mahasiswa WHERE nim = $1", array($nim));
+        if (pg_fetch_result($check, 0, 0) > 0) {
+            $error = 'NIM sudah terdaftar!';
         } else {
-            // Insert into database with pending status
-            $query = "INSERT INTO mahasiswa (nama, nim, jurusan, email, alasan, status_approval, created_at) 
-                      VALUES ($1, $2, $3, $4, $5, 'pending', NOW())";
-            $result = pg_query_params($conn, $query, array($nama, $nim, $jurusan, $email, $alasan));
+            // Hash Password
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+            // --- PANGGIL STORED PROCEDURE ---
+            $query = "CALL sp_register_mahasiswa($1, $2, $3, $4, $5, $6)";
+            $params = array($nama, $nim, $jurusan, $email, $hashed_password, $alasan);
+            
+            $result = pg_query_params($conn, $query, $params);
             
             if ($result) {
                 $success = true;
             } else {
-                $error = 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.';
+                $error = 'Gagal menyimpan data: ' . pg_last_error($conn);
             }
         }
     }
