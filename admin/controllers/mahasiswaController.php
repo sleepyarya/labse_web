@@ -263,5 +263,30 @@ class MahasiswaController {
             return ['success' => false, 'message' => 'Gagal menolak mahasiswa!'];
         }
     }
+
+    public function getStatistics() {
+        // Menggunakan fitur FILTER PostgreSQL agar cukup 1 kali query (Lebih Cepat)
+        $query = "SELECT 
+            COUNT(*) as total,
+            COUNT(*) FILTER (WHERE status_approval = 'pending') as pending,
+            COUNT(*) FILTER (WHERE status_approval = 'approved') as approved,
+            COUNT(*) FILTER (WHERE status_approval = 'rejected') as rejected
+        FROM mahasiswa";
+        
+        $result = pg_query($this->conn, $query);
+        $stats = pg_fetch_assoc($result);
+        
+        // Fallback jika data kosong
+        if (!$stats) {
+            return [
+                'total' => 0,
+                'pending' => 0,
+                'approved' => 0,
+                'rejected' => 0
+            ];
+        }
+        
+        return $stats;
+    }
 }
 ?>
