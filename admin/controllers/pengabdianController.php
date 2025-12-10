@@ -56,19 +56,30 @@ class PengabdianController {
                 
                 // Insert to database
                 if (empty($error)) {
-                    $query = "INSERT INTO pengabdian (judul, deskripsi, tanggal, lokasi, penyelenggara, gambar) 
-                              VALUES ($1, $2, $3, $4, $5, $6)";
-                    $result = pg_query_params($this->conn, $query, array($judul, $deskripsi, $tanggal, $lokasi, $penyelenggara, $gambar));
+                $query = "SELECT sp_create_pengabdian($1, $2, $3, $4, $5, $6, $7)";
+
+                $params = array(
+                    $judul,           // $1
+                    $deskripsi,       // $2
+                    $tanggal,         // $3
+                    $lokasi,          // $4
+                    $penyelenggara,   // $5
+                    $gambar,          // $6
+                    null     
+                );
+
+                $result = pg_query_params($this->conn, $query, $params);
                     
-                    if ($result) {
-                        header('Location: ../admin/views/manage_pengabdian.php?success=add');
-                        exit();
-                    } else {
-                        $error = 'Gagal menambahkan pengabdian: ' . pg_last_error($this->conn);
-                    }
+                if ($result) {
+                    // Arahkan ke halaman manage pengabdian
+                    header('Location: ' . BASE_URL . '/admin/manage_pengabdian.php?success=add');
+                    exit();
+                } else {
+                    $error = 'Gagal menambahkan pengabdian: ' . pg_last_error($this->conn);
                 }
             }
         }
+    }
         
         return ['error' => $error, 'success' => $success];
     }

@@ -75,11 +75,21 @@ class PenelitianController {
                 
                 // Insert to database
                 if (empty($error)) {
-                    $query = "INSERT INTO hasil_penelitian (judul, deskripsi, tahun, kategori, abstrak, gambar, file_pdf, link_publikasi, personil_id) 
-                              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)";
-                    $result = pg_query_params($this->conn, $query, array(
-                        $judul, $deskripsi, $tahun, $kategori, $abstrak, $gambar, $file_pdf, $link_publikasi, $personil_id
-                    ));
+                    $query = "SELECT sp_create_penelitian($1, $2, $3, $4, $5, $6, $7, $8, $9) as new_id";
+
+                $params = array(
+                    $judul, 
+                    $deskripsi, 
+                    (int)$tahun, 
+                    $kategori, 
+                    $abstrak, 
+                    $gambar, 
+                    $file_pdf, 
+                    $link_publikasi, 
+                    $personil_id
+                );
+
+                $result = pg_query_params($this->conn, $query, $params);
                     
                     if ($result) {
                         header('Location: ' . BASE_URL . '/admin/manage_penelitian.php?success=add');

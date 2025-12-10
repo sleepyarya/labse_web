@@ -48,11 +48,23 @@ class ProdukController {
                 }
                 
                 if (empty($error)) {
-                    $query = "INSERT INTO produk (nama_produk, deskripsi, tahun, kategori, teknologi, gambar, link_demo, link_repository, personil_id) 
-                              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)";
-                    $result = pg_query_params($this->conn, $query, array(
-                        $nama_produk, $deskripsi, $tahun, $kategori, $teknologi, $gambar, $link_demo, $link_repository, $personil_id
-                    ));
+                   // Menggunakan Function Database
+                   // Urutan parameter: nama_produk, deskripsi, kategori, tahun, teknologi, gambar, link_demo, link_repository, personil_id
+                    $query = "SELECT sp_create_produk($1, $2, $3, $4, $5, $6, $7, $8, $9)";
+
+                $params = array(
+                    $nama_produk, 
+                    $deskripsi, 
+                    $kategori, 
+                            (int)$tahun, 
+                            $teknologi, 
+                            $gambar, 
+                            $link_demo, 
+                            $link_repository, 
+                            $personil_id
+                        );
+
+                    $result = pg_query_params($this->conn, $query, $params);
                     
                     if ($result) {
                         header('Location: ' . BASE_URL . '/admin/manage_produk.php?success=add');
