@@ -44,14 +44,18 @@ $hash = password_hash($password, PASSWORD_DEFAULT);
                         
                         <div class="bg-dark text-white p-3 rounded">
                             <code style="color: #0f0;">
--- Update password untuk user admin<br>
-UPDATE admin_users SET password = '<?php echo $hash; ?>' WHERE username = 'admin';<br>
+-- Update password untuk user admin di tabel users<br>
+UPDATE users SET password = '<?php echo $hash; ?>' <br>
+WHERE role = 'admin' AND username = 'admin';<br>
 <br>
--- Update password untuk user superadmin<br>
-UPDATE admin_users SET password = '<?php echo $hash; ?>' WHERE username = 'superadmin';<br>
+-- Update password untuk user superadmin di tabel users<br>
+UPDATE users SET password = '<?php echo $hash; ?>' <br>
+WHERE role = 'admin' AND username = 'superadmin';<br>
 <br>
 -- Verifikasi<br>
-SELECT username, nama_lengkap, email FROM admin_users;
+SELECT u.username, u.email, u.role, au.nama_lengkap <br>
+FROM users u <br>
+LEFT JOIN admin_users au ON u.reference_id = au.id AND u.role = 'admin';
                             </code>
                         </div>
                         

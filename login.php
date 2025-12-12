@@ -8,8 +8,6 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
         header('Location: admin/index.php');
     } elseif ($role === 'personil') {
         header('Location: member/index.php');
-    } elseif ($role === 'mahasiswa') {
-        header('Location: student/index.php');
     }
     exit();
 }
@@ -83,29 +81,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $_SESSION['member_session_token'] = $session_token;
                     $_SESSION['member_last_activity'] = time();
                     
+                    // Log activity: Login
+                    require_once 'includes/activity_logger.php';
+                    log_activity($conn, $detail['id'], $detail['nama'], 'LOGIN', 
+                        'Login ke dashboard', null, null);
+                    
                     $redirect_url = 'member/index.php';
                     
-                } elseif ($user['role'] === 'mahasiswa') {
-                    $detail_query = "SELECT * FROM mahasiswa WHERE id = $1";
-                    $detail_result = pg_query_params($conn, $detail_query, array($user['reference_id']));
-                    $detail = pg_fetch_assoc($detail_result);
-                    
-                    $_SESSION['student_logged_in'] = true;
-                    $_SESSION['student_id'] = $detail['id'];
-                    $_SESSION['student_nama'] = $detail['nama'];
-                    $_SESSION['student_nim'] = $detail['nim'];
-                    $_SESSION['student_email'] = $detail['email'];
-                    
-                    $redirect_url = 'student/index.php';
+                } else {
+                    $error = 'Akses ditolak: Role pengguna tidak valid untuk login ini.';
                 }
                 
-                // Update last login di tabel users
-                $update_query = "UPDATE users SET last_login = NOW() WHERE id = $1";
-                pg_query_params($conn, $update_query, array($user['id']));
-                
-                // Redirect sesuai role
-                header('Location: ' . $redirect_url);
-                exit();
+                if (isset($redirect_url)) {
+                    // Update last login di tabel users
+                    $update_query = "UPDATE users SET last_login = NOW() WHERE id = $1";
+                    pg_query_params($conn, $update_query, array($user['id']));
+                    
+                    // Redirect sesuai role
+                    header('Location: ' . $redirect_url);
+                    exit();
+                }
             } else {
                 $error = 'Username/Email atau password salah!';
             }

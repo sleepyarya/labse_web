@@ -2,7 +2,7 @@
 // Controller: Admin Controller
 // Description: Handles CRUD operations for admin users management
 
-require_once __DIR__ . '/../../core/database.php';
+require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../../core/session.php';
 require_once __DIR__ . '/../../core/UserSyncService.php';
 
@@ -72,7 +72,7 @@ class AdminController {
                         error_log("Failed to sync admin to users table: ID {$admin_id}");
                     }
                     
-                    header('Location: ../admin/views/manage_admin.php?success=add');
+                    header('Location: ../views/manage_admin.php?success=add');
                     exit();
                 } else {
                     $error = 'Gagal menambahkan admin: ' . pg_last_error($this->conn);
@@ -168,7 +168,7 @@ class AdminController {
                         error_log("Failed to sync admin update to users table: ID {$id}");
                     }
                     
-                    header('Location: ../admin/views/manage_admin.php?success=edit');
+                    header('Location: ../views/manage_admin.php?success=edit');
                     exit();
                 } else {
                     $error = 'Gagal mengupdate admin: ' . pg_last_error($this->conn);
@@ -184,7 +184,7 @@ class AdminController {
         if ($id) {
             // Prevent self-deletion
             if (isset($_SESSION['admin_id']) && $_SESSION['admin_id'] == $id) {
-                header('Location: ../admin/views/manage_admin.php?error=self_delete');
+                header('Location: ../views/manage_admin.php?error=self_delete');
                 exit();
             }
             
@@ -194,7 +194,7 @@ class AdminController {
             $count = pg_fetch_assoc($count_result)['count'];
             
             if ($count <= 1) {
-                header('Location: ../admin/views/manage_admin.php?error=last_admin');
+                header('Location: ../views/manage_admin.php?error=last_admin');
                 exit();
             }
             
@@ -205,12 +205,12 @@ class AdminController {
             if ($delete_result) {
                 // Delete from users table
                 $this->userSyncService->hardDeleteUser($id, 'admin');
-                header('Location: ../admin/views/manage_admin.php?success=delete');
+                header('Location: ../views/manage_admin.php?success=delete');
             } else {
-                header('Location: ../admin/views/manage_admin.php?error=delete');
+                header('Location: ../views/manage_admin.php?error=delete');
             }
         } else {
-            header('Location: ../admin/views/manage_admin.php?error=invalid');
+            header('Location: ../views/manage_admin.php?error=invalid');
         }
         exit();
     }

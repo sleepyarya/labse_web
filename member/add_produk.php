@@ -4,6 +4,7 @@ require_once 'controllers/produkController.php';
 require_once '../includes/config.php';
 
 $controller = new MemberProdukController();
+$kategori_list = $controller->getKategoriList();
 $result = $controller->add();
 $error = $result['error'];
 
@@ -69,14 +70,14 @@ include 'includes/member_sidebar.php';
                                 
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Kategori</label>
-                                    <select name="kategori" class="form-select">
+                                    <select name="kategori_id" class="form-select">
+                                        <option value="">Pilih Kategori</option>
                                         <?php 
-                                        $selected_kategori = isset($_POST['kategori']) ? $_POST['kategori'] : '';
-                                        $kategori_options = ['', 'Hardware', 'Software'];
-                                        foreach ($kategori_options as $opt):
+                                        $selected_kategori_id = isset($_POST['kategori_id']) ? $_POST['kategori_id'] : '';
+                                        foreach ($kategori_list as $kat):
                                         ?>
-                                        <option value="<?php echo $opt; ?>" <?php echo $selected_kategori == $opt ? 'selected' : ''; ?>>
-                                            <?php echo $opt ? $opt : 'Pilih Kategori'; ?>
+                                        <option value="<?php echo $kat['id']; ?>" <?php echo $selected_kategori_id == $kat['id'] ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($kat['nama_kategori']); ?>
                                         </option>
                                         <?php endforeach; ?>
                                     </select>

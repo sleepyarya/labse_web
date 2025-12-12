@@ -68,7 +68,7 @@ include 'includes/member_sidebar.php';
                     <!-- Cover Image -->
                     <?php if ($penelitian['gambar']): ?>
                     <div class="mb-4">
-                        <img src="<?php echo BASE_URL; ?>/uploads/penelitian/<?php echo htmlspecialchars($penelitian['gambar']); ?>" 
+                        <img src="<?php echo BASE_URL; ?>/public/uploads/penelitian/<?php echo htmlspecialchars($penelitian['gambar']); ?>"  
                              class="img-fluid rounded shadow" alt="Cover">
                     </div>
                     <?php endif; ?>
@@ -98,7 +98,7 @@ include 'includes/member_sidebar.php';
                         <h5 class="mb-3">Dokumen & Publikasi</h5>
                         <div class="d-flex gap-2 flex-wrap">
                             <?php if ($penelitian['file_pdf']): ?>
-                            <a href="<?php echo BASE_URL; ?>/uploads/penelitian/<?php echo htmlspecialchars($penelitian['file_pdf']); ?>" 
+                            <a href="<?php echo BASE_URL; ?>/public/uploads/penelitian/<?php echo htmlspecialchars($penelitian['file_pdf']); ?>"  
                                class="btn btn-danger" target="_blank">
                                 <i class="bi bi-file-pdf me-2"></i>Download PDF
                             </a>

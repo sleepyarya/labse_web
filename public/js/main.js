@@ -1,10 +1,17 @@
 // Initialize AOS (Animate On Scroll)
 document.addEventListener('DOMContentLoaded', function() {
+    // Use smaller offset on mobile for better footer visibility
+    const isMobile = window.innerWidth <= 768;
+    
     AOS.init({
         duration: 800,
         easing: 'ease-in-out',
         once: true,
-        offset: 100
+        offset: isMobile ? 20 : 100,  // Smaller offset on mobile
+        disable: function() {
+            // Optionally disable AOS for very small screens
+            return window.innerWidth < 576 ? 'mobile' : false;
+        }
     });
 });
 

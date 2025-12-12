@@ -1,7 +1,7 @@
 <?php
 // Admin Dashboard View
 require_once __DIR__ . '/../auth_check.php';
-require_once __DIR__ . '/../../core/database.php';
+require_once __DIR__ . '/../../includes/config.php';
 
 $page_title = 'Dashboard';
 include '../includes/admin_header.php';
@@ -48,8 +48,8 @@ if (!$stats) {
     <div class="row g-4">
         <!-- Statistics Cards -->
         <div class="col-md-3" data-aos="fade-up" data-aos-delay="100">
-            <div class="stat-card card text-center">
-                <div class="card-body">
+            <div class="stat-card card text-center h-100 border-0 shadow-sm">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center">
                     <i class="bi bi-person-fill text-primary" style="font-size: 3rem;"></i>
                     <h3 class="mt-3">
                         <?php
@@ -59,14 +59,14 @@ if (!$stats) {
                         ?>
                     </h3>
                     <p class="text-muted">Personil</p>
-                    <a href="manage_personil.php" class="btn btn-sm btn-outline-primary">Kelola</a>
+                    <a href="manage_personil.php" class="btn btn-sm btn-outline-primary mt-auto">Kelola</a>
                 </div>
             </div>
         </div>
         
         <div class="col-md-3" data-aos="fade-up" data-aos-delay="200">
-            <div class="stat-card card text-center">
-                <div class="card-body">
+            <div class="stat-card card text-center h-100 border-0 shadow-sm">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center">
                     <i class="bi bi-file-text-fill text-success" style="font-size: 3rem;"></i>
                     <h3 class="mt-3">
                         <?php
@@ -76,14 +76,14 @@ if (!$stats) {
                         ?>
                     </h3>
                     <p class="text-muted">Artikel</p>
-                    <a href="manage_artikel.php" class="btn btn-sm btn-outline-success">Kelola</a>
+                    <a href="manage_artikel.php" class="btn btn-sm btn-outline-success mt-auto">Kelola</a>
                 </div>
             </div>
         </div>
         
         <div class="col-md-3" data-aos="fade-up" data-aos-delay="300">
-            <div class="stat-card card text-center">
-                <div class="card-body">
+            <div class="stat-card card text-center h-100 border-0 shadow-sm">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center">
                     <i class="bi bi-people-fill text-warning" style="font-size: 3rem;"></i>
                     <h3 class="mt-3">
                         <?php
@@ -93,14 +93,14 @@ if (!$stats) {
                         ?>
                     </h3>
                     <p class="text-muted">Mahasiswa</p>
-                    <a href="manage_mahasiswa.php" class="btn btn-sm btn-outline-warning">Kelola</a>
+                    <a href="manage_mahasiswa.php" class="btn btn-sm btn-outline-warning mt-auto">Kelola</a>
                 </div>
             </div>
         </div>
         
         <div class="col-md-3" data-aos="fade-up" data-aos-delay="400">
-            <div class="stat-card card text-center">
-                <div class="card-body">
+            <div class="stat-card card text-center h-100 border-0 shadow-sm">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center">
                     <i class="bi bi-journal-bookmark-fill text-info" style="font-size: 3rem;"></i>
                     <h3 class="mt-3">
                         <?php
@@ -110,7 +110,7 @@ if (!$stats) {
                         ?>
                     </h3>
                     <p class="text-muted">Profil</p>
-                    <a href="#" class="btn btn-sm btn-outline-info">Kelola</a>
+                    <a href="manage_lab_profile.php" class="btn btn-sm btn-outline-info mt-auto">Kelola</a>
                 </div>
             </div>
         </div>
@@ -119,25 +119,25 @@ if (!$stats) {
     <!-- Quick Actions -->
     <div class="row mt-4">
             <div class="col-12">
-                <div class="card" data-aos="fade-up">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="bi bi-lightning-fill me-2"></i>Quick Actions</h5>
+                <div class="card border-0 shadow-sm" data-aos="fade-up">
+                <div class="card-header bg-white border-bottom-0 pt-3 pb-2">
+                    <h5 class="mb-0"><i class="bi bi-lightning-fill me-2 text-warning"></i>Quick Actions</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body pt-0">
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <a href="manage_personil.php" class="btn btn-outline-primary w-100">
-                                <i class="bi bi-people me-2"></i>Kelola Personil
+                            <a href="manage_personil.php" class="btn btn-outline-primary w-100 py-3 d-flex align-items-center justify-content-center gap-2">
+                                <i class="bi bi-people"></i>Kelola Personil
                             </a>
                         </div>
                         <div class="col-md-4">
-                            <a href="manage_artikel.php" class="btn btn-outline-success w-100">
-                                <i class="bi bi-file-text me-2"></i>Kelola Artikel
+                            <a href="manage_artikel.php" class="btn btn-outline-success w-100 py-3 d-flex align-items-center justify-content-center gap-2">
+                                <i class="bi bi-file-text"></i>Kelola Artikel
                             </a>
                         </div>
                         <div class="col-md-4">
-                            <a href="manage_mahasiswa.php" class="btn btn-outline-warning w-100">
-                                <i class="bi bi-person-badge me-2"></i>Kelola Mahasiswa
+                            <a href="manage_mahasiswa.php" class="btn btn-outline-warning w-100 py-3 d-flex align-items-center justify-content-center gap-2">
+                                <i class="bi bi-person-badge"></i>Kelola Mahasiswa
                             </a>
                         </div>
                     </div>
@@ -149,14 +149,14 @@ if (!$stats) {
     <!-- Recent Activities -->
     <div class="row mt-4">
         <div class="col-12">
-            <div class="card" data-aos="fade-up">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Artikel Terbaru</h5>
+            <div class="card border-0 shadow-sm" data-aos="fade-up">
+                <div class="card-header bg-white border-bottom-0 pt-3">
+                    <h5 class="mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Artikel Terbaru</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
                                 <tr>
                                     <th>Judul</th>
                                     <th>Penulis</th>
@@ -172,7 +172,7 @@ if (!$stats) {
                                     echo '<td>' . htmlspecialchars($row['judul']) . '</td>';
                                     echo '<td>' . htmlspecialchars($row['penulis']) . '</td>';
                                     echo '<td>' . date('d M Y', strtotime($row['created_at'])) . '</td>';
-                                    echo '<td><a href="../../pages/blog/detail.php?id=' . $row['id'] . '" class="btn btn-sm btn-outline-primary" target="_blank">Lihat</a></td>';
+                                    echo '<td><a href="../../public/views/home/index.php" class="btn btn-sm btn-outline-primary" target="_blank">Lihat</a></td>';
                                     echo '</tr>';
                                 }
                                 ?>

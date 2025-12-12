@@ -76,7 +76,7 @@ if (!$produk) {
                         <!-- Image -->
                         <?php if ($produk['gambar']): ?>
                         <div class="mb-4">
-                            <img src="<?php echo BASE_URL; ?>/uploads/produk/<?php echo htmlspecialchars($produk['gambar']); ?>" 
+                            <img src="<?php echo BASE_URL; ?>/public/uploads/produk/<?php echo htmlspecialchars($produk['gambar']); ?>" 
                                  class="img-fluid rounded shadow" alt="<?php echo htmlspecialchars($produk['nama_produk']); ?>"
                                  onerror="this.style.display='none'">
                         </div>
@@ -215,9 +215,9 @@ if (!$produk) {
             <div class="col-md-4" data-aos="fade-up">
                 <div class="card h-100 border-0 shadow-sm hover-card">
                     <?php if ($recent['gambar']): ?>
-                    <img src="<?php echo BASE_URL; ?>/uploads/produk/<?php echo htmlspecialchars($recent['gambar']); ?>" 
+                    <img src="<?php echo BASE_URL; ?>/public/uploads/produk/<?php echo htmlspecialchars($recent['gambar']); ?>" 
                          class="card-img-top" style="height: 150px; object-fit: cover;" alt="<?php echo htmlspecialchars($recent['nama_produk']); ?>"
-                         onerror="this.src='<?php echo BASE_URL; ?>/assets/img/no-image.png'">
+                         onerror="this.src='<?php echo BASE_URL; ?>/public/img/no-image.png'">
                     <?php else: ?>
                     <div class="bg-gradient d-flex align-items-center justify-content-center" style="height: 150px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                         <i class="bi bi-box-seam text-white" style="font-size: 2rem;"></i>

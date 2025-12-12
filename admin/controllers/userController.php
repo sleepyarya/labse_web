@@ -2,7 +2,7 @@
 // Controller: User Management Controller
 // Description: Handles user management operations for all roles
 
-require_once __DIR__ . '/../../core/database.php';
+require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../../core/session.php';
 require_once __DIR__ . '/../../core/UserSyncService.php';
 
@@ -224,12 +224,8 @@ class UserController {
                     throw new Exception('Gagal menghapus dari tabel personil');
                 }
             } elseif ($user['role'] === 'mahasiswa' && $user['reference_id']) {
-                $delete_original = "DELETE FROM mahasiswa WHERE id = $1";
-                $result_original = pg_query_params($this->conn, $delete_original, array($user['reference_id']));
-                $affected = pg_affected_rows($result_original);
-                if ($result_original === false) {
-                    throw new Exception('Gagal menghapus dari tabel mahasiswa');
-                }
+                // Do not delete from mahasiswa table, as we are separating users from mahasiswa data.
+                // Just let the user deletion happen (removing login access).
             }
             
             // Delete from users table

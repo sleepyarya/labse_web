@@ -1,7 +1,7 @@
 <?php
 // Admin Artikel Form View
 require_once '../auth_check.php';
-require_once '../../core/database.php';
+require_once __DIR__ . '/../../includes/config.php';
 require_once '../controllers/artikelController.php';
 
 $controller = new ArtikelController();
@@ -59,20 +59,74 @@ include '../includes/admin_sidebar.php';
                         
                         <form method="POST" enctype="multipart/form-data" id="formArtikel">
                             
-                            <div class="mb-3">
-                                <label class="form-label">Judul Artikel <span class="text-danger">*</span></label>
-                                <input type="text" name="judul" class="form-control" required 
-                                       value="<?php echo $artikel ? htmlspecialchars($artikel['judul']) : (isset($_POST['judul']) ? htmlspecialchars($_POST['judul']) : ''); ?>"
-                                       placeholder="Masukkan judul artikel yang menarik">
+                            <div class="row">
+                                <div class="col-md-8 mb-3">
+                                    <label class="form-label">Judul Artikel <span class="text-danger">*</span></label>
+                                    <input type="text" name="judul" class="form-control" required 
+                                           value="<?php echo $artikel ? htmlspecialchars($artikel['judul']) : (isset($_POST['judul']) ? htmlspecialchars($_POST['judul']) : ''); ?>"
+                                           placeholder="Masukkan judul artikel yang menarik">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Kategori</label>
+                                    <select name="kategori_id" class="form-select">
+                                        <option value="">-- Pilih Kategori --</option>
+                                        <?php 
+                                        $kategori_list = $controller->getKategoriList();
+                                        $current_kategori_id = $artikel['kategori_id'] ?? '';
+                                        foreach ($kategori_list as $kat): 
+                                        ?>
+                                            <option value="<?php echo $kat['id']; ?>" <?php echo $current_kategori_id == $kat['id'] ? 'selected' : ''; ?>>
+                                                <?php echo htmlspecialchars($kat['nama_kategori']); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <small class="text-muted">Pilih kategori artikel. <a href="../manage_kategori_artikel.php" target="_blank">Kelola Kategori</a></small>
+                                </div>
                             </div>
                             
                             <div class="mb-3">
                                 <label class="form-label">Penulis <span class="text-danger">*</span></label>
-                                <input type="text" name="penulis" class="form-control" required 
-                                       value="<?php echo $artikel ? htmlspecialchars($artikel['penulis']) : (isset($_POST['penulis']) ? htmlspecialchars($_POST['penulis']) : htmlspecialchars($_SESSION['admin_nama'])); ?>"
-                                       placeholder="Nama penulis artikel">
-                                <small class="text-muted">Default: <?php echo htmlspecialchars($_SESSION['admin_nama']); ?></small>
+                                
+                                <!-- Personil Dropdown -->
+                                <div class="mb-2">
+                                    <select name="personil_id" id="personilSelect" class="form-select">
+                                        <option value="">-- Pilih Personil (Opsional) --</option>
+                                        <?php 
+                                        $personil_list = $controller->getPersonilList();
+                                        $current_personil_id = $artikel['personil_id'] ?? '';
+                                        foreach ($personil_list as $p): 
+                                        ?>
+                                            <option value="<?php echo $p['id']; ?>" <?php echo $current_personil_id == $p['id'] ? 'selected' : ''; ?>>
+                                                <?php echo htmlspecialchars($p['nama']); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <small class="text-muted">Pilih personil jika artikel ini milik anggota lab tertentu.</small>
+                                </div>
+
+                                <!-- Manual Input -->
+                                <div id="manualPenulisDiv" style="<?php echo !empty($current_personil_id) ? 'display:none;' : ''; ?>">
+                                    <input type="text" name="penulis" id="penulisInput" class="form-control" 
+                                           value="<?php echo $artikel ? htmlspecialchars($artikel['penulis']) : (isset($_POST['penulis']) ? htmlspecialchars($_POST['penulis']) : htmlspecialchars($_SESSION['admin_nama'])); ?>"
+                                           placeholder="Nama penulis artikel">
+                                    <small class="text-muted">Atau tulis nama penulis secara manual jika bukan personil.</small>
+                                </div>
                             </div>
+
+                            <script>
+                            document.getElementById('personilSelect').addEventListener('change', function() {
+                                const manualDiv = document.getElementById('manualPenulisDiv');
+                                const penulisInput = document.getElementById('penulisInput');
+                                
+                                if (this.value) {
+                                    manualDiv.style.display = 'none';
+                                    // Optional: Clear manual input or set it to selected personil name
+                                    // penulisInput.value = this.options[this.selectedIndex].text.trim();
+                                } else {
+                                    manualDiv.style.display = 'block';
+                                }
+                            });
+                            </script>
                             
                             <div class="mb-3">
                                 <label class="form-label">Isi Artikel <span class="text-danger">*</span></label>
@@ -85,9 +139,10 @@ include '../includes/admin_sidebar.php';
                                 <label class="form-label">Gambar Artikel</label>
                                 <?php if ($artikel && $artikel['gambar']): ?>
                                 <div class="mb-2">
-                                    <img src="../../public/uploads/artikel/<?php echo htmlspecialchars($artikel['gambar']); ?>" 
-                                         class="img-thumbnail" style="max-width: 200px;">
-                                    <small class="d-block text-muted">Gambar saat ini</small>
+                                    <img src="<?php echo BASE_URL; ?>/public/uploads/artikel/<?php echo htmlspecialchars($artikel['gambar']); ?>" 
+                                         class="img-thumbnail" style="max-width: 200px;"
+                                         onerror="this.src='<?php echo BASE_URL; ?>/public/img/no-image.png'; this.onerror=null;">
+                                    <small class="d-block text-muted">Gambar saat ini: <?php echo htmlspecialchars($artikel['gambar']); ?></small>
                                 </div>
                                 <?php endif; ?>
                                 <input type="file" name="gambar" class="form-control" accept="image/*" id="gambarInput">

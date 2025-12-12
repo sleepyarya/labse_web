@@ -1,6 +1,6 @@
 <?php
 require_once 'auth_check.php';
-require_once '../core/database.php';
+require_once __DIR__ . '/../includes/config.php';
 
 $page_title = 'Kelola Recruitment';
 include 'includes/admin_header.php';

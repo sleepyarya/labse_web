@@ -4,6 +4,8 @@ require_once 'controllers/produkController.php';
 require_once '../includes/config.php';
 
 $controller = new MemberProdukController();
+$kategori_list = $controller->getKategoriList();
+
 
 if (!isset($_GET['id']) || empty($_GET['id'])) {
     header('Location: my_produk.php?error=invalid');
@@ -78,10 +80,16 @@ include 'includes/member_sidebar.php';
                                 
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Kategori</label>
-                                    <select name="kategori" class="form-select">
+                                    <select name="kategori_id" class="form-select">
                                         <option value="">Pilih Kategori</option>
-                                        <option value="Hardware" <?php echo $produk['kategori'] == 'Hardware' ? 'selected' : ''; ?>>Hardware</option>
-                                        <option value="Software" <?php echo $produk['kategori'] == 'Software' ? 'selected' : ''; ?>>Software</option>
+                                        <?php 
+                                        $selected_kategori_id = $produk['kategori_id'];
+                                        foreach ($kategori_list as $kat):
+                                        ?>
+                                        <option value="<?php echo $kat['id']; ?>" <?php echo $selected_kategori_id == $kat['id'] ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($kat['nama_kategori']); ?>
+                                        </option>
+                                        <?php endforeach; ?>
                                     </select>
                                 </div>
                             </div>

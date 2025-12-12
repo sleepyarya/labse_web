@@ -2,7 +2,7 @@
 // Member Controller: Produk Controller with OWNERSHIP VALIDATION
 // Description: Handles CRUD for member's own produk only
 
-require_once __DIR__ . '/../../core/database.php';
+require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../../core/session.php';
 
 class MemberProdukController {
@@ -13,8 +13,21 @@ class MemberProdukController {
     public function __construct() {
         global $conn;
         $this->conn = $conn;
-        // CRITICAL: Get logged in member ID - FIXED to use 'member_id' like other controllers
+        // CRITICAL: Get logged in member ID
         $this->member_id = $_SESSION['member_id'] ?? null;
+    }
+    
+    // Get list of kategori
+    public function getKategoriList() {
+        $query = "SELECT id, nama_kategori, warna FROM kategori_produk WHERE is_active = TRUE ORDER BY nama_kategori ASC";
+        $result = pg_query($this->conn, $query);
+        $kategori_list = [];
+        if ($result) {
+            while ($row = pg_fetch_assoc($result)) {
+                $kategori_list[] = $row;
+            }
+        }
+        return $kategori_list;
     }
     
     // Add new produk - auto assign to logged in member
@@ -26,10 +39,23 @@ class MemberProdukController {
             $nama_produk = pg_escape_string($this->conn, trim($_POST['nama_produk']));
             $deskripsi = pg_escape_string($this->conn, trim($_POST['deskripsi']));
             $tahun = isset($_POST['tahun']) ? (int)$_POST['tahun'] : date('Y');
-            $kategori = pg_escape_string($this->conn, trim($_POST['kategori']));
             $teknologi = pg_escape_string($this->conn, trim($_POST['teknologi']));
             $link_demo = pg_escape_string($this->conn, trim($_POST['link_demo']));
             $link_repository = pg_escape_string($this->conn, trim($_POST['link_repository']));
+            $kategori_id = isset($_POST['kategori_id']) && !empty($_POST['kategori_id']) ? (int)$_POST['kategori_id'] : null;
+            
+            // Backward compatibility
+            $kategori = '';
+            if ($kategori_id) {
+                $kat_query = "SELECT nama_kategori FROM kategori_produk WHERE id = $1";
+                $kat_res = pg_query_params($this->conn, $kat_query, array($kategori_id));
+                $kat_row = pg_fetch_assoc($kat_res);
+                if ($kat_row) {
+                    $kategori = $kat_row['nama_kategori'];
+                }
+            } else {
+                $kategori = pg_escape_string($this->conn, trim($_POST['kategori'] ?? ''));
+            }
             
             // Validation
             if (empty($nama_produk) || empty($deskripsi) || empty($tahun)) {
@@ -44,8 +70,9 @@ class MemberProdukController {
                     
                     if (in_array($ext, $allowed)) {
                         $new_filename = 'produk_' . time() . '_' . uniqid() . '.' . $ext;
-                        $upload_dir = '../../uploads/produk/';
+                        $upload_dir = __DIR__ . '/../../public/uploads/produk/';
                         
+                        // Create dir if not exists
                         if (!file_exists($upload_dir)) {
                             mkdir($upload_dir, 0777, true);
                         }
@@ -60,13 +87,21 @@ class MemberProdukController {
                 
                 // Insert to database - CRITICAL: Always use logged in member ID
                 if (empty($error)) {
-                    $query = "INSERT INTO produk (nama_produk, deskripsi, tahun, kategori, teknologi, gambar, link_demo, link_repository, personil_id) 
-                              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)";
+                    $query = "INSERT INTO produk (nama_produk, deskripsi, tahun, kategori, teknologi, gambar, link_demo, link_repository, personil_id, kategori_id) 
+                              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id";
                     $result = pg_query_params($this->conn, $query, array(
-                        $nama_produk, $deskripsi, $tahun, $kategori, $teknologi, $gambar, $link_demo, $link_repository, $this->member_id
+                        $nama_produk, $deskripsi, $tahun, $kategori, $teknologi, $gambar, $link_demo, $link_repository, $this->member_id, $kategori_id
                     ));
                     
                     if ($result) {
+                        $row = pg_fetch_assoc($result);
+                        $produk_id = $row['id'];
+                        
+                        // Log activity: Create Produk
+                        require_once __DIR__ . '/../../includes/activity_logger.php';
+                        log_activity($this->conn, $this->member_id, $_SESSION['member_nama'], 'CREATE_PRODUK', 
+                            "Membuat produk baru: {$nama_produk}", 'produk', $produk_id);
+                        
                         header('Location: my_produk.php?success=add');
                         exit();
                     } else {
@@ -101,10 +136,23 @@ class MemberProdukController {
             $nama_produk = pg_escape_string($this->conn, trim($_POST['nama_produk']));
             $deskripsi = pg_escape_string($this->conn, trim($_POST['deskripsi']));
             $tahun = isset($_POST['tahun']) ? (int)$_POST['tahun'] : date('Y');
-            $kategori = pg_escape_string($this->conn, trim($_POST['kategori']));
             $teknologi = pg_escape_string($this->conn, trim($_POST['teknologi']));
             $link_demo = pg_escape_string($this->conn, trim($_POST['link_demo']));
             $link_repository = pg_escape_string($this->conn, trim($_POST['link_repository']));
+            $kategori_id = isset($_POST['kategori_id']) && !empty($_POST['kategori_id']) ? (int)$_POST['kategori_id'] : null;
+            
+            // Backward compatibility
+            $kategori = '';
+            if ($kategori_id) {
+                $kat_query = "SELECT nama_kategori FROM kategori_produk WHERE id = $1";
+                $kat_res = pg_query_params($this->conn, $kat_query, array($kategori_id));
+                $kat_row = pg_fetch_assoc($kat_res);
+                if ($kat_row) {
+                    $kategori = $kat_row['nama_kategori'];
+                }
+            } else {
+                $kategori = pg_escape_string($this->conn, trim($_POST['kategori'] ?? ''));
+            }
             
             // Validation
             if (empty($nama_produk) || empty($deskripsi) || empty($tahun)) {
@@ -119,7 +167,11 @@ class MemberProdukController {
                     
                     if (in_array($ext, $allowed)) {
                         $new_filename = 'produk_' . time() . '_' . uniqid() . '.' . $ext;
-                        $upload_dir = '../../uploads/produk/';
+                        $upload_dir = __DIR__ . '/../../public/uploads/produk/';
+                        
+                        if (!file_exists($upload_dir)) {
+                            mkdir($upload_dir, 0777, true);
+                        }
                         
                         if (move_uploaded_file($_FILES['gambar']['tmp_name'], $upload_dir . $new_filename)) {
                             // Delete old image
@@ -134,13 +186,18 @@ class MemberProdukController {
                 // Update database - CRITICAL: Always check ownership
                 $query = "UPDATE produk 
                           SET nama_produk = $1, deskripsi = $2, tahun = $3, kategori = $4, teknologi = $5, 
-                              gambar = $6, link_demo = $7, link_repository = $8, updated_at = NOW() 
-                          WHERE id = $9 AND personil_id = $10";
+                              gambar = $6, link_demo = $7, link_repository = $8, kategori_id = $9, updated_at = NOW() 
+                          WHERE id = $10 AND personil_id = $11";
                 $result = pg_query_params($this->conn, $query, array(
-                    $nama_produk, $deskripsi, $tahun, $kategori, $teknologi, $gambar, $link_demo, $link_repository, $id, $this->member_id
+                    $nama_produk, $deskripsi, $tahun, $kategori, $teknologi, $gambar, $link_demo, $link_repository, $kategori_id, $id, $this->member_id
                 ));
                 
                 if ($result && pg_affected_rows($result) > 0) {
+                    // Log activity: Edit Produk
+                    require_once __DIR__ . '/../../includes/activity_logger.php';
+                    log_activity($this->conn, $this->member_id, $_SESSION['member_nama'], 'EDIT_PRODUK', 
+                        "Mengedit produk: {$nama_produk}", 'produk', $id);
+                    
                     header('Location: my_produk.php?success=edit');
                     exit();
                 } else {
@@ -156,19 +213,24 @@ class MemberProdukController {
     public function delete($id) {
         if ($id) {
             // Get produk data - CRITICAL: Check ownership
-            $query = "SELECT gambar FROM produk WHERE id = $1 AND personil_id = $2";
+            $query = "SELECT nama_produk, gambar FROM produk WHERE id = $1 AND personil_id = $2";
             $result = pg_query_params($this->conn, $query, array($id, $this->member_id));
             $produk = pg_fetch_assoc($result);
             
             if ($produk) {
+                // Log activity: Delete Produk (before deletion)
+                require_once __DIR__ . '/../../includes/activity_logger.php';
+                log_activity($this->conn, $this->member_id, $_SESSION['member_nama'], 'DELETE_PRODUK', 
+                    "Menghapus produk: {$produk['nama_produk']}", 'produk', $id);
+                
                 // Delete from database
                 $delete_query = "DELETE FROM produk WHERE id = $1 AND personil_id = $2";
                 $delete_result = pg_query_params($this->conn, $delete_query, array($id, $this->member_id));
                 
                 if ($delete_result && pg_affected_rows($delete_result) > 0) {
                     // Delete gambar file
-                    if ($produk['gambar'] && file_exists('../../uploads/produk/' . $produk['gambar'])) {
-                        unlink('../../uploads/produk/' . $produk['gambar']);
+                    if ($produk['gambar'] && file_exists(__DIR__ . '/../../public/uploads/produk/' . $produk['gambar'])) {
+                        unlink(__DIR__ . '/../../public/uploads/produk/' . $produk['gambar']);
                     }
                     header('Location: my_produk.php?success=delete');
                 } else {
@@ -202,8 +264,13 @@ class MemberProdukController {
         $total_records = pg_fetch_assoc($count_result)['total'];
         $total_pages = ceil($total_records / $limit);
         
-        // Get produk data
-        $query = "SELECT * FROM produk $where ORDER BY tahun DESC, created_at DESC LIMIT $limit OFFSET $offset";
+        // Get produk data with kategori
+        $query = "SELECT p.*, kp.nama_kategori as kat_nama, kp.warna as kat_warna 
+                  FROM produk p 
+                  LEFT JOIN kategori_produk kp ON p.kategori_id = kp.id 
+                  $where 
+                  ORDER BY p.tahun DESC, p.created_at DESC 
+                  LIMIT $limit OFFSET $offset";
         $result = pg_query_params($this->conn, $query, $params);
         
         $items = [];
@@ -221,7 +288,10 @@ class MemberProdukController {
     
     // Get single produk by ID - ONLY OWN PRODUCTS
     public function getById($id) {
-        $query = "SELECT * FROM produk WHERE id = $1 AND personil_id = $2";
+        $query = "SELECT p.*, kp.nama_kategori as kat_nama 
+                  FROM produk p 
+                  LEFT JOIN kategori_produk kp ON p.kategori_id = kp.id 
+                  WHERE p.id = $1 AND p.personil_id = $2";
         $result = pg_query_params($this->conn, $query, array($id, $this->member_id));
         return pg_fetch_assoc($result);
     }

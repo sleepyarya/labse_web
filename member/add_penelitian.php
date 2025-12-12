@@ -4,6 +4,8 @@ require_once 'controllers/penelitianController.php';
 require_once '../includes/config.php';
 
 $controller = new MemberPenelitianController();
+// Get kategori list for dropdown
+$kategori_list = $controller->getKategoriList();
 $result = $controller->add();
 
 $page_title = 'Tambah Penelitian';
@@ -71,11 +73,13 @@ $current_year = date('Y');
                     <!-- Kategori -->
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Kategori</label>
-                        <select name="kategori" class="form-select">
+                        <select name="kategori_id" class="form-select">
                             <option value="">Pilih Kategori</option>
-                            <option value="Fundamental" <?php echo (isset($_POST['kategori']) && $_POST['kategori'] == 'Fundamental') ? 'selected' : ''; ?>>Fundamental</option>
-                            <option value="Terapan" <?php echo (isset($_POST['kategori']) && $_POST['kategori'] == 'Terapan') ? 'selected' : ''; ?>>Terapan</option>
-                            <option value="Pengembangan" <?php echo (isset($_POST['kategori']) && $_POST['kategori'] == 'Pengembangan') ? 'selected' : ''; ?>>Pengembangan</option>
+                            <?php foreach ($kategori_list as $kat): ?>
+                            <option value="<?php echo $kat['id']; ?>" <?php echo (isset($_POST['kategori_id']) && $_POST['kategori_id'] == $kat['id']) ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($kat['nama_kategori']); ?>
+                            </option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                 </div>

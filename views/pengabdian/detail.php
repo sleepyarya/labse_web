@@ -167,7 +167,7 @@ if (!$pengabdian) {
                     <?php if ($recent['gambar']): ?>
                     <img src="<?php echo BASE_URL; ?>/public/uploads/pengabdian/<?php echo htmlspecialchars($recent['gambar']); ?>" 
                          class="card-img-top" style="height: 150px; object-fit: cover;" alt="<?php echo htmlspecialchars($recent['judul']); ?>"
-                         onerror="this.src='<?php echo BASE_URL; ?>/assets/img/no-image.png'">
+                         onerror="this.src='<?php echo BASE_URL; ?>/public/img/no-image.png'">
                     <?php endif; ?>
                     <div class="card-body">
                         <h6 class="card-title"><?php echo htmlspecialchars($recent['judul']); ?></h6>

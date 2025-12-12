@@ -5,6 +5,16 @@ require_once '../includes/config.php';
 $member_id = $_SESSION['member_id'];
 $error = '';
 
+// Get kategori list
+$kategori_query = "SELECT id, nama_kategori, warna FROM kategori_artikel WHERE is_active = TRUE ORDER BY nama_kategori ASC";
+$kategori_result = pg_query($conn, $kategori_query);
+$kategori_list = [];
+if ($kategori_result) {
+    while ($row = pg_fetch_assoc($kategori_result)) {
+        $kategori_list[] = $row;
+    }
+}
+
 // Get artikel ID
 $artikel_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
@@ -41,17 +51,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $error = 'Ukuran file terlalu besar! Maksimal 2MB.';
                 } else {
                     $new_filename = uniqid() . '.' . $ext;
-                    $upload_path = '../uploads/artikel/' . $new_filename;
+                    $upload_path = '../public/uploads/artikel/' . $new_filename;
                     
                     // Create directory if not exists
-                    if (!file_exists('../uploads/artikel/')) {
-                        mkdir('../uploads/artikel/', 0777, true);
+                    if (!file_exists('../public/uploads/artikel/')) {
+                        mkdir('../public/uploads/artikel/', 0777, true);
                     }
                     
                     if (move_uploaded_file($_FILES['gambar']['tmp_name'], $upload_path)) {
                         // Delete old image
                         if (!empty($artikel['gambar'])) {
-                            $old_path = '../uploads/artikel/' . $artikel['gambar'];
+                            $old_path = '../public/uploads/artikel/' . $artikel['gambar'];
                             if (file_exists($old_path)) {
                                 unlink($old_path);
                             }
@@ -82,10 +92,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         // Update artikel only if no errors
         if (empty($error)) {
-            $query = "UPDATE artikel SET judul = $1, isi = $2, gambar = $3 WHERE id = $4 AND personil_id = $5";
-            $result = pg_query_params($conn, $query, array($judul, $isi, $gambar, $artikel_id, $member_id));
+            // Get kategori_id
+            $kategori_id = !empty($_POST['kategori_id']) ? (int)$_POST['kategori_id'] : null;
+            
+            $query = "UPDATE artikel SET judul = $1, isi = $2, gambar = $3, kategori_id = $4 WHERE id = $5 AND personil_id = $6";
+            $result = pg_query_params($conn, $query, array($judul, $isi, $gambar, $kategori_id, $artikel_id, $member_id));
             
             if ($result) {
+                // Log activity: Edit Article
+                require_once '../includes/activity_logger.php';
+                log_activity($conn, $member_id, $_SESSION['member_nama'], 'EDIT_ARTICLE', 
+                    "Mengedit artikel: {$judul}", 'artikel', $artikel_id);
+                
                 // Refresh artikel data after successful update
                 $result_check = pg_query_params($conn, $query_check, array($artikel_id, $member_id));
                 if ($result_check && pg_num_rows($result_check) > 0) {
@@ -146,11 +164,28 @@ include 'includes/member_sidebar.php';
                     <input type="text" class="form-control" value="<?php echo htmlspecialchars($artikel['penulis']); ?>" readonly>
                 </div>
                 
-                <!-- Judul -->
-                <div class="mb-3">
-                    <label class="form-label">Judul Artikel <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="judul" 
-                           value="<?php echo htmlspecialchars($artikel['judul']); ?>" required>
+                <!-- Judul dan Kategori -->
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label">Judul Artikel <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="judul" 
+                               value="<?php echo htmlspecialchars($artikel['judul']); ?>" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Kategori</label>
+                        <select name="kategori_id" class="form-select">
+                            <option value="">-- Pilih Kategori --</option>
+                            <?php 
+                            $current_kategori_id = $artikel['kategori_id'] ?? '';
+                            foreach ($kategori_list as $kat): 
+                            ?>
+                                <option value="<?php echo $kat['id']; ?>" <?php echo $current_kategori_id == $kat['id'] ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($kat['nama_kategori']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <small class="text-muted">Pilih kategori yang sesuai</small>
+                    </div>
                 </div>
                 
                 <!-- Gambar Current -->
@@ -158,7 +193,7 @@ include 'includes/member_sidebar.php';
                 <div class="mb-3">
                     <label class="form-label">Gambar Saat Ini</label>
                     <div id="currentImage">
-                        <img src="<?php echo BASE_URL; ?>/uploads/artikel/<?php echo htmlspecialchars($artikel['gambar']); ?>" 
+                        <img src="<?php echo BASE_URL; ?>/public/uploads/artikel/<?php echo htmlspecialchars($artikel['gambar']); ?>" 
                              alt="Current Image" class="img-thumbnail" style="max-width: 300px;">
                     </div>
                 </div>

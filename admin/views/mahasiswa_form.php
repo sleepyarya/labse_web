@@ -1,7 +1,7 @@
 <?php
 // Admin Mahasiswa Form View
 require_once __DIR__ . '/../auth_check.php';
-require_once __DIR__ . '/../../core/database.php';
+require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../controllers/mahasiswaController.php';
 
 $controller = new MahasiswaController();
@@ -76,29 +76,37 @@ include '../includes/admin_sidebar.php';
                             
                             <div class="mb-3">
                                 <label class="form-label">Jurusan <span class="text-danger">*</span></label>
-                                <select name="jurusan" class="form-select" required>
-                                    <option value="">Pilih Jurusan</option>
-                                    <?php 
-                                    $jurusan_list = [
-                                        'Teknologi Informasi',
-                                        'Teknik Informatika', 
-                                        'Sistem Informasi Bisnis',
-                                        'Teknik Komputer dan Jaringan',
-                                        'Teknik Elektro',
-                                        'Teknik Mesin',
-                                        'Teknik Sipil',
-                                        'Akuntansi',
-                                        'Administrasi Niaga'
-                                    ];
-                                    
-                                    $selected_jurusan = $mahasiswa ? $mahasiswa['jurusan'] : (isset($_POST['jurusan']) ? $_POST['jurusan'] : '');
-                                    
-                                    foreach ($jurusan_list as $jurusan_option) {
-                                        $selected = ($selected_jurusan === $jurusan_option) ? 'selected' : '';
-                                        echo "<option value=\"" . htmlspecialchars($jurusan_option) . "\" $selected>" . htmlspecialchars($jurusan_option) . "</option>";
+                                <?php
+                                // Get jurusan list from database
+                                $jurusan_query = "SELECT id, nama_jurusan FROM jurusan WHERE is_active = TRUE ORDER BY nama_jurusan ASC";
+                                $jurusan_result = pg_query($conn, $jurusan_query);
+                                $jurusan_from_db = [];
+                                if ($jurusan_result) {
+                                    while ($row = pg_fetch_assoc($jurusan_result)) {
+                                        $jurusan_from_db[] = $row;
                                     }
-                                    ?>
+                                }
+                                
+                                $selected_jurusan_id = $mahasiswa ? ($mahasiswa['jurusan_id'] ?? '') : (isset($_POST['jurusan_id']) ? $_POST['jurusan_id'] : '');
+                                $selected_jurusan_name = $mahasiswa ? $mahasiswa['jurusan'] : (isset($_POST['jurusan']) ? $_POST['jurusan'] : '');
+                                ?>
+                                <select name="jurusan_id" class="form-select" required>
+                                    <option value="">Pilih Jurusan</option>
+                                    <?php if (count($jurusan_from_db) > 0): ?>
+                                        <?php foreach ($jurusan_from_db as $jrs): ?>
+                                            <?php 
+                                            // Check if selected by id or by name (for backward compatibility)
+                                            $is_selected = ($selected_jurusan_id == $jrs['id']) || ($selected_jurusan_name == $jrs['nama_jurusan']);
+                                            ?>
+                                            <option value="<?php echo $jrs['id']; ?>" <?php echo $is_selected ? 'selected' : ''; ?>>
+                                                <?php echo htmlspecialchars($jrs['nama_jurusan']); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <option value="" disabled>Tidak ada jurusan tersedia</option>
+                                    <?php endif; ?>
                                 </select>
+                                <small class="text-muted">Pilih jurusan dari daftar. <a href="../manage_jurusan.php" target="_blank">Kelola Jurusan</a></small>
                             </div>
                             
                             <div class="mb-3">

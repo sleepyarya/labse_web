@@ -56,7 +56,7 @@ $result = pg_query_params($conn, $query, $params);
         <div class="user-dropdown">
             <span class="text-muted">Welcome, <strong><?php echo htmlspecialchars($_SESSION['member_nama']); ?></strong></span>
             <?php if (!empty($_SESSION['member_foto'])): ?>
-                <img src="<?php echo BASE_URL; ?>/uploads/personil/<?php echo htmlspecialchars($_SESSION['member_foto']); ?>" 
+                <img src="<?php echo BASE_URL; ?>public/uploads/personil/<?php echo htmlspecialchars($_SESSION['member_foto']); ?>" 
                      alt="Profile" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                 <div class="user-avatar-placeholder" style="display: none;">
                     <?php echo strtoupper(substr($_SESSION['member_nama'], 0, 1)); ?>
@@ -142,9 +142,9 @@ $result = pg_query_params($conn, $query, $params);
                                 <td><?php echo $no++; ?></td>
                                 <td>
                                     <?php if (!empty($item['gambar'])): ?>
-                                        <img src="<?php echo BASE_URL; ?>/uploads/penelitian/<?php echo htmlspecialchars($item['gambar']); ?>" 
+                                        <img src="<?php echo BASE_URL; ?>/public/uploads/penelitian/<?php echo htmlspecialchars($item['gambar']); ?>" 
                                              alt="Cover" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;"
-                                             onerror="this.src='<?php echo BASE_URL; ?>/assets/img/no-image.png'">
+                                             onerror="this.src='<?php echo BASE_URL; ?>/public/img/no-image.png'">
                                     <?php else: ?>
                                         <div class="bg-secondary text-white text-center" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
                                             <i class="bi bi-journal-text"></i>

@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/core/database.php';
+require_once __DIR__ . '/includes/config.php';
 $page_title = 'Home';
 
 // Check recruitment status
@@ -33,7 +33,10 @@ include 'includes/navbar.php';
             </div>
             <div class="col-lg-6" data-aos="fade-left">
                 <div class="text-center">
-                    <img src="<?php echo BASE_URL; ?>/public/img/logo-se.png" alt="Lab Software Engineering" class="img-fluid" style="max-width: 450px;">
+                    <?php 
+                    $hero_image = get_content('hero', 'image_path', '/public/img/logo-se.png');
+                    ?>
+                    <img src="<?php echo BASE_URL . $hero_image; ?>" alt="Lab Software Engineering" class="img-fluid" style="max-width: 450px;">
                 </div>
             </div>
         </div>
@@ -186,7 +189,7 @@ include 'includes/navbar.php';
             ?>
         </div>
         <div class="text-center mt-5" data-aos="fade-up">
-            <a href="<?php echo BASE_URL; ?>/views/pengabdian/" class="btn btn-success btn-lg">
+            <a href="<?php echo BASE_URL; ?>/views/pengabdian/" class="btn btn-primary btn-lg">
                 Lihat Semua Kegiatan <i class="bi bi-arrow-right ms-2"></i>
             </a>
         </div>
