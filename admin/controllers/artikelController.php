@@ -2,7 +2,7 @@
 // Controller: Artikel Controller
 // Description: Handles CRUD operations for artikel management
 
-require_once __DIR__ . '/../../core/database.php';
+require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../../core/session.php';
 
 class ArtikelController {
@@ -24,6 +24,19 @@ class ArtikelController {
         }
         return $personil_list;
     }
+    
+    // Get list of kategori for dropdown
+    public function getKategoriList() {
+        $query = "SELECT id, nama_kategori, warna FROM kategori_artikel WHERE is_active = TRUE ORDER BY nama_kategori ASC";
+        $result = pg_query($this->conn, $query);
+        $kategori_list = [];
+        if ($result) {
+            while ($row = pg_fetch_assoc($result)) {
+                $kategori_list[] = $row;
+            }
+        }
+        return $kategori_list;
+    }
 
     // Add new artikel
     public function add() {
@@ -36,6 +49,9 @@ class ArtikelController {
             
             // Handle personil selection
             $personil_id = !empty($_POST['personil_id']) ? (int)$_POST['personil_id'] : 'NULL';
+            
+            // Handle kategori selection
+            $kategori_id = !empty($_POST['kategori_id']) ? (int)$_POST['kategori_id'] : null;
             
             // If personil selected, use their name. Otherwise use manual input
             if ($personil_id !== 'NULL') {
@@ -60,8 +76,8 @@ class ArtikelController {
                     
                     if (in_array($ext, $allowed)) {
                         $new_filename = 'artikel_' . time() . '_' . uniqid() . '.' . $ext;
-                        // FIX: Use correct public path
-                        $upload_dir = '../public/uploads/artikel/';
+                        // FIX: Use correct absolute path
+                        $upload_dir = __DIR__ . '/../../public/uploads/artikel/';
                         
                         // Create directory if not exists
                         if (!file_exists($upload_dir)) {
@@ -78,8 +94,8 @@ class ArtikelController {
                 
                 // Insert to database
                 if (empty($error)) {
-                    $query = "INSERT INTO artikel (judul, isi, penulis, gambar, personil_id) 
-                              VALUES ($1, $2, $3, $4, $5)";
+                    $query = "INSERT INTO artikel (judul, isi, penulis, gambar, personil_id, kategori_id) 
+                              VALUES ($1, $2, $3, $4, $5, $6)";
                     
                     // Handle NULL for personil_id correctly in pg_query_params
                     $params = array($judul, $isi, $penulis, $gambar);
@@ -88,6 +104,7 @@ class ArtikelController {
                     } else {
                         $params[] = $personil_id;
                     }
+                    $params[] = $kategori_id;
                     
                     $result = pg_query_params($this->conn, $query, $params);
                     
@@ -129,6 +146,9 @@ class ArtikelController {
             // Handle personil selection
             $personil_id = !empty($_POST['personil_id']) ? (int)$_POST['personil_id'] : 'NULL';
             
+            // Handle kategori selection
+            $kategori_id = !empty($_POST['kategori_id']) ? (int)$_POST['kategori_id'] : null;
+            
             if ($personil_id !== 'NULL') {
                 $query_personil = "SELECT nama FROM personil WHERE id = $1";
                 $result_personil = pg_query_params($this->conn, $query_personil, array($personil_id));
@@ -151,8 +171,8 @@ class ArtikelController {
                     
                     if (in_array($ext, $allowed)) {
                         $new_filename = 'artikel_' . time() . '_' . uniqid() . '.' . $ext;
-                        // FIX: Use correct public path
-                        $upload_dir = '../public/uploads/artikel/';
+                        // FIX: Use correct absolute path
+                        $upload_dir = __DIR__ . '/../../public/uploads/artikel/';
                         
                         // Create directory if not exists
                         if (!file_exists($upload_dir)) {
@@ -173,8 +193,8 @@ class ArtikelController {
                 
                 // Update database
                 if (empty($error)) {
-                    $query = "UPDATE artikel SET judul = $1, isi = $2, penulis = $3, gambar = $4, personil_id = $5, updated_at = NOW() 
-                              WHERE id = $6";
+                    $query = "UPDATE artikel SET judul = $1, isi = $2, penulis = $3, gambar = $4, personil_id = $5, kategori_id = $6, updated_at = NOW() 
+                              WHERE id = $7";
                     
                     $params = array($judul, $isi, $penulis, $gambar);
                     if ($personil_id === 'NULL') {
@@ -182,6 +202,7 @@ class ArtikelController {
                     } else {
                         $params[] = $personil_id;
                     }
+                    $params[] = $kategori_id;
                     $params[] = $id;
                     
                     $result = pg_query_params($this->conn, $query, $params);

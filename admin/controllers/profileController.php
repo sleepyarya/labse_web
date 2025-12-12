@@ -2,7 +2,7 @@
 // Controller: Profile Controller
 // Description: Handles admin profile management
 
-require_once __DIR__ . '/../../core/database.php';
+require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../../core/session.php';
 
 class ProfileController {
@@ -130,7 +130,7 @@ class ProfileController {
     
     // Upload profile photo
     public function uploadPhoto($admin_id, $file) {
-        $upload_dir = __DIR__ . '/../../uploads/admin/';
+        $upload_dir = __DIR__ . '/../../public/uploads/admin/';
         
         // Create directory if not exists
         if (!is_dir($upload_dir)) {

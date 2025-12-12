@@ -8,7 +8,7 @@ require_once __DIR__ . '/../../includes/navbar.php';
 // Get filter parameters
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $tahun = isset($_GET['tahun']) ? (int)$_GET['tahun'] : '';
-$kategori = isset($_GET['kategori']) ? trim($_GET['kategori']) : '';
+$kategori_id = isset($_GET['kategori_id']) ? (int)$_GET['kategori_id'] : '';
 
 // Pagination
 $items_per_page = 12;
@@ -21,35 +21,40 @@ $params = [];
 $param_count = 1;
 
 if ($search) {
-    $where_conditions[] = "(nama_produk ILIKE $" . $param_count . " OR deskripsi ILIKE $" . $param_count . " OR teknologi ILIKE $" . $param_count . ")";
+    // Search in relevant fields + category name
+    $where_conditions[] = "(p.nama_produk ILIKE $" . $param_count . " OR p.deskripsi ILIKE $" . $param_count . " OR p.teknologi ILIKE $" . $param_count . " OR kp.nama_kategori ILIKE $" . $param_count . ")";
     $params[] = "%$search%";
     $param_count++;
 }
 
 if ($tahun) {
-    $where_conditions[] = "tahun = $" . $param_count;
+    $where_conditions[] = "p.tahun = $" . $param_count;
     $params[] = $tahun;
     $param_count++;
 }
 
-if ($kategori) {
-    $where_conditions[] = "kategori = $" . $param_count;
-    $params[] = $kategori;
+if ($kategori_id) {
+    $where_conditions[] = "p.kategori_id = $" . $param_count;
+    $params[] = $kategori_id;
     $param_count++;
 }
 
 $where_clause = !empty($where_conditions) ? 'WHERE ' . implode(' AND ', $where_conditions) : '';
 
-// Get total
-$count_query = "SELECT COUNT(*) as total FROM produk $where_clause";
+// Get total (need join for search by category)
+$count_query = "SELECT COUNT(*) as total 
+                FROM produk p 
+                LEFT JOIN kategori_produk kp ON p.kategori_id = kp.id 
+                $where_clause";
 $count_result = empty($params) ? pg_query($conn, $count_query) : pg_query_params($conn, $count_query, $params);
 $total_items = pg_fetch_assoc($count_result)['total'];
 $total_pages = ceil($total_items / $items_per_page);
 
 // Get data
-$query = "SELECT p.*, pr.nama as personil_nama 
+$query = "SELECT p.*, pr.nama as personil_nama, kp.nama_kategori as kat_nama, kp.warna as kat_warna
           FROM produk p
           LEFT JOIN personil pr ON p.personil_id = pr.id
+          LEFT JOIN kategori_produk kp ON p.kategori_id = kp.id
           $where_clause 
           ORDER BY p.tahun DESC, p.created_at DESC 
           LIMIT $items_per_page OFFSET $offset";
@@ -58,6 +63,10 @@ $result = empty($params) ? pg_query($conn, $query) : pg_query_params($conn, $que
 // Get available years for filter
 $years_query = "SELECT DISTINCT tahun FROM produk ORDER BY tahun DESC";
 $years_result = pg_query($conn, $years_query);
+
+// Get categories for filter
+$cat_query = "SELECT * FROM kategori_produk WHERE is_active = TRUE ORDER BY nama_kategori ASC";
+$cat_result = pg_query($conn, $cat_query);
 ?>
 
 <!-- Page Header -->
@@ -93,10 +102,13 @@ $years_result = pg_query($conn, $years_query);
                     </div>
                     <div class="col-md-3">
                         <label class="form-label"><i class="bi bi-tags me-1"></i>Kategori</label>
-                        <select name="kategori" class="form-select">
+                        <select name="kategori_id" class="form-select">
                             <option value="">Semua Kategori</option>
-                            <option value="Hardware" <?php echo $kategori == 'Hardware' ? 'selected' : ''; ?>>Hardware</option>
-                            <option value="Software" <?php echo $kategori == 'Software' ? 'selected' : ''; ?>>Software</option>
+                            <?php while ($cat = pg_fetch_assoc($cat_result)): ?>
+                            <option value="<?php echo $cat['id']; ?>" <?php echo $kategori_id == $cat['id'] ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($cat['nama_kategori']); ?>
+                            </option>
+                            <?php endwhile; ?>
                         </select>
                     </div>
                     <div class="col-md-2 d-flex align-items-end">
@@ -105,7 +117,7 @@ $years_result = pg_query($conn, $years_query);
                         </button>
                     </div>
                 </form>
-                <?php if ($search || $tahun || $kategori): ?>
+                <?php if ($search || $tahun || $kategori_id): ?>
                 <div class="mt-2">
                     <a href="index.php" class="btn btn-sm btn-outline-secondary">
                         <i class="bi bi-x-circle me-1"></i>Reset Filter
@@ -124,10 +136,10 @@ $years_result = pg_query($conn, $years_query);
                     
                     <!-- Image -->
                     <?php if ($item['gambar']): ?>
-                    <img src="<?php echo BASE_URL; ?>/uploads/produk/<?php echo htmlspecialchars($item['gambar']); ?>" 
+                    <img src="<?php echo BASE_URL; ?>/public/uploads/produk/<?php echo htmlspecialchars($item['gambar']); ?>" 
                          class="card-img-top" alt="<?php echo htmlspecialchars($item['nama_produk']); ?>"
                          style="height: 200px; object-fit: cover;"
-                         onerror="this.src='<?php echo BASE_URL; ?>/assets/img/no-image.png'">
+                         onerror="this.src='<?php echo BASE_URL; ?>/public/img/no-image.png'">
                     <?php else: ?>
                     <div class="bg-gradient d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                         <i class="bi bi-box-seam text-white" style="font-size: 3rem;"></i>
@@ -140,8 +152,12 @@ $years_result = pg_query($conn, $years_query);
                             <span class="badge bg-primary">
                                 <i class="bi bi-calendar3 me-1"></i><?php echo $item['tahun']; ?>
                             </span>
-                            <?php if ($item['kategori']): ?>
-                            <span class="badge <?php echo $item['kategori'] == 'Hardware' ? 'bg-danger' : 'bg-success'; ?>">
+                            <?php if ($item['kat_nama']): ?>
+                            <span class="badge" style="background-color: <?php echo htmlspecialchars($item['kat_warna'] ?? '#0d6efd'); ?>">
+                                <i class="bi bi-tag me-1"></i><?php echo htmlspecialchars($item['kat_nama']); ?>
+                            </span>
+                            <?php elseif ($item['kategori']): ?>
+                            <span class="badge bg-secondary">
                                 <i class="bi bi-tag me-1"></i><?php echo htmlspecialchars($item['kategori']); ?>
                             </span>
                             <?php endif; ?>
@@ -200,19 +216,19 @@ $years_result = pg_query($conn, $years_query);
         <nav aria-label="Page navigation" class="mt-5">
             <ul class="pagination justify-content-center">
                 <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
-                    <a class="page-link" href="?page=<?php echo $page-1; ?>&search=<?php echo urlencode($search); ?>&tahun=<?php echo $tahun; ?>&kategori=<?php echo urlencode($kategori); ?>">
+                    <a class="page-link" href="?page=<?php echo $page-1; ?>&search=<?php echo urlencode($search); ?>&tahun=<?php echo $tahun; ?>&kategori_id=<?php echo $kategori_id; ?>">
                         <i class="bi bi-chevron-left"></i> Sebelumnya
                     </a>
                 </li>
                 
                 <?php for ($i = 1; $i <= $total_pages; $i++): ?>
                 <li class="page-item <?php echo $i == $page ? 'active' : ''; ?>">
-                    <a class="page-link" href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>&tahun=<?php echo $tahun; ?>&kategori=<?php echo urlencode($kategori); ?>"><?php echo $i; ?></a>
+                    <a class="page-link" href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>&tahun=<?php echo $tahun; ?>&kategori_id=<?php echo $kategori_id; ?>"><?php echo $i; ?></a>
                 </li>
                 <?php endfor; ?>
                 
                 <li class="page-item <?php echo $page >= $total_pages ? 'disabled' : ''; ?>">
-                    <a class="page-link" href="?page=<?php echo $page+1; ?>&search=<?php echo urlencode($search); ?>&tahun=<?php echo $tahun; ?>&kategori=<?php echo urlencode($kategori); ?>">
+                    <a class="page-link" href="?page=<?php echo $page+1; ?>&search=<?php echo urlencode($search); ?>&tahun=<?php echo $tahun; ?>&kategori_id=<?php echo $kategori_id; ?>">
                         Selanjutnya <i class="bi bi-chevron-right"></i>
                     </a>
                 </li>
@@ -225,10 +241,10 @@ $years_result = pg_query($conn, $years_query);
         <div class="text-center py-5">
             <i class="bi bi-inbox text-muted" style="font-size: 5rem;"></i>
             <h4 class="mt-3 text-muted">
-                <?php echo ($search || $tahun || $kategori) ? 'Tidak Ada Hasil' : 'Belum Ada Produk'; ?>
+                <?php echo ($search || $tahun || $kategori_id) ? 'Tidak Ada Hasil' : 'Belum Ada Produk'; ?>
             </h4>
             <p class="text-muted">
-                <?php echo ($search || $tahun || $kategori) ? 'Coba ubah filter pencarian Anda' : 'Produk akan ditampilkan di sini'; ?>
+                <?php echo ($search || $tahun || $kategori_id) ? 'Coba ubah filter pencarian Anda' : 'Produk akan ditampilkan di sini'; ?>
             </p>
         </div>
         

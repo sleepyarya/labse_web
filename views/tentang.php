@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../core/database.php';
+require_once __DIR__ . '/../includes/config.php';
 $page_title = 'Tentang Kami';
 include '../includes/header.php';
 include '../includes/navbar.php';
@@ -17,6 +17,9 @@ $about = pg_fetch_assoc($result);
         <p class="lead" data-aos="fade-up" data-aos-delay="100">Mengenal lebih dekat Lab Software Engineering</p>
     </div>
 </div>
+
+<!-- Main Content Wrapper -->
+<div class="main-wrapper" style="min-height: 70vh; padding-bottom: 8rem;">
 
 <!-- About Content -->
 <section class="content-section">
@@ -131,6 +134,9 @@ $about = pg_fetch_assoc($result);
         </div>
     </div>
 </section>
+
+</div>
+<!-- End Main Content Wrapper -->
 
 <?php
 pg_close($conn);

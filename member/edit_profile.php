@@ -156,7 +156,7 @@ include 'includes/member_sidebar.php';
                         <?php if (!empty($member['foto'])): ?>
                             <img src="<?php echo BASE_URL; ?>/public/uploads/personil/<?php echo htmlspecialchars($member['foto']); ?>" 
                                  alt="Profile" class="rounded-circle"
-                                 onerror="this.src='<?php echo BASE_URL; ?>/assets/img/default-avatar.png'">
+                                 onerror="this.src='<?php echo BASE_URL; ?>/public/img/default-avatar.png'">
                         <?php else: ?>
                             <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjZjhmOWZhIi8+CjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE1IiBmaWxsPSIjNmM3NTdkIi8+CjxwYXRoIGQ9Ik0yMCA4MCBDIDI2IDY1LCAzMiA1NSwgNTAgNTUgQyA2OCA1NSwgODAgNjUsIDgwIDgwIiBmaWxsPSIjNmM3NTdkIi8+Cjwvc3ZnPg==" 
                                  alt="Default Avatar" class="rounded-circle" 

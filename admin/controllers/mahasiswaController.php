@@ -2,7 +2,7 @@
 // Controller: Mahasiswa Controller
 // Description: Handles CRUD operations for mahasiswa management
 
-require_once __DIR__ . '/../../core/database.php';
+require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../../core/session.php';
 
 class MahasiswaController {
@@ -22,13 +22,26 @@ class MahasiswaController {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $nama = pg_escape_string($this->conn, trim($_POST['nama']));
             $nim = pg_escape_string($this->conn, trim($_POST['nim']));
-            $jurusan = pg_escape_string($this->conn, trim($_POST['jurusan']));
+            $jurusan_id = isset($_POST['jurusan_id']) ? (int)$_POST['jurusan_id'] : 0;
             $email = pg_escape_string($this->conn, trim($_POST['email']));
             $alasan = pg_escape_string($this->conn, trim($_POST['alasan']));
             
+            // Get jurusan name from ID
+            $jurusan = '';
+            if ($jurusan_id > 0) {
+                $jurusan_query = "SELECT nama_jurusan FROM jurusan WHERE id = $1 AND is_active = TRUE";
+                $jurusan_result = pg_query_params($this->conn, $jurusan_query, array($jurusan_id));
+                if ($jurusan_result && pg_num_rows($jurusan_result) > 0) {
+                    $jurusan_data = pg_fetch_assoc($jurusan_result);
+                    $jurusan = $jurusan_data['nama_jurusan'];
+                }
+            }
+            
             // Validation
-            if (empty($nama) || empty($nim) || empty($jurusan) || empty($email)) {
+            if (empty($nama) || empty($nim) || empty($jurusan_id) || empty($email)) {
                 $error = 'Nama, NIM, jurusan, dan email wajib diisi!';
+            } elseif (empty($jurusan)) {
+                $error = 'Jurusan tidak valid!';
             } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $error = 'Format email tidak valid!';
             } else {
@@ -40,10 +53,10 @@ class MahasiswaController {
                 if ($check_data['total'] > 0) {
                     $error = 'NIM sudah terdaftar! Gunakan NIM yang berbeda.';
                 } else {
-                    // Insert to database with pending status
-                    $query = "INSERT INTO mahasiswa (nama, nim, jurusan, email, alasan, status_approval, created_at) 
-                              VALUES ($1, $2, $3, $4, $5, 'pending', NOW())";
-                    $result = pg_query_params($this->conn, $query, array($nama, $nim, $jurusan, $email, $alasan));
+                    // Insert to database with pending status and jurusan_id
+                    $query = "INSERT INTO mahasiswa (nama, nim, jurusan, jurusan_id, email, alasan, status_approval, created_at) 
+                              VALUES ($1, $2, $3, $4, $5, $6, 'pending', NOW())";
+                    $result = pg_query_params($this->conn, $query, array($nama, $nim, $jurusan, $jurusan_id, $email, $alasan));
                     
                     if ($result) {
                         header('Location: ../views/manage_mahasiswa.php?success=add');
@@ -79,13 +92,26 @@ class MahasiswaController {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $nama = pg_escape_string($this->conn, trim($_POST['nama']));
             $nim = pg_escape_string($this->conn, trim($_POST['nim']));
-            $jurusan = pg_escape_string($this->conn, trim($_POST['jurusan']));
+            $jurusan_id = isset($_POST['jurusan_id']) ? (int)$_POST['jurusan_id'] : 0;
             $email = pg_escape_string($this->conn, trim($_POST['email']));
             $alasan = pg_escape_string($this->conn, trim($_POST['alasan']));
             
+            // Get jurusan name from ID
+            $jurusan = '';
+            if ($jurusan_id > 0) {
+                $jurusan_query = "SELECT nama_jurusan FROM jurusan WHERE id = $1 AND is_active = TRUE";
+                $jurusan_result = pg_query_params($this->conn, $jurusan_query, array($jurusan_id));
+                if ($jurusan_result && pg_num_rows($jurusan_result) > 0) {
+                    $jurusan_data = pg_fetch_assoc($jurusan_result);
+                    $jurusan = $jurusan_data['nama_jurusan'];
+                }
+            }
+            
             // Validation
-            if (empty($nama) || empty($nim) || empty($jurusan) || empty($email)) {
+            if (empty($nama) || empty($nim) || empty($jurusan_id) || empty($email)) {
                 $error = 'Nama, NIM, jurusan, dan email wajib diisi!';
+            } elseif (empty($jurusan)) {
+                $error = 'Jurusan tidak valid!';
             } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $error = 'Format email tidak valid!';
             } else {
@@ -97,10 +123,10 @@ class MahasiswaController {
                 if ($check_data['total'] > 0) {
                     $error = 'NIM sudah terdaftar! Gunakan NIM yang berbeda.';
                 } else {
-                    // Update database
-                    $query = "UPDATE mahasiswa SET nama = $1, nim = $2, jurusan = $3, email = $4, alasan = $5, updated_at = NOW() 
-                              WHERE id = $6";
-                    $result = pg_query_params($this->conn, $query, array($nama, $nim, $jurusan, $email, $alasan, $id));
+                    // Update database with jurusan_id
+                    $query = "UPDATE mahasiswa SET nama = $1, nim = $2, jurusan = $3, jurusan_id = $4, email = $5, alasan = $6, updated_at = NOW() 
+                              WHERE id = $7";
+                    $result = pg_query_params($this->conn, $query, array($nama, $nim, $jurusan, $jurusan_id, $email, $alasan, $id));
                     
                     if ($result) {
                         header('Location: ../views/manage_mahasiswa.php?success=edit');
@@ -225,40 +251,8 @@ class MahasiswaController {
                 throw new Exception("Gagal update status mahasiswa");
             }
             
-            // 2. Create user account
-            // Generate username from name (lowercase, remove spaces)
-            $username = strtolower(str_replace(' ', '', $mahasiswa['nama']));
-            // Ensure unique username by appending random number if needed
-            // For simplicity in this step, we'll just append a random 3 digit number if it's too common, 
-            // but let's try to be smarter: check if exists first.
-            
-            $check_user = pg_query_params($this->conn, "SELECT COUNT(*) FROM users WHERE username = $1", array($username));
-            if (pg_fetch_result($check_user, 0, 0) > 0) {
-                $username = $username . rand(100, 999);
-            }
-            
-            $password = password_hash('mahasiswa123', PASSWORD_DEFAULT);
-            $email = $mahasiswa['email'];
-            
-            // Check if email already exists in users
-            $check_email = pg_query_params($this->conn, "SELECT COUNT(*) FROM users WHERE email = $1", array($email));
-            if (pg_fetch_result($check_email, 0, 0) > 0) {
-                // User already exists with this email, maybe just update role or reference?
-                // For now, let's assume we skip creation if email exists to avoid error
-                // or throw exception
-                 throw new Exception("Email sudah terdaftar sebagai user!");
-            }
-            
-            $query_user = "INSERT INTO users (username, email, password, role, reference_id, is_active, created_at) 
-                           VALUES ($1, $2, $3, 'mahasiswa', $4, TRUE, NOW())";
-            $result_user = pg_query_params($this->conn, $query_user, array($username, $email, $password, $id));
-            
-            if (!$result_user) {
-                throw new Exception("Gagal membuat user account: " . pg_last_error($this->conn));
-            }
-            
             pg_query($this->conn, "COMMIT");
-            return ['success' => true, 'message' => 'Mahasiswa berhasil disetujui dan akun user telah dibuat (Username: ' . $username . ', Password: mahasiswa123)'];
+            return ['success' => true, 'message' => 'Mahasiswa berhasil disetujui!'];
             
         } catch (Exception $e) {
             pg_query($this->conn, "ROLLBACK");

@@ -1,7 +1,8 @@
 <?php
 // Admin Manage Artikel View
 require_once __DIR__ . '/../auth_check.php';
-require_once __DIR__ . '/../../core/database.php';
+require_once __DIR__ . '/../../includes/config.php';
+require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../controllers/artikelController.php';
 
 // Prevent caching
@@ -27,6 +28,13 @@ $articles = $result['articles'];
 $total_pages = $result['total_pages'];
 $current_page = $result['current_page'];
 $total_records = $result['total_records'];
+
+// Get kategori list for mapping
+$kategori_map = [];
+$kategori_list = $controller->getKategoriList();
+foreach ($kategori_list as $kat) {
+    $kategori_map[$kat['id']] = $kat;
+}
 
 // Handle success/error messages
 $success = isset($_GET['success']) ? $_GET['success'] : '';
@@ -132,6 +140,7 @@ include '../includes/admin_sidebar.php';
                             <tr>
                                 <th>Gambar</th>
                                 <th>Judul</th>
+                                <th>Kategori</th>
                                 <th>Penulis</th>
                                 <th>Tanggal</th>
                                 <th class="text-center">Aksi</th>
@@ -142,8 +151,9 @@ include '../includes/admin_sidebar.php';
                             <tr>
                                 <td>
                                     <?php if ($row['gambar']): ?>
-                                        <img src="../../public/uploads/artikel/<?php echo htmlspecialchars($row['gambar']); ?>" 
-                                             class="rounded" width="60" height="40" style="object-fit: cover;">
+                                        <img src="<?php echo BASE_URL; ?>/public/uploads/artikel/<?php echo htmlspecialchars($row['gambar']); ?>" 
+                                             class="rounded" width="60" height="40" style="object-fit: cover;"
+                                             onerror="this.style.display='none';">
                                     <?php else: ?>
                                         <div class="bg-light rounded d-flex align-items-center justify-content-center" 
                                              style="width: 60px; height: 40px;">
@@ -155,8 +165,21 @@ include '../includes/admin_sidebar.php';
                                     <strong><?php echo htmlspecialchars($row['judul']); ?></strong>
                                     <br>
                                     <small class="text-muted">
-                                        <?php echo substr(strip_tags($row['isi']), 0, 100) . '...'; ?>
+                                        <?php echo substr(strip_tags($row['isi']), 0, 80) . '...'; ?>
                                     </small>
+                                </td>
+                                <td>
+                                    <?php 
+                                    $kat_id = $row['kategori_id'] ?? null;
+                                    if ($kat_id && isset($kategori_map[$kat_id])): 
+                                        $kat = $kategori_map[$kat_id];
+                                    ?>
+                                        <span class="badge" style="background-color: <?php echo htmlspecialchars($kat['warna']); ?>;">
+                                            <?php echo htmlspecialchars($kat['nama_kategori']); ?>
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="badge bg-secondary">-</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td><?php echo htmlspecialchars($row['penulis']); ?></td>
                                 <td>
@@ -294,12 +317,14 @@ function confirmDelete(id, judul) {
 function showArticleDetail(data) {
     console.log('showArticleDetail called with data:', data);
     
+    const baseUrl = '<?php echo BASE_URL; ?>';
+    
     try {
         const content = `
             <div class="row mb-3">
                 <div class="col-md-4">
                     ${data.gambar ? 
-                        `<img src="../../public/uploads/artikel/${data.gambar}" class="img-fluid rounded" style="max-height: 200px; object-fit: cover;">` : 
+                        `<img src="${baseUrl}/public/uploads/artikel/${data.gambar}" class="img-fluid rounded" style="max-height: 200px; object-fit: cover;" onerror="this.parentElement.innerHTML='<div class=\\'bg-light rounded d-flex align-items-center justify-content-center\\' style=\\'height: 200px;\\'><i class=\\'bi bi-image text-muted\\' style=\\'font-size: 3rem;\\'></i></div>';">` : 
                         `<div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 200px;">
                             <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
                         </div>`

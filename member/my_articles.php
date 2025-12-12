@@ -105,7 +105,7 @@ $result = pg_query_params($conn, $query, array($member_id, $items_per_page, $off
                                     <?php if (!empty($article['gambar'])): ?>
                                         <img src="<?php echo BASE_URL; ?>/public/uploads/artikel/<?php echo htmlspecialchars($article['gambar']); ?>" 
                                              alt="Thumbnail" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;"
-                                             onerror="this.src='<?php echo BASE_URL; ?>/assets/img/no-image.png'">
+                                             onerror="this.src='<?php echo BASE_URL; ?>/public/img/no-image.png'">
                                     <?php else: ?>
                                         <div class="bg-light text-center" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
                                             <i class="bi bi-image text-muted"></i>

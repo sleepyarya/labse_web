@@ -17,6 +17,9 @@ $result = pg_query($conn, $query);
     </div>
 </div>
 
+<!-- Main Content Wrapper -->
+<div class="main-wrapper" style="min-height: 70vh; padding-bottom: 8rem;">
+
 <!-- Focus Areas -->
 <section class="content-section">
     <div class="container">
@@ -163,6 +166,9 @@ $result = pg_query($conn, $query);
         </div>
     </div>
 </section>
+
+</div>
+<!-- End Main Content Wrapper -->
 
 <?php
 pg_close($conn);

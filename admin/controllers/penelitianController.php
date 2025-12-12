@@ -2,7 +2,7 @@
 // Controller: Penelitian Controller (Admin)
 // Description: Handles CRUD operations for penelitian management - FULL ACCESS for admin
 
-require_once __DIR__ . '/../../core/database.php';
+require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../../core/session.php';
 
 class PenelitianController {
@@ -14,6 +14,19 @@ class PenelitianController {
         $this->conn = $conn;
     }
     
+    // Get list of kategori for dropdown
+    public function getKategoriList() {
+        $query = "SELECT id, nama_kategori, warna FROM kategori_penelitian WHERE is_active = TRUE ORDER BY nama_kategori ASC";
+        $result = pg_query($this->conn, $query);
+        $kategori_list = [];
+        if ($result) {
+            while ($row = pg_fetch_assoc($result)) {
+                $kategori_list[] = $row;
+            }
+        }
+        return $kategori_list;
+    }
+    
     // Add new penelitian
     public function add() {
         $error = '';
@@ -23,10 +36,24 @@ class PenelitianController {
             $judul = pg_escape_string($this->conn, trim($_POST['judul']));
             $deskripsi = pg_escape_string($this->conn, trim($_POST['deskripsi']));
             $tahun = isset($_POST['tahun']) ? (int)$_POST['tahun'] : date('Y');
-            $kategori = pg_escape_string($this->conn, trim($_POST['kategori']));
             $abstrak = pg_escape_string($this->conn, trim($_POST['abstrak']));
             $link_publikasi = pg_escape_string($this->conn, trim($_POST['link_publikasi']));
             $personil_id = isset($_POST['personil_id']) && !empty($_POST['personil_id']) ? (int)$_POST['personil_id'] : null;
+            $kategori_id = isset($_POST['kategori_id']) && !empty($_POST['kategori_id']) ? (int)$_POST['kategori_id'] : null;
+            
+            // Get kategori name for backward compatibility
+            $kategori = '';
+            if ($kategori_id) {
+                $kat_query = "SELECT nama_kategori FROM kategori_penelitian WHERE id = $1";
+                $kat_res = pg_query_params($this->conn, $kat_query, array($kategori_id));
+                $kat_row = pg_fetch_assoc($kat_res);
+                if ($kat_row) {
+                    $kategori = $kat_row['nama_kategori'];
+                }
+            } else {
+                // If manual input allowed or fallback
+                $kategori = pg_escape_string($this->conn, trim($_POST['kategori'] ?? ''));
+            }
             
             // Validation
             if (empty($judul) || empty($deskripsi) || empty($tahun)) {
@@ -41,8 +68,9 @@ class PenelitianController {
                     
                     if (in_array($ext, $allowed)) {
                         $new_filename = 'penelitian_' . time() . '_' . uniqid() . '.' . $ext;
-                        $upload_dir = '../uploads/penelitian/';
+                        $upload_dir = __DIR__ . '/../../public/uploads/penelitian/';
                         
+                        // Create directory if not exists
                         if (!file_exists($upload_dir)) {
                             mkdir($upload_dir, 0777, true);
                         }
@@ -63,7 +91,12 @@ class PenelitianController {
                     
                     if ($ext == 'pdf') {
                         $new_filename = 'penelitian_' . time() . '_' . uniqid() . '.pdf';
-                        $upload_dir = '../uploads/penelitian/';
+                        $upload_dir = __DIR__ . '/../../public/uploads/penelitian/';
+                        
+                        // Create directory if not exists
+                        if (!file_exists($upload_dir)) {
+                            mkdir($upload_dir, 0777, true);
+                        }
                         
                         if (move_uploaded_file($_FILES['file_pdf']['tmp_name'], $upload_dir . $new_filename)) {
                             $file_pdf = $new_filename;
@@ -75,10 +108,10 @@ class PenelitianController {
                 
                 // Insert to database
                 if (empty($error)) {
-                    $query = "INSERT INTO hasil_penelitian (judul, deskripsi, tahun, kategori, abstrak, gambar, file_pdf, link_publikasi, personil_id) 
-                              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)";
+                    $query = "INSERT INTO hasil_penelitian (judul, deskripsi, tahun, kategori, abstrak, gambar, file_pdf, link_publikasi, personil_id, kategori_id) 
+                              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)";
                     $result = pg_query_params($this->conn, $query, array(
-                        $judul, $deskripsi, $tahun, $kategori, $abstrak, $gambar, $file_pdf, $link_publikasi, $personil_id
+                        $judul, $deskripsi, $tahun, $kategori, $abstrak, $gambar, $file_pdf, $link_publikasi, $personil_id, $kategori_id
                     ));
                     
                     if ($result) {
@@ -116,10 +149,23 @@ class PenelitianController {
             $judul = pg_escape_string($this->conn, trim($_POST['judul']));
             $deskripsi = pg_escape_string($this->conn, trim($_POST['deskripsi']));
             $tahun = isset($_POST['tahun']) ? (int)$_POST['tahun'] : date('Y');
-            $kategori = pg_escape_string($this->conn, trim($_POST['kategori']));
             $abstrak = pg_escape_string($this->conn, trim($_POST['abstrak']));
             $link_publikasi = pg_escape_string($this->conn, trim($_POST['link_publikasi']));
             $personil_id = isset($_POST['personil_id']) && !empty($_POST['personil_id']) ? (int)$_POST['personil_id'] : null;
+            $kategori_id = isset($_POST['kategori_id']) && !empty($_POST['kategori_id']) ? (int)$_POST['kategori_id'] : null;
+            
+            // Get kategori name
+            $kategori = '';
+            if ($kategori_id) {
+                $kat_query = "SELECT nama_kategori FROM kategori_penelitian WHERE id = $1";
+                $kat_res = pg_query_params($this->conn, $kat_query, array($kategori_id));
+                $kat_row = pg_fetch_assoc($kat_res);
+                if ($kat_row) {
+                    $kategori = $kat_row['nama_kategori'];
+                }
+            } else {
+                $kategori = pg_escape_string($this->conn, trim($_POST['kategori'] ?? ''));
+            }
             
             // Validation
             if (empty($judul) || empty($deskripsi) || empty($tahun)) {
@@ -134,7 +180,11 @@ class PenelitianController {
                     
                     if (in_array($ext, $allowed)) {
                         $new_filename = 'penelitian_' . time() . '_' . uniqid() . '.' . $ext;
-                        $upload_dir = '../uploads/penelitian/';
+                        $upload_dir = __DIR__ . '/../../public/uploads/penelitian/';
+                        
+                        if (!file_exists($upload_dir)) {
+                            mkdir($upload_dir, 0777, true);
+                        }
                         
                         if (move_uploaded_file($_FILES['gambar']['tmp_name'], $upload_dir . $new_filename)) {
                             // Delete old image
@@ -154,7 +204,11 @@ class PenelitianController {
                     
                     if ($ext == 'pdf') {
                         $new_filename = 'penelitian_' . time() . '_' . uniqid() . '.pdf';
-                        $upload_dir = '../uploads/penelitian/';
+                        $upload_dir = __DIR__ . '/../../public/uploads/penelitian/';
+                        
+                        if (!file_exists($upload_dir)) {
+                            mkdir($upload_dir, 0777, true);
+                        }
                         
                         if (move_uploaded_file($_FILES['file_pdf']['tmp_name'], $upload_dir . $new_filename)) {
                             // Delete old PDF
@@ -166,13 +220,13 @@ class PenelitianController {
                     }
                 }
                 
-                // Update database - NO ownership check, admin can edit all
+                // Update database
                 $query = "UPDATE hasil_penelitian 
                           SET judul = $1, deskripsi = $2, tahun = $3, kategori = $4, abstrak = $5, 
-                              gambar = $6, file_pdf = $7, link_publikasi = $8, personil_id = $9, updated_at = NOW() 
-                          WHERE id = $10";
+                              gambar = $6, file_pdf = $7, link_publikasi = $8, personil_id = $9, kategori_id = $10, updated_at = NOW() 
+                          WHERE id = $11";
                 $result = pg_query_params($this->conn, $query, array(
-                    $judul, $deskripsi, $tahun, $kategori, $abstrak, $gambar, $file_pdf, $link_publikasi, $personil_id, $id
+                    $judul, $deskripsi, $tahun, $kategori, $abstrak, $gambar, $file_pdf, $link_publikasi, $personil_id, $kategori_id, $id
                 ));
                 
                 if ($result) {
@@ -202,12 +256,12 @@ class PenelitianController {
                 
                 if ($delete_result) {
                     // Delete gambar file
-                    if ($penelitian['gambar'] && file_exists('../uploads/penelitian/' . $penelitian['gambar'])) {
-                        unlink('../uploads/penelitian/' . $penelitian['gambar']);
+                    if ($penelitian['gambar'] && file_exists(__DIR__ . '/../../public/uploads/penelitian/' . $penelitian['gambar'])) {
+                        unlink(__DIR__ . '/../../public/uploads/penelitian/' . $penelitian['gambar']);
                     }
                     // Delete PDF file
-                    if ($penelitian['file_pdf'] && file_exists('../uploads/penelitian/' . $penelitian['file_pdf'])) {
-                        unlink('../uploads/penelitian/' . $penelitian['file_pdf']);
+                    if ($penelitian['file_pdf'] && file_exists(__DIR__ . '/../../public/uploads/penelitian/' . $penelitian['file_pdf'])) {
+                        unlink(__DIR__ . '/../../public/uploads/penelitian/' . $penelitian['file_pdf']);
                     }
                     header('Location: ' . BASE_URL . '/admin/manage_penelitian.php?success=delete');
                 } else {
@@ -227,18 +281,19 @@ class PenelitianController {
         $offset = ($page - 1) * $limit;
         
         // Search functionality
-        $where = $search ? "WHERE judul ILIKE '%$search%' OR deskripsi ILIKE '%$search%' OR abstrak ILIKE '%$search%' OR kategori ILIKE '%$search%'" : '';
+        $where = $search ? "WHERE judul ILIKE '%$search%' OR deskripsi ILIKE '%$search%' OR abstrak ILIKE '%$search%' OR hp.kategori ILIKE '%$search%'" : '';
         
         // Get total records
-        $count_query = "SELECT COUNT(*) as total FROM hasil_penelitian $where";
+        $count_query = "SELECT COUNT(*) as total FROM hasil_penelitian hp $where";
         $count_result = pg_query($this->conn, $count_query);
         $total_records = pg_fetch_assoc($count_result)['total'];
         $total_pages = ceil($total_records / $limit);
         
-        // Get penelitian data with personil name
-        $query = "SELECT hp.*, p.nama as personil_nama 
+        // Get penelitian data with personil name AND kategori detail
+        $query = "SELECT hp.*, p.nama as personil_nama, kp.nama_kategori as kat_nama, kp.warna as kat_warna
                   FROM hasil_penelitian hp
                   LEFT JOIN personil p ON hp.personil_id = p.id
+                  LEFT JOIN kategori_penelitian kp ON hp.kategori_id = kp.id
                   $where 
                   ORDER BY hp.tahun DESC, hp.created_at DESC 
                   LIMIT $limit OFFSET $offset";
@@ -259,7 +314,10 @@ class PenelitianController {
     
     // Get single penelitian by ID
     public function getById($id) {
-        $query = "SELECT * FROM hasil_penelitian WHERE id = $1";
+        $query = "SELECT hp.*, kp.nama_kategori as kat_nama, kp.warna as kat_warna
+                  FROM hasil_penelitian hp
+                  LEFT JOIN kategori_penelitian kp ON hp.kategori_id = kp.id 
+                  WHERE hp.id = $1";
         $result = pg_query_params($this->conn, $query, array($id));
         return pg_fetch_assoc($result);
     }

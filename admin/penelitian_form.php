@@ -10,6 +10,8 @@ $error = '';
 
 // Get personil list for dropdown
 $personil_list = $controller->getAllPersonil();
+// Get kategori list for dropdown
+$kategori_list = $controller->getKategoriList();
 
 if ($is_edit) {
     $id = intval($_GET['id']);
@@ -97,17 +99,20 @@ include 'includes/admin_sidebar.php';
                                 <!-- Kategori -->
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Kategori</label>
-                                    <select name="kategori" class="form-select">
+                                    <select name="kategori_id" class="form-select">
+                                        <option value="">Pilih Kategori</option>
                                         <?php 
-                                        $selected_kategori = $is_edit ? $penelitian['kategori'] : (isset($_POST['kategori']) ? $_POST['kategori'] : '');
-                                        $kategori_options = ['', 'Fundamental', 'Terapan', 'Pengembangan'];
-                                        foreach ($kategori_options as $opt):
+                                        $selected_kategori_id = $is_edit ? ($penelitian['kategori_id'] ?? '') : (isset($_POST['kategori_id']) ? $_POST['kategori_id'] : '');
+                                        // Backup: if kategori_id is null but kategori string exists (legacy data), try to match or show warning
+                                        
+                                        foreach ($kategori_list as $kat):
                                         ?>
-                                        <option value="<?php echo $opt; ?>" <?php echo $selected_kategori == $opt ? 'selected' : ''; ?>>
-                                            <?php echo $opt ? $opt : 'Pilih Kategori'; ?>
+                                        <option value="<?php echo $kat['id']; ?>" <?php echo $selected_kategori_id == $kat['id'] ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($kat['nama_kategori']); ?>
                                         </option>
                                         <?php endforeach; ?>
                                     </select>
+                                    <small class="text-muted"><a href="manage_kategori_penelitian.php" target="_blank">Kelola Kategori</a></small>
                                 </div>
                             </div>
                             
@@ -159,7 +164,7 @@ include 'includes/admin_sidebar.php';
                                     <label class="form-label">Gambar Cover</label>
                                     <?php if ($is_edit && $penelitian['gambar']): ?>
                                     <div class="mb-2">
-                                        <img src="<?php echo BASE_URL . '/uploads/penelitian/' . htmlspecialchars($penelitian['gambar']); ?>" 
+                                        <img src="<?php echo BASE_URL . '/public/uploads/penelitian/' . htmlspecialchars($penelitian['gambar']); ?>" 
                                              class="img-thumbnail" style="max-height: 150px;" alt="Current cover">
                                         <div class="form-text">Gambar saat ini</div>
                                     </div>
@@ -176,7 +181,7 @@ include 'includes/admin_sidebar.php';
                                     <label class="form-label">File PDF</label>
                                     <?php if ($is_edit && $penelitian['file_pdf']): ?>
                                     <div class="mb-2">
-                                        <a href="<?php echo BASE_URL . '/uploads/penelitian/' . htmlspecialchars($penelitian['file_pdf']); ?>" 
+                                        <a href="<?php echo BASE_URL . '/public/uploads/penelitian/' . htmlspecialchars($penelitian['file_pdf']); ?>" 
                                            class="btn btn-sm btn-outline-danger" target="_blank">
                                             <i class="bi bi-file-pdf me-1"></i>Lihat PDF Saat Ini
                                         </a>

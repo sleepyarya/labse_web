@@ -2,7 +2,7 @@
 // Controller: Member Profile Controller
 // Description: Handles profile management operations for members
 
-require_once __DIR__ . '/../../core/database.php';
+require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../../core/session.php';
 
 class MemberProfileController {
@@ -82,7 +82,7 @@ class MemberProfileController {
                     
                     if (in_array($ext, $allowed)) {
                         $new_filename = 'profile_' . $member_id . '_' . time() . '.' . $ext;
-                        $upload_dir = '../public/uploads/personil/';
+                        $upload_dir = __DIR__ . '/../../public/uploads/personil/';
                         
                         // Create directory if not exists
                         if (!file_exists($upload_dir)) {

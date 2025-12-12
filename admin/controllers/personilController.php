@@ -2,7 +2,7 @@
 // Controller: Personil Controller
 // Description: Handles CRUD operations for personil management
 
-require_once __DIR__ . '/../../core/database.php';
+require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../../core/session.php';
 require_once __DIR__ . '/../../core/UserSyncService.php';
 

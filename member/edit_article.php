@@ -5,6 +5,16 @@ require_once '../includes/config.php';
 $member_id = $_SESSION['member_id'];
 $error = '';
 
+// Get kategori list
+$kategori_query = "SELECT id, nama_kategori, warna FROM kategori_artikel WHERE is_active = TRUE ORDER BY nama_kategori ASC";
+$kategori_result = pg_query($conn, $kategori_query);
+$kategori_list = [];
+if ($kategori_result) {
+    while ($row = pg_fetch_assoc($kategori_result)) {
+        $kategori_list[] = $row;
+    }
+}
+
 // Get artikel ID
 $artikel_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
@@ -82,8 +92,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         // Update artikel only if no errors
         if (empty($error)) {
-            $query = "UPDATE artikel SET judul = $1, isi = $2, gambar = $3 WHERE id = $4 AND personil_id = $5";
-            $result = pg_query_params($conn, $query, array($judul, $isi, $gambar, $artikel_id, $member_id));
+            // Get kategori_id
+            $kategori_id = !empty($_POST['kategori_id']) ? (int)$_POST['kategori_id'] : null;
+            
+            $query = "UPDATE artikel SET judul = $1, isi = $2, gambar = $3, kategori_id = $4 WHERE id = $5 AND personil_id = $6";
+            $result = pg_query_params($conn, $query, array($judul, $isi, $gambar, $kategori_id, $artikel_id, $member_id));
             
             if ($result) {
                 // Log activity: Edit Article
@@ -151,11 +164,28 @@ include 'includes/member_sidebar.php';
                     <input type="text" class="form-control" value="<?php echo htmlspecialchars($artikel['penulis']); ?>" readonly>
                 </div>
                 
-                <!-- Judul -->
-                <div class="mb-3">
-                    <label class="form-label">Judul Artikel <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="judul" 
-                           value="<?php echo htmlspecialchars($artikel['judul']); ?>" required>
+                <!-- Judul dan Kategori -->
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label">Judul Artikel <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="judul" 
+                               value="<?php echo htmlspecialchars($artikel['judul']); ?>" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Kategori</label>
+                        <select name="kategori_id" class="form-select">
+                            <option value="">-- Pilih Kategori --</option>
+                            <?php 
+                            $current_kategori_id = $artikel['kategori_id'] ?? '';
+                            foreach ($kategori_list as $kat): 
+                            ?>
+                                <option value="<?php echo $kat['id']; ?>" <?php echo $current_kategori_id == $kat['id'] ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($kat['nama_kategori']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <small class="text-muted">Pilih kategori yang sesuai</small>
+                    </div>
                 </div>
                 
                 <!-- Gambar Current -->

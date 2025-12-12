@@ -13,7 +13,7 @@
             <i class="bi bi-x-lg"></i>
         </button>
         <a href="<?php echo BASE_URL; ?>/admin/index.php" class="sidebar-brand" style="align-items: flex-start;">
-            <img src="<?php echo BASE_URL; ?>/assets/img/logo-pnm.png" alt="Logo PNM" style="width: 55px; height: 55px; object-fit: contain; margin-right: 12px; margin-top: -2px;">
+            <img src="<?php echo BASE_URL; ?>/public/img/logo-pnm.png" alt="Logo PNM" style="width: 55px; height: 55px; object-fit: contain; margin-right: 12px; margin-top: -2px;">
             <div style="padding-top: 3px;">
                 <div style="font-size: 1rem; line-height: 1.3;">JTI - POLINEMA</div>
                 <small style="font-size: 0.7rem; opacity: 0.7; line-height: 1.2;">Admin Panel</small>
@@ -42,6 +42,11 @@
             <span>Kelola Artikel</span>
         </a>
         
+        <a href="<?php echo BASE_URL; ?>/admin/manage_kategori_artikel.php" class="menu-item <?php echo basename($_SERVER['PHP_SELF']) == 'manage_kategori_artikel.php' ? 'active' : ''; ?>">
+            <i class="bi bi-tags"></i>
+            <span>Kategori Artikel</span>
+        </a>
+        
         <a href="<?php echo BASE_URL; ?>/admin/views/manage_mahasiswa.php" class="menu-item <?php echo in_array(basename($_SERVER['PHP_SELF']), ['manage_mahasiswa.php', 'mahasiswa_form.php']) ? 'active' : ''; ?>">
             <i class="bi bi-person-badge"></i>
             <span>Kelola Mahasiswa</span>
@@ -50,6 +55,11 @@
         <a href="<?php echo BASE_URL; ?>/admin/manage_recruitment.php" class="menu-item <?php echo basename($_SERVER['PHP_SELF']) == 'manage_recruitment.php' ? 'active' : ''; ?>">
             <i class="bi bi-people-fill"></i>
             <span>Kelola Recruitment</span>
+        </a>
+        
+        <a href="<?php echo BASE_URL; ?>/admin/manage_jurusan.php" class="menu-item <?php echo basename($_SERVER['PHP_SELF']) == 'manage_jurusan.php' ? 'active' : ''; ?>">
+            <i class="bi bi-building"></i>
+            <span>Kelola Jurusan</span>
         </a>
         
         <a href="<?php echo BASE_URL; ?>/admin/manage_pengabdian.php" class="menu-item <?php echo in_array(basename($_SERVER['PHP_SELF']), ['manage_pengabdian.php', 'add_pengabdian.php', 'edit_pengabdian.php']) ? 'active' : ''; ?>">
@@ -61,10 +71,20 @@
             <i class="bi bi-journal-text"></i>
             <span>Kelola Penelitian</span>
         </a>
+
+        <a href="<?php echo BASE_URL; ?>/admin/manage_kategori_penelitian.php" class="menu-item <?php echo basename($_SERVER['PHP_SELF']) == 'manage_kategori_penelitian.php' ? 'active' : ''; ?>">
+            <i class="bi bi-bookmark-star"></i>
+            <span>Kategori Penelitian</span>
+        </a>
         
         <a href="<?php echo BASE_URL; ?>/admin/manage_produk.php" class="menu-item <?php echo in_array(basename($_SERVER['PHP_SELF']), ['manage_produk.php', 'produk_form.php']) ? 'active' : ''; ?>">
             <i class="bi bi-box-seam"></i>
             <span>Kelola Produk</span>
+        </a>
+
+        <a href="<?php echo BASE_URL; ?>/admin/manage_kategori_produk.php" class="menu-item <?php echo basename($_SERVER['PHP_SELF']) == 'manage_kategori_produk.php' ? 'active' : ''; ?>">
+            <i class="bi bi-tags"></i>
+            <span>Kategori Produk</span>
         </a>
         
         <div class="menu-label">System</div>
@@ -91,7 +111,7 @@
             <span>Landing Page</span>
         </a>
         
-        <a href="<?php echo BASE_URL; ?>/admin/manage_lab_profile.php" class="menu-item <?php echo basename($_SERVER['PHP_SELF']) == 'manage_lab_profile.php' ? 'active' : ''; ?>">
+        <a href="<?php echo BASE_URL; ?>/admin/views/manage_lab_profile.php" class="menu-item <?php echo basename($_SERVER['PHP_SELF']) == 'manage_lab_profile.php' ? 'active' : ''; ?>">
             <i class="bi bi-building-gear"></i>
             <span>Profil Lab</span>
         </a>
@@ -132,8 +152,8 @@
             }
             ?>
             <div class="user-avatar">
-                <?php if (!empty($admin_photo) && file_exists(__DIR__ . '/../../uploads/admin/' . $admin_photo)): ?>
-                    <img src="<?php echo BASE_URL; ?>/uploads/admin/<?php echo htmlspecialchars($admin_photo); ?>" 
+                <?php if (!empty($admin_photo) && file_exists(__DIR__ . '/../../public/uploads/admin/' . $admin_photo)): ?>
+                    <img src="<?php echo BASE_URL; ?>/public/uploads/admin/<?php echo htmlspecialchars($admin_photo); ?>" 
                          alt="Admin Photo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
                 <?php else: ?>
                     <i class="bi bi-person"></i>

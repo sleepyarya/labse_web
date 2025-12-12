@@ -9,7 +9,10 @@ $produk = null;
 $error = '';
 
 // Get personil list for dropdown
+// Get personil list for dropdown
 $personil_list = $controller->getAllPersonil();
+// Get kategori list for dropdown
+$kategori_list = $controller->getKategoriList();
 
 if ($is_edit) {
     $id = intval($_GET['id']);
@@ -90,14 +93,18 @@ include 'includes/admin_sidebar.php';
                                 
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Kategori</label>
-                                    <select name="kategori" class="form-select">
-                                        <?php 
-                                        $selected_kategori = $is_edit ? $produk['kategori'] : (isset($_POST['kategori']) ? $_POST['kategori'] : '');
-                                        ?>
+                                    <select name="kategori_id" class="form-select">
                                         <option value="">Pilih Kategori</option>
-                                        <option value="Hardware" <?php echo $selected_kategori == 'Hardware' ? 'selected' : ''; ?>>Hardware</option>
-                                        <option value="Software" <?php echo $selected_kategori == 'Software' ? 'selected' : ''; ?>>Software</option>
+                                        <?php 
+                                        $selected_kategori_id = $is_edit ? ($produk['kategori_id'] ?? '') : (isset($_POST['kategori_id']) ? $_POST['kategori_id'] : '');
+                                        foreach ($kategori_list as $kat):
+                                        ?>
+                                        <option value="<?php echo $kat['id']; ?>" <?php echo $selected_kategori_id == $kat['id'] ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($kat['nama_kategori']); ?>
+                                        </option>
+                                        <?php endforeach; ?>
                                     </select>
+                                    <small class="text-muted"><a href="manage_kategori_produk.php" target="_blank">Kelola Kategori</a></small>
                                 </div>
                             </div>
                             
@@ -148,7 +155,7 @@ include 'includes/admin_sidebar.php';
                                 <label class="form-label">Gambar Produk</label>
                                 <?php if ($is_edit && $produk['gambar']): ?>
                                 <div class="mb-2">
-                                    <img src="<?php echo BASE_URL; ?>/uploads/produk/<?php echo htmlspecialchars($produk['gambar']); ?>" 
+                                    <img src="<?php echo BASE_URL; ?>/public/uploads/produk/<?php echo htmlspecialchars($produk['gambar']); ?>" 
                                          class="img-thumbnail" style="max-height: 150px;">
                                     <div class="form-text">Gambar saat ini</div>
                                 </div>

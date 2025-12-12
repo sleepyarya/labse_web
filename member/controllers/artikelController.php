@@ -2,7 +2,7 @@
 // Controller: Member Artikel Controller
 // Description: Handles CRUD operations for member artikel management
 
-require_once __DIR__ . '/../../core/database.php';
+require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../../core/session.php';
 
 class MemberArtikelController {
@@ -12,6 +12,19 @@ class MemberArtikelController {
     public function __construct() {
         global $conn;
         $this->conn = $conn;
+    }
+    
+    // Get list of kategori for dropdown
+    public function getKategoriList() {
+        $query = "SELECT id, nama_kategori, warna FROM kategori_artikel WHERE is_active = TRUE ORDER BY nama_kategori ASC";
+        $result = pg_query($this->conn, $query);
+        $kategori_list = [];
+        if ($result) {
+            while ($row = pg_fetch_assoc($result)) {
+                $kategori_list[] = $row;
+            }
+        }
+        return $kategori_list;
     }
     
     // Add new artikel by member
@@ -30,6 +43,9 @@ class MemberArtikelController {
             if (empty($judul) || empty($isi)) {
                 $error = 'Judul dan isi artikel harus diisi!';
             } else {
+                // Handle kategori selection
+                $kategori_id = !empty($_POST['kategori_id']) ? (int)$_POST['kategori_id'] : null;
+                
                 // Handle gambar upload
                 $gambar = null;
                 if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
@@ -52,10 +68,10 @@ class MemberArtikelController {
                     }
                 }
                 
-                // Insert artikel dengan personil_id
-                $query = "INSERT INTO artikel (judul, isi, penulis, gambar, personil_id) 
-                          VALUES ($1, $2, $3, $4, $5)";
-                $result = pg_query_params($this->conn, $query, array($judul, $isi, $penulis, $gambar, $member_id));
+                // Insert artikel dengan personil_id dan kategori_id
+                $query = "INSERT INTO artikel (judul, isi, penulis, gambar, personil_id, kategori_id) 
+                          VALUES ($1, $2, $3, $4, $5, $6)";
+                $result = pg_query_params($this->conn, $query, array($judul, $isi, $penulis, $gambar, $member_id, $kategori_id));
                 
                 if ($result) {
                     header('Location: ../member/views/my_articles.php?success=add');
@@ -95,6 +111,9 @@ class MemberArtikelController {
             if (empty($judul) || empty($isi)) {
                 $error = 'Judul dan isi artikel harus diisi!';
             } else {
+                // Handle kategori selection
+                $kategori_id = !empty($_POST['kategori_id']) ? (int)$_POST['kategori_id'] : null;
+                
                 // Handle gambar upload
                 $gambar = $artikel['gambar']; // Keep existing image by default
                 if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
@@ -121,10 +140,10 @@ class MemberArtikelController {
                     }
                 }
                 
-                // Update artikel
-                $query = "UPDATE artikel SET judul = $1, isi = $2, gambar = $3, updated_at = NOW() 
-                          WHERE id = $4 AND personil_id = $5";
-                $result = pg_query_params($this->conn, $query, array($judul, $isi, $gambar, $id, $member_id));
+                // Update artikel dengan kategori_id
+                $query = "UPDATE artikel SET judul = $1, isi = $2, gambar = $3, kategori_id = $4, updated_at = NOW() 
+                          WHERE id = $5 AND personil_id = $6";
+                $result = pg_query_params($this->conn, $query, array($judul, $isi, $gambar, $kategori_id, $id, $member_id));
                 
                 if ($result) {
                     header('Location: ../member/views/my_articles.php?success=edit');

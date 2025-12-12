@@ -113,7 +113,7 @@ include 'includes/member_sidebar.php';
                                 <td><?php echo $no++; ?></td>
                                 <td>
                                     <?php if ($item['gambar']): ?>
-                                    <img src="<?php echo BASE_URL; ?>/uploads/produk/<?php echo htmlspecialchars($item['gambar']); ?>" 
+                                    <img src="<?php echo BASE_URL; ?>/public/uploads/produk/<?php echo htmlspecialchars($item['gambar']); ?>" 
                                          class="img-thumbnail" style="width: 80px; height: 60px; object-fit: cover;">
                                     <?php else: ?>
                                     <div class="bg-secondary text-white d-flex align-items-center justify-content-center" 

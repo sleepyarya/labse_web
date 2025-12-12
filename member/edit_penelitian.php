@@ -11,6 +11,8 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 
 $id = intval($_GET['id']);
 $controller = new MemberPenelitianController();
+// Get kategori list
+$kategori_list = $controller->getKategoriList();
 $result = $controller->edit($id);
 
 // If unauthorized or not found
@@ -84,11 +86,16 @@ $current_year = date('Y');
                     <!-- Kategori -->
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Kategori</label>
-                        <select name="kategori" class="form-select">
+                        <select name="kategori_id" class="form-select">
                             <option value="">Pilih Kategori</option>
-                            <option value="Fundamental" <?php echo $penelitian['kategori'] == 'Fundamental' ? 'selected' : ''; ?>>Fundamental</option>
-                            <option value="Terapan" <?php echo $penelitian['kategori'] == 'Terapan' ? 'selected' : ''; ?>>Terapan</option>
-                            <option value="Pengembangan" <?php echo $penelitian['kategori'] == 'Pengembangan' ? 'selected' : ''; ?>>Pengembangan</option>
+                            <?php 
+                            $selected_id = $penelitian['kategori_id'] ?? '';
+                            foreach ($kategori_list as $kat): 
+                            ?>
+                            <option value="<?php echo $kat['id']; ?>" <?php echo $selected_id == $kat['id'] ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($kat['nama_kategori']); ?>
+                            </option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                 </div>
@@ -118,7 +125,7 @@ $current_year = date('Y');
                         <label class="form-label">Gambar Cover</label>
                         <?php if ($penelitian['gambar']): ?>
                         <div class="mb-2">
-                            <img src="<?php echo BASE_URL; ?>/uploads/penelitian/<?php echo htmlspecialchars($penelitian['gambar']); ?>" 
+                            <img src="<?php echo BASE_URL; ?>/public/uploads/penelitian/<?php echo htmlspecialchars($penelitian['gambar']); ?>" 
                                  class="img-thumbnail" style="max-height: 150px;" alt="Current cover">
                             <div class="form-text">Gambar saat ini</div>
                         </div>
@@ -132,7 +139,7 @@ $current_year = date('Y');
                         <label class="form-label">File PDF</label>
                         <?php if ($penelitian['file_pdf']): ?>
                         <div class="mb-2">
-                            <a href="<?php echo BASE_URL; ?>/uploads/penelitian/<?php echo htmlspecialchars($penelitian['file_pdf']); ?>" 
+                            <a href="<?php echo BASE_URL; ?>/public/uploads/penelitian/<?php echo htmlspecialchars($penelitian['file_pdf']); ?>" 
                                class="btn btn-sm btn-outline-danger" target="_blank">
                                 <i class="bi bi-file-pdf me-1"></i>Lihat PDF Saat Ini
                             </a>

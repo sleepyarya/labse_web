@@ -14,6 +14,16 @@ if (!$is_recruitment_open) {
     exit();
 }
 
+// Get active jurusan from database
+$jurusan_query = "SELECT id, nama_jurusan FROM jurusan WHERE is_active = TRUE ORDER BY nama_jurusan ASC";
+$jurusan_result = pg_query($conn, $jurusan_query);
+$jurusan_list = [];
+if ($jurusan_result) {
+    while ($row = pg_fetch_assoc($jurusan_result)) {
+        $jurusan_list[] = $row;
+    }
+}
+
 $success = false;
 $error = '';
 
@@ -21,33 +31,44 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nama = trim($_POST['nama']);
     $nim = trim($_POST['nim']);
-    $jurusan = trim($_POST['jurusan']);
+    $jurusan_id = isset($_POST['jurusan_id']) ? (int)$_POST['jurusan_id'] : 0;
     $email = trim($_POST['email']);
     $alasan = trim($_POST['alasan']);
     
     // Validation
-    if (empty($nama) || empty($nim) || empty($jurusan) || empty($email) || empty($alasan)) {
+    if (empty($nama) || empty($nim) || empty($jurusan_id) || empty($email) || empty($alasan)) {
         $error = 'Semua field harus diisi!';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Format email tidak valid!';
     } else {
-        // Check NIM duplicate
-        $check_query = "SELECT COUNT(*) as total FROM mahasiswa WHERE nim = $1";
-        $check_result = pg_query_params($conn, $check_query, array($nim));
-        $check_data = pg_fetch_assoc($check_result);
+        // Get jurusan name from ID
+        $jurusan_name_query = "SELECT nama_jurusan FROM jurusan WHERE id = $1 AND is_active = TRUE";
+        $jurusan_name_result = pg_query_params($conn, $jurusan_name_query, array($jurusan_id));
+        $jurusan_data = pg_fetch_assoc($jurusan_name_result);
         
-        if ($check_data['total'] > 0) {
-            $error = 'NIM sudah terdaftar! Gunakan NIM yang berbeda.';
+        if (!$jurusan_data) {
+            $error = 'Jurusan tidak valid!';
         } else {
-            // Insert into database with pending status
-            $query = "INSERT INTO mahasiswa (nama, nim, jurusan, email, alasan, status_approval, created_at) 
-                      VALUES ($1, $2, $3, $4, $5, 'pending', NOW())";
-            $result = pg_query_params($conn, $query, array($nama, $nim, $jurusan, $email, $alasan));
+            $jurusan = $jurusan_data['nama_jurusan'];
             
-            if ($result) {
-                $success = true;
+            // Check NIM duplicate
+            $check_query = "SELECT COUNT(*) as total FROM mahasiswa WHERE nim = $1";
+            $check_result = pg_query_params($conn, $check_query, array($nim));
+            $check_data = pg_fetch_assoc($check_result);
+            
+            if ($check_data['total'] > 0) {
+                $error = 'NIM sudah terdaftar! Gunakan NIM yang berbeda.';
             } else {
-                $error = 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.';
+                // Insert into database with pending status and jurusan_id
+                $query = "INSERT INTO mahasiswa (nama, nim, jurusan, jurusan_id, email, alasan, status_approval, created_at) 
+                          VALUES ($1, $2, $3, $4, $5, $6, 'pending', NOW())";
+                $result = pg_query_params($conn, $query, array($nama, $nim, $jurusan, $jurusan_id, $email, $alasan));
+                
+                if ($result) {
+                    $success = true;
+                } else {
+                    $error = 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.';
+                }
             }
         }
     }
@@ -134,14 +155,16 @@ include '../../includes/navbar.php';
                             </div>
                             
                             <div class="mb-4">
-                                <label for="jurusan" class="form-label">Jurusan <span class="text-danger">*</span></label>
-                                <select class="form-select" id="jurusan" name="jurusan" required>
+                                <label for="jurusan_id" class="form-label">Jurusan <span class="text-danger">*</span></label>
+                                <select class="form-select" id="jurusan_id" name="jurusan_id" required>
                                     <option value="" selected disabled>Pilih jurusan</option>
-                                    <option value="Teknik Informatika">Teknik Informatika</option>
-                                    <option value="Sistem Informasi">Sistem Informasi</option>
-                                    <option value="Teknik Komputer">Teknik Komputer</option>
-                                    <option value="Ilmu Komputer">Ilmu Komputer</option>
-                                    <option value="Teknologi Informasi">Teknologi Informasi</option>
+                                    <?php if (count($jurusan_list) > 0): ?>
+                                        <?php foreach ($jurusan_list as $jrs): ?>
+                                        <option value="<?php echo $jrs['id']; ?>"><?php echo htmlspecialchars($jrs['nama_jurusan']); ?></option>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <option value="" disabled>Tidak ada jurusan tersedia</option>
+                                    <?php endif; ?>
                                 </select>
                                 <div class="invalid-feedback">
                                     Silakan pilih jurusan Anda.

@@ -210,7 +210,7 @@ if (!$penelitian) {
                     <?php if ($recent['gambar']): ?>
                     <img src="<?php echo BASE_URL; ?>/uploads/penelitian/<?php echo htmlspecialchars($recent['gambar']); ?>" 
                          class="card-img-top" style="height: 150px; object-fit: cover;" alt="<?php echo htmlspecialchars($recent['judul']); ?>"
-                         onerror="this.src='<?php echo BASE_URL; ?>/assets/img/no-image.png'">
+                         onerror="this.src='<?php echo BASE_URL; ?>/public/img/no-image.png'">
                     <?php else: ?>
                     <div class="bg-gradient d-flex align-items-center justify-content-center" style="height: 150px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                         <i class="bi bi-journal-text text-white" style="font-size: 2rem;"></i>

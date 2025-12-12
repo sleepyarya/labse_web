@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../core/database.php';
+require_once __DIR__ . '/../../includes/config.php';
 
 $sql = file_get_contents(__DIR__ . '/update_schema_dashboard.sql');
 

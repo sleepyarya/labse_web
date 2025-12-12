@@ -20,10 +20,11 @@ $count_result = pg_query($conn, $count_query);
 $total_items = pg_fetch_assoc($count_result)['total'];
 $total_pages = ceil($total_items / $items_per_page);
 
-// Get data with personil name
-$query = "SELECT hp.*, p.nama as personil_nama 
+// Get data with personil name AND kategori detail
+$query = "SELECT hp.*, p.nama as personil_nama, kp.nama_kategori as kat_nama, kp.warna as kat_warna
           FROM hasil_penelitian hp
           LEFT JOIN personil p ON hp.personil_id = p.id
+          LEFT JOIN kategori_penelitian kp ON hp.kategori_id = kp.id
           $where 
           ORDER BY hp.tahun DESC, hp.created_at DESC 
           LIMIT $items_per_page OFFSET $offset";
@@ -133,7 +134,7 @@ include 'includes/admin_sidebar.php';
                                 <td><?php echo $no++; ?></td>
                                 <td>
                                     <?php if ($row['gambar']): ?>
-                                    <img src="<?php echo BASE_URL . '/uploads/penelitian/' . htmlspecialchars($row['gambar']); ?>" 
+                                    <img src="<?php echo BASE_URL . '/public/uploads/penelitian/' . htmlspecialchars($row['gambar']); ?>"  
                                          alt="Cover" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
                                     <?php else: ?>
                                     <div class="bg-secondary text-white d-flex align-items-center justify-content-center" 
@@ -152,8 +153,12 @@ include 'includes/admin_sidebar.php';
                                     <span class="badge bg-primary"><?php echo $row['tahun']; ?></span>
                                 </td>
                                 <td>
-                                    <?php if ($row['kategori']): ?>
-                                    <span class="badge bg-info"><?php echo htmlspecialchars($row['kategori']); ?></span>
+                                    <?php if (!empty($row['kat_nama'])): ?>
+                                    <span class="badge" style="background-color: <?php echo htmlspecialchars($row['kat_warna'] ?? '#0d6efd'); ?>">
+                                        <?php echo htmlspecialchars($row['kat_nama']); ?>
+                                    </span>
+                                    <?php elseif ($row['kategori']): ?>
+                                    <span class="badge bg-secondary"><?php echo htmlspecialchars($row['kategori']); ?></span>
                                     <?php else: ?>
                                     <span class="text-muted">-</span>
                                     <?php endif; ?>
@@ -167,7 +172,7 @@ include 'includes/admin_sidebar.php';
                                 </td>
                                 <td>
                                     <?php if ($row['file_pdf']): ?>
-                                    <a href="<?php echo BASE_URL . '/uploads/penelitian/' . htmlspecialchars($row['file_pdf']); ?>" 
+                                    <a href="<?php echo BASE_URL . '/public/uploads/penelitian/' . htmlspecialchars($row['file_pdf']); ?>"  
                                        class="btn btn-sm btn-outline-danger" target="_blank" title="Download PDF">
                                         <i class="bi bi-file-pdf"></i>
                                     </a>

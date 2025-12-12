@@ -1,11 +1,14 @@
 <?php
-require_once __DIR__ . '/../../core/database.php';
+require_once __DIR__ . '/../../includes/config.php';
 
 // Get article ID from URL
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-// Get article details from database
-$query = "SELECT * FROM artikel WHERE id = $1";
+// Get article details from database with category
+$query = "SELECT a.*, k.nama_kategori, k.warna as kategori_warna 
+          FROM artikel a 
+          LEFT JOIN kategori_artikel k ON a.kategori_id = k.id 
+          WHERE a.id = $1";
 $result = pg_query_params($conn, $query, array($id));
 
 if (pg_num_rows($result) == 0) {
@@ -19,15 +22,25 @@ $page_title = $artikel['judul'];
 include '../../includes/header.php';
 include '../../includes/navbar.php';
 
-// Use placeholder image
-$img_url = "https://picsum.photos/seed/" . $artikel['id'] . "/1200/600";
+// Use uploaded image if exists, otherwise use placeholder
+if (!empty($artikel['gambar']) && file_exists('../../public/uploads/artikel/' . $artikel['gambar'])) {
+    $img_url = BASE_URL . '/public/uploads/artikel/' . $artikel['gambar'];
+} else {
+    $img_url = "https://picsum.photos/seed/" . $artikel['id'] . "/1200/600";
+}
 ?>
 
 <!-- Article Header -->
 <div class="page-header" style="background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('<?php echo $img_url; ?>') center/cover;">
     <div class="container text-center">
-        <h1 class="display-4 fw-bold" data-aos="fade-down"><?php echo htmlspecialchars($artikel['judul']); ?></h1>
-        <div class="mt-4" data-aos="fade-up" data-aos-delay="100">
+        <?php if (!empty($artikel['nama_kategori'])): ?>
+        <span class="badge mb-3 px-3 py-2" data-aos="fade-down" 
+              style="background-color: <?php echo htmlspecialchars($artikel['kategori_warna'] ?? '#0d6efd'); ?>; font-size: 0.9rem;">
+            <i class="bi bi-tag me-1"></i><?php echo htmlspecialchars($artikel['nama_kategori']); ?>
+        </span>
+        <?php endif; ?>
+        <h1 class="display-4 fw-bold" data-aos="fade-down" data-aos-delay="100"><?php echo htmlspecialchars($artikel['judul']); ?></h1>
+        <div class="mt-4" data-aos="fade-up" data-aos-delay="200">
             <span class="badge bg-white text-primary px-3 py-2 me-2">
                 <i class="bi bi-person me-1"></i><?php echo htmlspecialchars($artikel['penulis']); ?>
             </span>
@@ -76,7 +89,7 @@ $img_url = "https://picsum.photos/seed/" . $artikel['id'] . "/1200/600";
                         
                         <hr class="my-4">
                         
-                        <!-- Share Buttons -->
+                        <!-- Share Buttons
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">Bagikan Artikel:</h5>
                             <div>
@@ -93,7 +106,7 @@ $img_url = "https://picsum.photos/seed/" . $artikel['id'] . "/1200/600";
                                     <i class="bi bi-envelope"></i>
                                 </button>
                             </div>
-                        </div>
+                        </div> -->
                     </div>
                 </article>
                 
@@ -115,13 +128,35 @@ $img_url = "https://picsum.photos/seed/" . $artikel['id'] . "/1200/600";
         </div>
         <div class="row g-4">
             <?php
-            // Get other articles (exclude current)
-            $query_related = "SELECT * FROM artikel WHERE id != $1 ORDER BY created_at DESC LIMIT 3";
-            $result_related = pg_query_params($conn, $query_related, array($id));
+            // Get related articles - prioritize same category, then latest
+            $kategori_id = $artikel['kategori_id'] ?? null;
+            
+            if ($kategori_id) {
+                // Get articles from same category first
+                $query_related = "SELECT a.*, k.nama_kategori, k.warna as kategori_warna 
+                                  FROM artikel a 
+                                  LEFT JOIN kategori_artikel k ON a.kategori_id = k.id 
+                                  WHERE a.id != $1 AND a.kategori_id = $2 
+                                  ORDER BY a.created_at DESC LIMIT 3";
+                $result_related = pg_query_params($conn, $query_related, array($id, $kategori_id));
+            } else {
+                // Get any articles
+                $query_related = "SELECT a.*, k.nama_kategori, k.warna as kategori_warna 
+                                  FROM artikel a 
+                                  LEFT JOIN kategori_artikel k ON a.kategori_id = k.id 
+                                  WHERE a.id != $1 
+                                  ORDER BY a.created_at DESC LIMIT 3";
+                $result_related = pg_query_params($conn, $query_related, array($id));
+            }
+            
+            // If not enough from same category, fill with latest articles
+            $related_count = pg_num_rows($result_related);
+            $shown_ids = [$id];
             
             $delay = 0;
             while ($row = pg_fetch_assoc($result_related)) {
                 $delay += 100;
+                $shown_ids[] = $row['id'];
                 // Use uploaded image if exists, otherwise use placeholder
                 if (!empty($row['gambar']) && file_exists('../../public/uploads/artikel/' . $row['gambar'])) {
                     $related_img = BASE_URL . '/public/uploads/artikel/' . $row['gambar'];
@@ -130,8 +165,16 @@ $img_url = "https://picsum.photos/seed/" . $artikel['id'] . "/1200/600";
                 }
                 ?>
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="<?php echo $delay; ?>">
-                    <div class="card h-100">
-                        <img src="<?php echo $related_img; ?>" class="card-img-top" alt="<?php echo htmlspecialchars($row['judul']); ?>" style="height: 200px; object-fit: cover;">
+                    <div class="card h-100 shadow-sm border-0 hover-card">
+                        <div class="position-relative overflow-hidden">
+                            <img src="<?php echo $related_img; ?>" class="card-img-top" alt="<?php echo htmlspecialchars($row['judul']); ?>" style="height: 200px; object-fit: cover;">
+                            <?php if (!empty($row['nama_kategori'])): ?>
+                            <span class="badge position-absolute top-0 end-0 m-2" 
+                                  style="background-color: <?php echo htmlspecialchars($row['kategori_warna'] ?? '#0d6efd'); ?>;">
+                                <?php echo htmlspecialchars($row['nama_kategori']); ?>
+                            </span>
+                            <?php endif; ?>
+                        </div>
                         <div class="card-body">
                             <h6 class="card-title"><?php echo htmlspecialchars($row['judul']); ?></h6>
                             <p class="text-muted small mb-3">
@@ -145,6 +188,52 @@ $img_url = "https://picsum.photos/seed/" . $artikel['id'] . "/1200/600";
                     </div>
                 </div>
                 <?php
+            }
+            
+            // If still need more articles, get from other categories
+            if ($related_count < 3 && $kategori_id) {
+                $remaining = 3 - $related_count;
+                $exclude_ids = implode(',', $shown_ids);
+                $query_more = "SELECT a.*, k.nama_kategori, k.warna as kategori_warna 
+                               FROM artikel a 
+                               LEFT JOIN kategori_artikel k ON a.kategori_id = k.id 
+                               WHERE a.id NOT IN ($exclude_ids) 
+                               ORDER BY a.created_at DESC LIMIT $remaining";
+                $result_more = pg_query($conn, $query_more);
+                
+                while ($row = pg_fetch_assoc($result_more)) {
+                    $delay += 100;
+                    if (!empty($row['gambar']) && file_exists('../../public/uploads/artikel/' . $row['gambar'])) {
+                        $related_img = BASE_URL . '/public/uploads/artikel/' . $row['gambar'];
+                    } else {
+                        $related_img = "https://picsum.photos/seed/" . $row['id'] . "/600/400";
+                    }
+                    ?>
+                    <div class="col-md-4" data-aos="fade-up" data-aos-delay="<?php echo $delay; ?>">
+                        <div class="card h-100 shadow-sm border-0 hover-card">
+                            <div class="position-relative overflow-hidden">
+                                <img src="<?php echo $related_img; ?>" class="card-img-top" alt="<?php echo htmlspecialchars($row['judul']); ?>" style="height: 200px; object-fit: cover;">
+                                <?php if (!empty($row['nama_kategori'])): ?>
+                                <span class="badge position-absolute top-0 end-0 m-2" 
+                                      style="background-color: <?php echo htmlspecialchars($row['kategori_warna'] ?? '#0d6efd'); ?>;">
+                                    <?php echo htmlspecialchars($row['nama_kategori']); ?>
+                                </span>
+                                <?php endif; ?>
+                            </div>
+                            <div class="card-body">
+                                <h6 class="card-title"><?php echo htmlspecialchars($row['judul']); ?></h6>
+                                <p class="text-muted small mb-3">
+                                    <i class="bi bi-person me-1"></i><?php echo htmlspecialchars($row['penulis']); ?> | 
+                                    <i class="bi bi-calendar ms-2 me-1"></i><?php echo date('d M Y', strtotime($row['created_at'])); ?>
+                                </p>
+                                <a href="detail.php?id=<?php echo $row['id']; ?>" class="btn btn-outline-primary btn-sm">
+                                    Baca Artikel
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <?php
+                }
             }
             ?>
         </div>

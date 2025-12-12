@@ -2,7 +2,7 @@
 // Admin Controller: Produk Controller - FULL ACCESS
 // Description: Admin can manage ALL produk without ownership restrictions
 
-require_once __DIR__ . '/../../core/database.php';
+require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../../core/session.php';
 
 class ProdukController {
@@ -14,19 +14,46 @@ class ProdukController {
         $this->conn = $conn;
     }
     
+    // Get list of kategori for dropdown
+    public function getKategoriList() {
+        $query = "SELECT id, nama_kategori, warna FROM kategori_produk WHERE is_active = TRUE ORDER BY nama_kategori ASC";
+        $result = pg_query($this->conn, $query);
+        $kategori_list = [];
+        if ($result) {
+            while ($row = pg_fetch_assoc($result)) {
+                $kategori_list[] = $row;
+            }
+        }
+        return $kategori_list;
+    }
+    
     // Add produk - admin can assign to any personil
     public function add() {
         $error = '';
+        $success = false;
         
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $nama_produk = pg_escape_string($this->conn, trim($_POST['nama_produk']));
             $deskripsi = pg_escape_string($this->conn, trim($_POST['deskripsi']));
             $tahun = isset($_POST['tahun']) ? (int)$_POST['tahun'] : date('Y');
-            $kategori = pg_escape_string($this->conn, trim($_POST['kategori']));
             $teknologi = pg_escape_string($this->conn, trim($_POST['teknologi']));
             $link_demo = pg_escape_string($this->conn, trim($_POST['link_demo']));
             $link_repository = pg_escape_string($this->conn, trim($_POST['link_repository']));
             $personil_id = isset($_POST['personil_id']) && !empty($_POST['personil_id']) ? (int)$_POST['personil_id'] : null;
+            $kategori_id = isset($_POST['kategori_id']) && !empty($_POST['kategori_id']) ? (int)$_POST['kategori_id'] : null;
+            
+            // Backward compatibility for kategori string
+            $kategori = '';
+            if ($kategori_id) {
+                $kat_query = "SELECT nama_kategori FROM kategori_produk WHERE id = $1";
+                $kat_res = pg_query_params($this->conn, $kat_query, array($kategori_id));
+                $kat_row = pg_fetch_assoc($kat_res);
+                if ($kat_row) {
+                    $kategori = $kat_row['nama_kategori'];
+                }
+            } else {
+                $kategori = pg_escape_string($this->conn, trim($_POST['kategori'] ?? ''));
+            }
             
             if (empty($nama_produk) || empty($deskripsi)) {
                 $error = 'Nama produk dan deskripsi wajib diisi!';
@@ -34,42 +61,50 @@ class ProdukController {
                 $gambar = '';
                 if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
                     $allowed = ['jpg', 'jpeg', 'png', 'gif'];
-                    $ext = strtolower(pathinfo($_FILES['gambar']['name'], PATHINFO_EXTENSION));
+                    $filename = $_FILES['gambar']['name'];
+                    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
                     
                     if (in_array($ext, $allowed)) {
                         $new_filename = 'produk_' . time() . '_' . uniqid() . '.' . $ext;
-                        $upload_dir = '../uploads/produk/';
-                        if (!file_exists($upload_dir)) mkdir($upload_dir, 0777, true);
+                        $upload_dir = __DIR__ . '/../../public/uploads/produk/';
+                        
+                        // Create directory if not exists
+                        if (!file_exists($upload_dir)) {
+                            mkdir($upload_dir, 0777, true);
+                        }
                         
                         if (move_uploaded_file($_FILES['gambar']['tmp_name'], $upload_dir . $new_filename)) {
                             $gambar = $new_filename;
                         }
+                    } else {
+                        $error = 'Format gambar tidak diizinkan (JPG, PNG, GIF).';
                     }
                 }
                 
                 if (empty($error)) {
-                    $query = "INSERT INTO produk (nama_produk, deskripsi, tahun, kategori, teknologi, gambar, link_demo, link_repository, personil_id) 
-                              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)";
+                    $query = "INSERT INTO produk (nama_produk, deskripsi, tahun, kategori, teknologi, gambar, link_demo, link_repository, personil_id, kategori_id) 
+                              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)";
                     $result = pg_query_params($this->conn, $query, array(
-                        $nama_produk, $deskripsi, $tahun, $kategori, $teknologi, $gambar, $link_demo, $link_repository, $personil_id
+                        $nama_produk, $deskripsi, $tahun, $kategori, $teknologi, $gambar, $link_demo, $link_repository, $personil_id, $kategori_id
                     ));
                     
                     if ($result) {
                         header('Location: ' . BASE_URL . '/admin/manage_produk.php?success=add');
                         exit();
                     } else {
-                        $error = 'Gagal menambahkan produk!';
+                        $error = 'Gagal menambahkan produk: ' . pg_last_error($this->conn);
                     }
                 }
             }
         }
         
-        return ['error' => $error];
+        return ['error' => $error, 'success' => $success];
     }
     
     // Edit produk - FULL ACCESS
     public function edit($id) {
         $error = '';
+        $success = false;
         $produk = null;
         
         if ($id) {
@@ -86,20 +121,38 @@ class ProdukController {
             $nama_produk = pg_escape_string($this->conn, trim($_POST['nama_produk']));
             $deskripsi = pg_escape_string($this->conn, trim($_POST['deskripsi']));
             $tahun = isset($_POST['tahun']) ? (int)$_POST['tahun'] : date('Y');
-            $kategori = pg_escape_string($this->conn, trim($_POST['kategori']));
             $teknologi = pg_escape_string($this->conn, trim($_POST['teknologi']));
             $link_demo = pg_escape_string($this->conn, trim($_POST['link_demo']));
             $link_repository = pg_escape_string($this->conn, trim($_POST['link_repository']));
             $personil_id = isset($_POST['personil_id']) && !empty($_POST['personil_id']) ? (int)$_POST['personil_id'] : null;
+            $kategori_id = isset($_POST['kategori_id']) && !empty($_POST['kategori_id']) ? (int)$_POST['kategori_id'] : null;
+            
+            // Get Kategori Name
+            $kategori = '';
+            if ($kategori_id) {
+                $kat_query = "SELECT nama_kategori FROM kategori_produk WHERE id = $1";
+                $kat_res = pg_query_params($this->conn, $kat_query, array($kategori_id));
+                $kat_row = pg_fetch_assoc($kat_res);
+                if ($kat_row) {
+                    $kategori = $kat_row['nama_kategori'];
+                }
+            } else {
+                $kategori = pg_escape_string($this->conn, trim($_POST['kategori'] ?? ''));
+            }
             
             $gambar = $produk['gambar'];
             if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
                 $allowed = ['jpg', 'jpeg', 'png', 'gif'];
-                $ext = strtolower(pathinfo($_FILES['gambar']['name'], PATHINFO_EXTENSION));
+                $filename = $_FILES['gambar']['name'];
+                $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
                 
                 if (in_array($ext, $allowed)) {
                     $new_filename = 'produk_' . time() . '_' . uniqid() . '.' . $ext;
-                    $upload_dir = '../uploads/produk/';
+                    $upload_dir = __DIR__ . '/../../public/uploads/produk/';
+                    
+                    if (!file_exists($upload_dir)) {
+                        mkdir($upload_dir, 0777, true);
+                    }
                     
                     if (move_uploaded_file($_FILES['gambar']['tmp_name'], $upload_dir . $new_filename)) {
                         if ($produk['gambar'] && file_exists($upload_dir . $produk['gambar'])) {
@@ -111,17 +164,17 @@ class ProdukController {
             }
             
             $query = "UPDATE produk SET nama_produk = $1, deskripsi = $2, tahun = $3, kategori = $4, teknologi = $5, 
-                      gambar = $6, link_demo = $7, link_repository = $8, personil_id = $9, updated_at = NOW() 
-                      WHERE id = $10";
+                      gambar = $6, link_demo = $7, link_repository = $8, personil_id = $9, kategori_id = $10, updated_at = NOW() 
+                      WHERE id = $11";
             $result = pg_query_params($this->conn, $query, array(
-                $nama_produk, $deskripsi, $tahun, $kategori, $teknologi, $gambar, $link_demo, $link_repository, $personil_id, $id
+                $nama_produk, $deskripsi, $tahun, $kategori, $teknologi, $gambar, $link_demo, $link_repository, $personil_id, $kategori_id, $id
             ));
             
             if ($result) {
                 header('Location: ' . BASE_URL . '/admin/manage_produk.php?success=edit');
                 exit();
             } else {
-                $error = 'Gagal mengupdate produk!';
+                $error = 'Gagal mengupdate produk: ' . pg_last_error($this->conn);
             }
         }
         
@@ -140,8 +193,8 @@ class ProdukController {
                 $delete_result = pg_query_params($this->conn, $delete_query, array($id));
                 
                 if ($delete_result) {
-                    if ($produk['gambar'] && file_exists('../uploads/produk/' . $produk['gambar'])) {
-                        unlink('../uploads/produk/' . $produk['gambar']);
+                    if ($produk['gambar'] && file_exists(__DIR__ . '/../../public/uploads/produk/' . $produk['gambar'])) {
+                        unlink(__DIR__ . '/../../public/uploads/produk/' . $produk['gambar']);
                     }
                     header('Location: ' . BASE_URL . '/admin/manage_produk.php?success=delete');
                 } else {

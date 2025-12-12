@@ -1,13 +1,13 @@
 <footer class="bg-dark text-white py-5 mt-5">
     <div class="container">
         <div class="row">
-            <div class="col-md-4 mb-4" data-aos="fade-up">
+            <div class="col-md-4 mb-4">
                 <h5 class="fw-bold mb-3">
                     <i class="bi bi-code-square me-2"></i>Lab Software Engineering
                 </h5>
                 <p class="text-light"><?php echo htmlspecialchars(get_content('footer', 'description', 'Pusat keunggulan dalam pengembangan perangkat lunak dan penelitian teknologi informasi.')); ?></p>
             </div>
-            <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="100">
+            <div class="col-md-4 mb-4">
                 <h5 class="fw-bold mb-3">Quick Links</h5>
                 <ul class="list-unstyled">
                     <li class="mb-2"><a href="<?php echo BASE_URL; ?>/views/tentang.php" class="text-light text-decoration-none">Tentang Kami</a></li>
@@ -16,11 +16,15 @@
                     <li class="mb-2"><a href="<?php echo BASE_URL; ?>/views/recruitment/" class="text-light text-decoration-none">Recruitment</a></li>
                 </ul>
             </div>
-            <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
+            <div class="col-md-4 mb-4">
                 <h5 class="fw-bold mb-3">Kontak & Media Sosial</h5>
                 <p class="text-light mb-3">
-                    <i class="bi bi-envelope me-2"></i><?php echo htmlspecialchars(get_content('footer', 'email', 'labse@university.ac.id')); ?><br>
-                    <i class="bi bi-phone me-2"></i><?php echo htmlspecialchars(get_content('footer', 'phone', '+62 21 1234 5678')); ?>
+                    <?php 
+                    $email = get_content('footer', 'email', 'labse@university.ac.id');
+                    $phone = get_content('footer', 'phone', '+62 21 1234 5678');
+                    ?>
+                    <i class="bi bi-envelope me-2"></i><a href="mailto:<?php echo htmlspecialchars($email); ?>" class="text-light text-decoration-none"><?php echo htmlspecialchars($email); ?></a><br>
+                    <i class="bi bi-phone me-2"></i><a href="tel:<?php echo htmlspecialchars($phone); ?>" class="text-light text-decoration-none"><?php echo htmlspecialchars($phone); ?></a>
                 </p>
                 <div class="social-icons">
                     <?php 

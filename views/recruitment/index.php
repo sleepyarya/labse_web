@@ -76,45 +76,76 @@ $result = pg_query($conn, $query);
 <?php endif; ?>
 
 <!-- Benefits Section -->
+<?php
+// Fetch recruitment benefits content from database
+$benefits_content = [];
+$benefits_query = "SELECT key_name, content_value FROM landing_page_content WHERE section_name = 'recruitment'";
+$benefits_result = pg_query($conn, $benefits_query);
+while ($row = pg_fetch_assoc($benefits_result)) {
+    $benefits_content[$row['key_name']] = $row['content_value'];
+}
+
+// Helper function to get benefit content with default fallback
+function getBenefitContent($key, $content, $default = '') {
+    return isset($content[$key]) && !empty($content[$key]) ? $content[$key] : $default;
+}
+
+// Default values
+$default_benefits = [
+    'benefits_title' => 'Apa yang Anda Dapatkan?',
+    'benefit1_icon' => 'bi-book',
+    'benefit1_title' => 'Pelatihan Berkualitas',
+    'benefit1_desc' => 'Akses ke workshop, training, dan mentoring dari expert',
+    'benefit2_icon' => 'bi-laptop',
+    'benefit2_title' => 'Proyek Real',
+    'benefit2_desc' => 'Terlibat dalam proyek nyata dengan industri dan penelitian',
+    'benefit3_icon' => 'bi-award',
+    'benefit3_title' => 'Sertifikasi',
+    'benefit3_desc' => 'Kesempatan mendapat sertifikasi internasional',
+    'benefit4_icon' => 'bi-people',
+    'benefit4_title' => 'Networking',
+    'benefit4_desc' => 'Membangun jaringan dengan profesional dan mahasiswa lain'
+];
+?>
 <section class="content-section bg-light-section">
     <div class="container">
         <div class="text-center mb-5" data-aos="fade-up">
-            <h2 class="section-title">Apa yang Anda Dapatkan?</h2>
+            <h2 class="section-title"><?php echo htmlspecialchars(getBenefitContent('benefits_title', $benefits_content, $default_benefits['benefits_title'])); ?></h2>
         </div>
         <div class="row g-4">
             <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="100">
                 <div class="card text-center h-100">
                     <div class="card-body">
-                        <i class="bi bi-book text-primary" style="font-size: 3rem;"></i>
-                        <h5 class="mt-3">Pelatihan Berkualitas</h5>
-                        <p class="text-muted">Akses ke workshop, training, dan mentoring dari expert</p>
+                        <i class="bi <?php echo htmlspecialchars(getBenefitContent('benefit1_icon', $benefits_content, $default_benefits['benefit1_icon'])); ?> text-primary" style="font-size: 3rem;"></i>
+                        <h5 class="mt-3"><?php echo htmlspecialchars(getBenefitContent('benefit1_title', $benefits_content, $default_benefits['benefit1_title'])); ?></h5>
+                        <p class="text-muted"><?php echo htmlspecialchars(getBenefitContent('benefit1_desc', $benefits_content, $default_benefits['benefit1_desc'])); ?></p>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="200">
                 <div class="card text-center h-100">
                     <div class="card-body">
-                        <i class="bi bi-laptop text-primary" style="font-size: 3rem;"></i>
-                        <h5 class="mt-3">Proyek Real</h5>
-                        <p class="text-muted">Terlibat dalam proyek nyata dengan industri dan penelitian</p>
+                        <i class="bi <?php echo htmlspecialchars(getBenefitContent('benefit2_icon', $benefits_content, $default_benefits['benefit2_icon'])); ?> text-primary" style="font-size: 3rem;"></i>
+                        <h5 class="mt-3"><?php echo htmlspecialchars(getBenefitContent('benefit2_title', $benefits_content, $default_benefits['benefit2_title'])); ?></h5>
+                        <p class="text-muted"><?php echo htmlspecialchars(getBenefitContent('benefit2_desc', $benefits_content, $default_benefits['benefit2_desc'])); ?></p>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="300">
                 <div class="card text-center h-100">
                     <div class="card-body">
-                        <i class="bi bi-award text-primary" style="font-size: 3rem;"></i>
-                        <h5 class="mt-3">Sertifikasi</h5>
-                        <p class="text-muted">Kesempatan mendapat sertifikasi internasional</p>
+                        <i class="bi <?php echo htmlspecialchars(getBenefitContent('benefit3_icon', $benefits_content, $default_benefits['benefit3_icon'])); ?> text-primary" style="font-size: 3rem;"></i>
+                        <h5 class="mt-3"><?php echo htmlspecialchars(getBenefitContent('benefit3_title', $benefits_content, $default_benefits['benefit3_title'])); ?></h5>
+                        <p class="text-muted"><?php echo htmlspecialchars(getBenefitContent('benefit3_desc', $benefits_content, $default_benefits['benefit3_desc'])); ?></p>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="400">
                 <div class="card text-center h-100">
                     <div class="card-body">
-                        <i class="bi bi-people text-primary" style="font-size: 3rem;"></i>
-                        <h5 class="mt-3">Networking</h5>
-                        <p class="text-muted">Membangun jaringan dengan profesional dan mahasiswa lain</p>
+                        <i class="bi <?php echo htmlspecialchars(getBenefitContent('benefit4_icon', $benefits_content, $default_benefits['benefit4_icon'])); ?> text-primary" style="font-size: 3rem;"></i>
+                        <h5 class="mt-3"><?php echo htmlspecialchars(getBenefitContent('benefit4_title', $benefits_content, $default_benefits['benefit4_title'])); ?></h5>
+                        <p class="text-muted"><?php echo htmlspecialchars(getBenefitContent('benefit4_desc', $benefits_content, $default_benefits['benefit4_desc'])); ?></p>
                     </div>
                 </div>
             </div>

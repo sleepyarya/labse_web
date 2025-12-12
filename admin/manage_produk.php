@@ -20,10 +20,11 @@ $count_result = pg_query($conn, $count_query);
 $total_items = pg_fetch_assoc($count_result)['total'];
 $total_pages = ceil($total_items / $items_per_page);
 
-// Get data with personil
-$query = "SELECT p.*, pr.nama as personil_nama 
+// Get data with personil AND kategori
+$query = "SELECT p.*, pr.nama as personil_nama, kp.nama_kategori as kat_nama, kp.warna as kat_warna
           FROM produk p
           LEFT JOIN personil pr ON p.personil_id = pr.id
+          LEFT JOIN kategori_produk kp ON p.kategori_id = kp.id
           $where 
           ORDER BY p.tahun DESC, p.created_at DESC 
           LIMIT $items_per_page OFFSET $offset";
@@ -125,7 +126,7 @@ include 'includes/admin_sidebar.php';
                                 <td><?php echo $no++; ?></td>
                                 <td>
                                     <?php if ($row['gambar']): ?>
-                                    <img src="<?php echo BASE_URL; ?>/uploads/produk/<?php echo htmlspecialchars($row['gambar']); ?>" 
+                                    <img src="<?php echo BASE_URL; ?>/public/uploads/produk/<?php echo htmlspecialchars($row['gambar']); ?>" 
                                          class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
                                     <?php else: ?>
                                     <div class="bg-secondary text-white d-flex align-items-center justify-content-center" 
@@ -137,10 +138,12 @@ include 'includes/admin_sidebar.php';
                                 <td><strong><?php echo htmlspecialchars($row['nama_produk']); ?></strong></td>
                                 <td><span class="badge bg-primary"><?php echo $row['tahun']; ?></span></td>
                                 <td>
-                                    <?php if ($row['kategori']): ?>
-                                    <span class="badge <?php echo $row['kategori'] == 'Hardware' ? 'bg-danger' : 'bg-success'; ?>">
-                                        <?php echo htmlspecialchars($row['kategori']); ?>
+                                    <?php if (!empty($row['kat_nama'])): ?>
+                                    <span class="badge" style="background-color: <?php echo htmlspecialchars($row['kat_warna'] ?? '#0d6efd'); ?>">
+                                        <?php echo htmlspecialchars($row['kat_nama']); ?>
                                     </span>
+                                    <?php elseif ($row['kategori']): ?>
+                                    <span class="badge bg-secondary"><?php echo htmlspecialchars($row['kategori']); ?></span>
                                     <?php else: ?>
                                     <span class="text-muted">-</span>
                                     <?php endif; ?>

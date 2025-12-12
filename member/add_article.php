@@ -7,6 +7,16 @@ $member_nama = $_SESSION['member_nama'];
 $error = '';
 $success = '';
 
+// Get kategori list
+$kategori_query = "SELECT id, nama_kategori, warna FROM kategori_artikel WHERE is_active = TRUE ORDER BY nama_kategori ASC";
+$kategori_result = pg_query($conn, $kategori_query);
+$kategori_list = [];
+if ($kategori_result) {
+    while ($row = pg_fetch_assoc($kategori_result)) {
+        $kategori_list[] = $row;
+    }
+}
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $judul = trim($_POST['judul']);
@@ -63,9 +73,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         // Insert artikel dengan personil_id only if no errors
         if (empty($error)) {
-            $query = "INSERT INTO artikel (judul, isi, penulis, gambar, personil_id) 
-                      VALUES ($1, $2, $3, $4, $5) RETURNING id";
-            $result = pg_query_params($conn, $query, array($judul, $isi, $penulis, $gambar, $member_id));
+            // Get kategori_id
+            $kategori_id = !empty($_POST['kategori_id']) ? (int)$_POST['kategori_id'] : null;
+            
+            $query = "INSERT INTO artikel (judul, isi, penulis, gambar, personil_id, kategori_id) 
+                      VALUES ($1, $2, $3, $4, $5, $6) RETURNING id";
+            $result = pg_query_params($conn, $query, array($judul, $isi, $penulis, $gambar, $member_id, $kategori_id));
             
             if ($result) {
                 // Get inserted article ID
@@ -134,9 +147,23 @@ include 'includes/member_sidebar.php';
                 </div>
                 
                 <!-- Judul -->
-                <div class="mb-3">
-                    <label class="form-label">Judul Artikel <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="judul" placeholder="Masukkan judul artikel yang menarik" required>
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label">Judul Artikel <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="judul" placeholder="Masukkan judul artikel yang menarik" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Kategori</label>
+                        <select name="kategori_id" class="form-select">
+                            <option value="">-- Pilih Kategori --</option>
+                            <?php foreach ($kategori_list as $kat): ?>
+                                <option value="<?php echo $kat['id']; ?>">
+                                    <?php echo htmlspecialchars($kat['nama_kategori']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <small class="text-muted">Pilih kategori yang sesuai</small>
+                    </div>
                 </div>
                 
                 <!-- Gambar -->

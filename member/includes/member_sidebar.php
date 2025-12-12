@@ -13,7 +13,7 @@
             <i class="bi bi-x-lg"></i>
         </button>
         <a href="<?php echo BASE_URL; ?>/member/index.php" class="sidebar-brand" style="align-items: flex-start;">
-            <img src="<?php echo BASE_URL; ?>/assets/img/logo-pnm.png" alt="Logo PNM" style="width: 55px; height: 55px; object-fit: contain; margin-right: 12px; margin-top: -2px;">
+            <img src="<?php echo BASE_URL; ?>/public/img/logo-pnm.png" alt="Logo PNM" style="width: 55px; height: 55px; object-fit: contain; margin-right: 12px; margin-top: -2px;">
             <div style="padding-top: 3px;">
                 <div style="font-size: 1rem; line-height: 1.3;">JTI - POLINEMA</div>
                 <small style="font-size: 0.7rem; opacity: 0.7; line-height: 1.2;">Member Panel</small>

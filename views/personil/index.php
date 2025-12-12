@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../core/database.php';
+require_once __DIR__ . '/../../includes/config.php';
 $page_title = 'Personil';
 include '../../includes/header.php';
 include '../../includes/navbar.php';
@@ -61,7 +61,7 @@ $result = pg_query($conn, $query);
     <div class="container text-center" data-aos="zoom-in">
         <h2 class="mb-4">Ingin Bergabung dengan Tim Kami?</h2>
         <p class="lead mb-4">Kami selalu mencari individu berbakat yang passionate di bidang software engineering</p>
-        <a href="<?php echo BASE_URL; ?>/pages/recruitment/" class="btn btn-primary btn-lg">
+        <a href="<?php echo BASE_URL; ?>/views/recruitment/" class="btn btn-primary btn-lg">
             <i class="bi bi-briefcase me-2"></i>Lihat Peluang Bergabung
         </a>
     </div>

@@ -30,13 +30,18 @@ Website resmi Laboratorium Software Engineering yang dibangun dengan PHP Native,
   - Vision & Mission (Visi & Misi)
   - Focus Areas (Area Fokus Penelitian)
 - **Portofolio Management**: 
-  - **Hasil Penelitian**: Judul, abstrak, kategori, tahun, file PDF, link publikasi
+  - **Hasil Penelitian**: Judul, abstrak, kategori dinamis, tahun, file PDF, link publikasi
   - **Pengabdian Masyarakat**: Dokumentasi kegiatan pelatihan dan pengabdian
-  - **Produk Hilirisasi**: Showcase produk Software/Hardware hasil riset
+  - **Produk Hilirisasi**: Showcase produk Software/Hardware dengan kategori dinamis
 - **Blog/Artikel System**: 
   - Editor artikel dengan upload gambar
   - Artikel terkait dengan personil sebagai penulis
   - Tampilan detail artikel dengan informasi penulis
+- **Kategori Dinamis**:
+  - Sistem manajemen kategori untuk penelitian dan produk
+  - Badge berwarna untuk setiap kategori (customizable)
+  - Filter konten berdasarkan kategori di halaman publik
+  - Kategori dapat diaktifkan/nonaktifkan tanpa menghapus data
 
 ### 🎯 Fitur Khusus & Advanced
 
@@ -62,13 +67,17 @@ Website resmi Laboratorium Software Engineering yang dibangun dengan PHP Native,
 - Pagination untuk performa optimal
 - IP Address tracking
 
-#### 🔗 Social Media Integration
-- Setiap personil dapat menambahkan link sosial media:
-  - LinkedIn
-  - Google Scholar
-  - GitHub
-  - Personal Website
-- Tampilan icon sosial media di profil personil
+##### 🏷️ Kategori Dinamis (Dynamic Categories)
+- **Kategori Penelitian**:
+  - Manajemen kategori penelitian dengan warna badge kustom
+  - Kategori default: Fundamental, Terapan, Pengembangan, Eksperimental, Studi Kasus
+  - Filter penelitian berdasarkan kategori
+  - Color-coded badges untuk identifikasi cepat
+- **Kategori Produk**:
+  - Sistem kategori produk yang dapat dikelola
+  - Kategori default: Web Application, Mobile Application, IoT System, AI & Machine Learning, Desktop Application
+  - Filter produk berdasarkan kategori
+  - Badge warna untuk setiap kategori
 
 ### ⚡ Advanced Database Features
 - **Materialized Views** untuk performa query dashboard yang cepat:
@@ -155,8 +164,11 @@ labse_web/
 - **Beranda**: Informasi umum lab, visi misi, roadmap.
 - **Profil Lab**: Detail tentang laboratorium.
 - **Personil**: Daftar dosen dan staff beserta profil lengkap.
-- **Portofolio**: Daftar Penelitian, Pengabdian, dan Produk.
-- **Blog**: Artikel dan berita terbaru.
+- **Portofolio**: 
+  - **Penelitian**: Daftar hasil penelitian dengan filter kategori dinamis dan color-coded badges
+  - **Pengabdian**: Daftar kegiatan pengabdian masyarakat
+  - **Produk**: Daftar produk hilirisasi dengan filter kategori dinamis dan badges
+- **Blog**: Artikel dan berita terbaru dengan link ke profil penulis.
 - **Recruitment**: Form pendaftaran anggota baru (jika dibuka).
 
 ### 2. Admin Area (`/admin`)
@@ -182,14 +194,30 @@ labse_web/
 - **Hasil Penelitian**: CRUD penelitian untuk semua personil
   - Upload PDF dan gambar
   - Link ke publikasi jurnal/conference
-  - Kategorisasi (Fundamental, Terapan, Pengembangan)
+  - Kategorisasi dinamis dengan badge berwarna
 - **Pengabdian Masyarakat**: CRUD kegiatan pengabdian
   - Upload dokumentasi foto
   - Detail lokasi dan penyelenggara
 - **Produk Hilirisasi**: CRUD produk hasil riset
-  - Kategori Software/Hardware
+  - Kategorisasi dinamis dengan badge berwarna
   - Link demo dan repository
   - Stack teknologi yang digunakan
+
+**Manajemen Kategori Dinamis**
+- **Kategori Penelitian**:
+  - Tambah/Edit/Hapus kategori penelitian
+  - Set warna badge untuk setiap kategori
+  - Toggle status aktif/nonaktif kategori
+  - View jumlah penelitian per kategori
+- **Kategori Produk**:
+  - Tambah/Edit/Hapus kategori produk
+  - Customizable badge colors
+  - Manajemen status kategori
+  - View jumlah produk per kategori
+- **Master Jurusan**:
+  - CRUD data jurusan untuk mahasiswa
+  - Mapping fakultas dan kode jurusan
+  - Status aktif/nonaktif
 
 **Manajemen Landing Page**
 - Edit Hero Section (Judul, Subjudul, Deskripsi)
@@ -219,11 +247,7 @@ labse_web/
 **Profil Saya**
 - Edit biodata lengkap (Nama, Jabatan, Deskripsi)
 - Upload dan update foto profil
-- Social Media Links:
-  - LinkedIn
-  - Google Scholar
-  - GitHub
-  - Personal Website
+- Update email
 - Change password
 - Session logout otomatis untuk keamanan
 
@@ -232,7 +256,7 @@ labse_web/
   - Tambah/Edit/Hapus penelitian pribadi
   - Upload PDF hasil penelitian
   - Upload gambar ilustrasi
-  - Kategori (Fundamental, Terapan, Pengembangan)
+  - Pilih kategori dari dropdown dinamis (Fundamental, Terapan, dll)
   - Link publikasi jurnal/conference
   - View detail penelitian
 - **Pengabdian Saya**:
@@ -242,7 +266,7 @@ labse_web/
   - View detail pengabdian
 - **Produk Saya**:
   - Tambah/Edit/Hapus produk hilirisasi
-  - Kategori Software/Hardware
+  - Pilih kategori dari dropdown dinamis (Web App, Mobile App, dll)
   - Upload gambar produk
   - Link demo dan repository
   - Stack teknologi
@@ -353,11 +377,14 @@ Menyimpan informasi lengkap administrator sistem.
 **Kolom-kolom:**
 - `id`: Primary key
 - `username`: Username admin (unik)
-- `password`: Password terenkripsi
 - `nama_lengkap`: Nama lengkap admin
 - `email`: Email admin (unik)
 - `last_login`: Waktu login terakhir
-- `created_at`: Timestamp pembuatan
+- `created_at`, `updated_at`: Timestamp pembuatan
+
+**Catatan:** 
+- Password admin disimpan di tabel `users` (bukan di `admin_users`)
+- Autentikasi menggunakan tabel `users` dengan `role = 'admin'`
 
 #### 3. `personil` - Data Dosen/Staff (Member)
 Menyimpan profil lengkap dosen dan staff laboratorium yang juga berfungsi sebagai member area.
@@ -369,10 +396,15 @@ Menyimpan profil lengkap dosen dan staff laboratorium yang juga berfungsi sebaga
 - `deskripsi`: Deskripsi singkat atau bio
 - `foto`: Path file foto profil
 - `email`: Email personil
-- `password`: Password untuk member login (nullable)
+- `password`: Password untuk member login (nullable, deprecated - gunakan `users` table)
 - `is_member`: Flag apakah personil aktif sebagai member (Boolean)
 - `last_login`: Waktu login terakhir untuk member
-- `created_at`: Timestamp pembuatan
+- `created_at`, `updated_at`: Timestamp pembuatan
+
+**Catatan:**
+- Password member disimpan di tabel `users` dengan `role = 'personil'`
+- `is_member = TRUE` mengindikasikan personil dapat login ke member area
+- Kolom `password` masih ada untuk backward compatibility tapi tidak digunakan lagi
 
 #### 4. `mahasiswa` - Data Mahasiswa
 Menyimpan data mahasiswa yang mendaftar atau tergabung di laboratorium.
@@ -381,10 +413,11 @@ Menyimpan data mahasiswa yang mendaftar atau tergabung di laboratorium.
 - `id`: Primary key
 - `nama`: Nama lengkap mahasiswa
 - `nim`: Nomor Induk Mahasiswa (unik)
-- `jurusan`: Program studi mahasiswa
+- `jurusan`: Nama jurusan (string) - untuk backward compatibility
+- `jurusan_id`: Foreign key ke tabel `jurusan` (ON DELETE SET NULL) - untuk relasi master data
 - `email`: Email mahasiswa
 - `alasan`: Alasan/motivasi bergabung
-- `created_at`: Timestamp pendaftaran
+- `created_at`, `updated_at`: Timestamp pendaftaran
 
 #### 5. `lab_profile` - Konten Landing Page
 Menyimpan konten dinamis untuk berbagai section di landing page (About, Visi, Misi, Focus Area, dll).
@@ -403,9 +436,10 @@ Menyimpan artikel atau berita yang dipublikasikan oleh admin atau personil.
 - `id`: Primary key
 - `judul`: Judul artikel
 - `isi`: Konten artikel (TEXT)
-- `penulis`: Nama penulis
+- `penulis`: Nama penulis (untuk display)
+- `personil_id`: Foreign key ke tabel `personil` (ON DELETE SET NULL) - untuk link ke profil personil
 - `gambar`: Path gambar cover artikel
-- `created_at`: Timestamp publikasi
+- `created_at`, `updated_at`: Timestamp publikasi
 
 #### 7. `hasil_penelitian` - Portofolio Penelitian
 Menyimpan data hasil penelitian yang dilakukan oleh personil laboratorium.
@@ -415,7 +449,8 @@ Menyimpan data hasil penelitian yang dilakukan oleh personil laboratorium.
 - `judul`: Judul penelitian
 - `deskripsi`: Deskripsi singkat
 - `tahun`: Tahun penelitian
-- `kategori`: Kategori penelitian (`Fundamental`, `Terapan`, `Pengembangan`)
+- `kategori`: Kategori penelitian (string) - untuk backward compatibility
+- `kategori_id`: Foreign key ke `kategori_penelitian` (ON DELETE SET NULL) - untuk kategorisasi dinamis
 - `abstrak`: Abstrak penelitian (TEXT)
 - `gambar`: Path gambar ilustrasi
 - `file_pdf`: Path file PDF hasil penelitian
@@ -444,7 +479,8 @@ Menyimpan produk hasil riset yang telah dihilirisasi (software atau hardware).
 - `id`: Primary key
 - `nama_produk`: Nama produk
 - `deskripsi`: Deskripsi produk (TEXT)
-- `kategori`: Kategori (`Software`, `Hardware`)
+- `kategori`: Kategori (`Software`, `Hardware`) - untuk backward compatibility
+- `kategori_id`: Foreign key ke `kategori_produk` (relasi dinamis)
 - `tahun`: Tahun pengembangan
 - `gambar`: Path gambar produk
 - `link_demo`: Link demo produk (jika ada)
@@ -453,9 +489,97 @@ Menyimpan produk hasil riset yang telah dihilirisasi (software atau hardware).
 - `personil_id`: Foreign key ke tabel `personil` (ON DELETE CASCADE)
 - `created_at`, `updated_at`: Timestamp
 
+#### 10. `recruitment_settings` - Pengaturan Recruitment
+Menyimpan pengaturan pembukaan/penutupan recruitment dan pesan kustom.
+
+**Kolom-kolom:**
+- `id`: Primary key
+- `is_open`: Status recruitment (Boolean) - TRUE = buka, FALSE = tutup
+- `message`: Pesan yang ditampilkan ketika recruitment ditutup (TEXT)
+- `updated_at`: Waktu terakhir update setting
+- `updated_by`: Admin yang melakukan update terakhir
+
+**Implementasi:**
+- Admin dapat toggle recruitment on/off dari dashboard
+- Custom message untuk tampilan saat recruitment ditutup
+- History tracking siapa yang mengubah setting
+
+#### 11. `activity_logs` - Log Aktivitas Personil
+Menyimpan riwayat semua aktivitas personil untuk monitoring admin.
+
+**Kolom-kolom:**
+- `id`: Primary key
+- `personil_id`: Foreign key ke `personil` (ON DELETE CASCADE)
+- `personil_nama`: Nama personil (denormalisasi untuk performa)
+- `action_type`: Jenis aktivitas (LOGIN, LOGOUT, CREATE_ARTICLE, dll)
+- `action_description`: Deskripsi detail aktivitas (TEXT)
+- `target_type`: Jenis target (artikel, penelitian, pengabdian, produk, profile)
+- `target_id`: ID dari target yang dimanipulasi
+- `ip_address`: IP address saat aktivitas dilakukan
+- `created_at`: Timestamp aktivitas
+
+**Jenis Aktivitas yang Dicatat:**
+- Authentication: `LOGIN`, `LOGOUT`
+- Artikel: `CREATE_ARTICLE`, `EDIT_ARTICLE`, `DELETE_ARTICLE`
+- Penelitian: `CREATE_PENELITIAN`, `EDIT_PENELITIAN`, `DELETE_PENELITIAN`
+- Pengabdian: `CREATE_PENGABDIAN`, `EDIT_PENGABDIAN`, `DELETE_PENGABDIAN`
+- Produk: `CREATE_PRODUK`, `EDIT_PRODUK`, `DELETE_PRODUK`
+
+#### 12. `kategori_penelitian` - Kategori Dinamis Penelitian
+Menyimpan daftar kategori penelitian yang dapat dikelola oleh admin.
+
+**Kolom-kolom:**
+- `id`: Primary key
+- `nama_kategori`: Nama kategori (unik)
+- `slug`: URL-friendly slug (unik)
+- `deskripsi`: Deskripsi kategori (TEXT)
+- `warna`: Kode warna untuk badge (hex color)
+- `is_active`: Status aktif kategori (Boolean)
+- `created_at`, `updated_at`: Timestamp
+
+**Kategori Default:**
+- Fundamental (Blue - #0d6efd)
+- Terapan (Green - #198754)
+- Pengembangan (Yellow - #ffc107)
+- Eksperimental (Purple - #6610f2)
+- Studi Kasus (Red - #dc3545)
+
+#### 13. `kategori_produk` - Kategori Dinamis Produk
+Menyimpan daftar kategori produk yang dapat dikelola oleh admin.
+
+**Kolom-kolom:**
+- `id`: Primary key
+- `nama_kategori`: Nama kategori (unik)
+- `slug`: URL-friendly slug (unik)
+- `deskripsi`: Deskripsi kategori (TEXT)
+- `warna`: Kode warna untuk badge (hex color)
+- `is_active`: Status aktif kategori (Boolean)
+- `created_at`, `updated_at`: Timestamp
+
+**Kategori Default:**
+- Web Application (Blue - #0d6efd)
+- Mobile Application (Purple - #6610f2)
+- IoT System (Green - #198754)
+- AI & Machine Learning (Yellow - #ffc107)
+- Desktop Application (Red - #dc3545)
+
+#### 14. `jurusan` - Master Data Jurusan
+Menyimpan daftar jurusan untuk mahasiswa.
+
+**Kolom-kolom:**
+- `id`: Primary key
+- `nama_jurusan`: Nama jurusan (unik)
+- `kode_jurusan`: Kode singkatan jurusan
+- `fakultas`: Nama fakultas
+- `is_active`: Status aktif (Boolean)
+- `created_at`, `updated_at`: Timestamp
+
+
 ### Relasi Antar Tabel
 
-Berikut adalah diagram Entity Relationship untuk memvisualisasikan hubungan antar tabel:
+Database sistem ini memiliki struktur relasional yang kompleks dengan banyak tabel yang saling berhubungan. Untuk referensi lengkap, Anda dapat melihat Entity Relationship Diagram (ERD) lengkap di folder `database/`.
+
+Berikut adalah diagram Entity Relationship dalam format Mermaid untuk memvisualisasikan hubungan utama antar tabel:
 
 ```mermaid
 erDiagram
@@ -466,6 +590,12 @@ erDiagram
     personil ||--o{ hasil_penelitian : "memiliki"
     personil ||--o{ pengabdian : "memiliki"
     personil ||--o{ produk : "memiliki"
+    personil ||--o{ artikel : "menulis"
+    personil ||--o{ activity_logs : "melakukan"
+    
+    kategori_penelitian ||--o{ hasil_penelitian : "mengkategorikan"
+    kategori_produk ||--o{ produk : "mengkategorikan"
+    jurusan ||--o{ mahasiswa : "memiliki"
     
     users {
         int id PK
@@ -481,7 +611,6 @@ erDiagram
     admin_users {
         int id PK
         string username UK
-        string password
         string nama_lengkap
         string email UK
         timestamp last_login
@@ -503,7 +632,7 @@ erDiagram
         int id PK
         string nama
         string nim UK
-        string jurusan
+        int jurusan_id FK
         string email
         text alasan
     }
@@ -514,7 +643,11 @@ erDiagram
         text deskripsi
         int tahun
         string kategori
+        int kategori_id FK
         text abstrak
+        string gambar
+        string file_pdf
+        text link_publikasi
         int personil_id FK
     }
     
@@ -524,6 +657,8 @@ erDiagram
         text deskripsi
         date tanggal
         string lokasi
+        string penyelenggara
+        string gambar
         int personil_id FK
     }
     
@@ -532,8 +667,22 @@ erDiagram
         string nama_produk
         text deskripsi
         string kategori
+        int kategori_id FK
         int tahun
+        string gambar
+        text link_demo
+        text link_repository
+        text teknologi
         int personil_id FK
+    }
+    
+    artikel {
+        int id PK
+        string judul
+        text isi
+        string penulis
+        int personil_id FK
+        string gambar
     }
     
     lab_profile {
@@ -543,12 +692,50 @@ erDiagram
         string kategori
     }
     
-    artikel {
+    recruitment_settings {
         int id PK
-        string judul
-        text isi
-        string penulis
-        string gambar
+        boolean is_open
+        text message
+        timestamp updated_at
+        string updated_by
+    }
+    
+    activity_logs {
+        int id PK
+        int personil_id FK
+        string personil_nama
+        string action_type
+        text action_description
+        string target_type
+        int target_id
+        string ip_address
+        timestamp created_at
+    }
+    
+    kategori_penelitian {
+        int id PK
+        string nama_kategori UK
+        string slug UK
+        text deskripsi
+        string warna
+        boolean is_active
+    }
+    
+    kategori_produk {
+        int id PK
+        string nama_kategori UK
+        string slug UK
+        text deskripsi
+        string warna
+        boolean is_active
+    }
+    
+    jurusan {
+        int id PK
+        string nama_jurusan UK
+        string kode_jurusan
+        string fakultas
+        boolean is_active
     }
 ```
 
@@ -563,10 +750,23 @@ erDiagram
    - Satu `personil` dapat memiliki banyak `hasil_penelitian` (relasi 1:N melalui `personil_id`).
    - Satu `personil` dapat memiliki banyak `pengabdian` (relasi 1:N melalui `personil_id`).
    - Satu `personil` dapat memiliki banyak `produk` (relasi 1:N melalui `personil_id`).
+   - Satu `personil` dapat menulis banyak `artikel` (relasi 1:N melalui `personil_id`).
    - Jika personil dihapus, semua portofolio terkait juga akan terhapus (CASCADE DELETE).
 
-3. **Konten Independen**:
-   - Tabel `lab_profile` dan `artikel` bersifat independen dan tidak memiliki foreign key ke tabel lain.
+3. **Kategori Dinamis**:
+   - Relasi `kategori_penelitian` → `hasil_penelitian` (1:N) untuk kategorisasi penelitian
+   - Relasi `kategori_produk` → `produk` (1:N) untuk kategorisasi produk
+   - Menggunakan `kategori_id` untuk foreign key, dengan `kategori` (string) untuk backward compatibility
+
+4. **Activity Logging**:
+   - Relasi `personil` → `activity_logs` (1:N) untuk mencatat semua aktivitas personil
+   - Menggunakan `target_type` dan `target_id` untuk referensi polymorphic ke berbagai tabel target
+
+5. **Master Data**:
+   - Relasi `jurusan` → `mahasiswa` (1:N) untuk mengkategorikan mahasiswa berdasarkan jurusan
+   
+6. **Konten Independen**:
+   - Tabel `lab_profile` dan `recruitment_settings` bersifat independen (singleton)
    - Keduanya dikelola oleh admin untuk konten publik website.
 
 ### Implementasi Sistem
@@ -759,4 +959,4 @@ Proyek ini dikembangkan untuk **Laboratorium Software Engineering**. Silakan hub
 ---
 
 **Developed with ❤️ by Lab Software Engineering Team**  
-**Last Updated**: Desember 2025
+**Last Updated**: 12 Desember 2024

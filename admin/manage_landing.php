@@ -1,6 +1,6 @@
 <?php
 require_once 'auth_check.php';
-require_once '../core/database.php';
+require_once __DIR__ . '/../includes/config.php';
 
 $page_title = 'Kelola Landing Page';
 include 'includes/admin_header.php';
@@ -167,6 +167,9 @@ function getContent($section, $key, $map) {
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="footer-tab" data-bs-toggle="tab" data-bs-target="#footer" type="button" role="tab">Footer</button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="recruitment-tab" data-bs-toggle="tab" data-bs-target="#recruitment" type="button" role="tab">Recruitment</button>
+                </li>
             </ul>
         </div>
         <div class="card-body p-4">
@@ -321,6 +324,97 @@ function getContent($section, $key, $map) {
                         <div class="mb-3">
                             <label class="form-label"><i class="bi bi-youtube me-2"></i>YouTube</label>
                             <input type="text" class="form-control" name="content_footer_social_youtube" value="<?php echo getContent('footer', 'social_youtube', $content_map); ?>">
+                        </div>
+                    </div>
+
+                    <!-- RECRUITMENT SECTION -->
+                    <div class="tab-pane fade" id="recruitment" role="tabpanel">
+                        <h5 class="mb-4 text-primary">Recruitment Benefits Section</h5>
+                        <p class="text-muted mb-4">Atur konten 4 card benefit yang tampil di halaman Recruitment.</p>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Section Title</label>
+                            <input type="text" class="form-control" name="content_recruitment_benefits_title" value="<?php echo getContent('recruitment', 'benefits_title', $content_map); ?>" required>
+                            <div class="form-text">Judul section "Apa yang Anda Dapatkan?"</div>
+                        </div>
+                        
+                        <hr>
+                        <h6 class="mb-3"><i class="bi bi-1-circle me-2"></i>Benefit Card 1</h6>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Icon (Bootstrap Icons)</label>
+                                <input type="text" class="form-control" name="content_recruitment_benefit1_icon" value="<?php echo getContent('recruitment', 'benefit1_icon', $content_map); ?>">
+                                <div class="form-text">Contoh: bi-book, bi-laptop, bi-award</div>
+                            </div>
+                            <div class="col-md-8 mb-3">
+                                <label class="form-label">Title</label>
+                                <input type="text" class="form-control" name="content_recruitment_benefit1_title" value="<?php echo getContent('recruitment', 'benefit1_title', $content_map); ?>" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" name="content_recruitment_benefit1_desc" rows="2"><?php echo getContent('recruitment', 'benefit1_desc', $content_map); ?></textarea>
+                        </div>
+                        
+                        <hr>
+                        <h6 class="mb-3"><i class="bi bi-2-circle me-2"></i>Benefit Card 2</h6>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Icon (Bootstrap Icons)</label>
+                                <input type="text" class="form-control" name="content_recruitment_benefit2_icon" value="<?php echo getContent('recruitment', 'benefit2_icon', $content_map); ?>">
+                                <div class="form-text">Contoh: bi-book, bi-laptop, bi-award</div>
+                            </div>
+                            <div class="col-md-8 mb-3">
+                                <label class="form-label">Title</label>
+                                <input type="text" class="form-control" name="content_recruitment_benefit2_title" value="<?php echo getContent('recruitment', 'benefit2_title', $content_map); ?>" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" name="content_recruitment_benefit2_desc" rows="2"><?php echo getContent('recruitment', 'benefit2_desc', $content_map); ?></textarea>
+                        </div>
+                        
+                        <hr>
+                        <h6 class="mb-3"><i class="bi bi-3-circle me-2"></i>Benefit Card 3</h6>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Icon (Bootstrap Icons)</label>
+                                <input type="text" class="form-control" name="content_recruitment_benefit3_icon" value="<?php echo getContent('recruitment', 'benefit3_icon', $content_map); ?>">
+                                <div class="form-text">Contoh: bi-book, bi-laptop, bi-award</div>
+                            </div>
+                            <div class="col-md-8 mb-3">
+                                <label class="form-label">Title</label>
+                                <input type="text" class="form-control" name="content_recruitment_benefit3_title" value="<?php echo getContent('recruitment', 'benefit3_title', $content_map); ?>" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" name="content_recruitment_benefit3_desc" rows="2"><?php echo getContent('recruitment', 'benefit3_desc', $content_map); ?></textarea>
+                        </div>
+                        
+                        <hr>
+                        <h6 class="mb-3"><i class="bi bi-4-circle me-2"></i>Benefit Card 4</h6>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Icon (Bootstrap Icons)</label>
+                                <input type="text" class="form-control" name="content_recruitment_benefit4_icon" value="<?php echo getContent('recruitment', 'benefit4_icon', $content_map); ?>">
+                                <div class="form-text">Contoh: bi-book, bi-laptop, bi-award</div>
+                            </div>
+                            <div class="col-md-8 mb-3">
+                                <label class="form-label">Title</label>
+                                <input type="text" class="form-control" name="content_recruitment_benefit4_title" value="<?php echo getContent('recruitment', 'benefit4_title', $content_map); ?>" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" name="content_recruitment_benefit4_desc" rows="2"><?php echo getContent('recruitment', 'benefit4_desc', $content_map); ?></textarea>
+                        </div>
+                        
+                        <!-- Icon Reference -->
+                        <div class="alert alert-info mt-4">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Referensi Icon:</strong> Gunakan nama icon dari <a href="https://icons.getbootstrap.com/" target="_blank" class="alert-link">Bootstrap Icons</a>. 
+                            Contoh: bi-book, bi-laptop, bi-award, bi-people, bi-star, bi-trophy, bi-lightbulb, bi-gear, bi-briefcase, bi-mortarboard
                         </div>
                     </div>
 

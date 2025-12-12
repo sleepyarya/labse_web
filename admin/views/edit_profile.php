@@ -1,7 +1,7 @@
 <?php
 // Admin Edit Profile View
 require_once __DIR__ . '/../auth_check.php';
-require_once __DIR__ . '/../../core/database.php';
+require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../controllers/profileController.php';
 
 $controller = new ProfileController();
@@ -103,8 +103,8 @@ include '../includes/admin_sidebar.php';
                     </div>
                     <div class="card-body text-center">
                         <div class="mb-4">
-                            <?php if (!empty($admin_profile['foto']) && file_exists(__DIR__ . '/../../uploads/admin/' . $admin_profile['foto'])): ?>
-                                <img src="../../uploads/admin/<?php echo htmlspecialchars($admin_profile['foto']); ?>" 
+                            <?php if (!empty($admin_profile['foto']) && file_exists(__DIR__ . '/../../public/uploads/admin/' . $admin_profile['foto'])): ?>
+                                <img src="../../public/uploads/admin/<?php echo htmlspecialchars($admin_profile['foto']); ?>" 
                                      alt="Foto Profil" class="rounded-circle mb-3" 
                                      style="width: 150px; height: 150px; object-fit: cover;">
                             <?php else: ?>

@@ -1,7 +1,7 @@
 <?php
 // Admin Manage Users View
 require_once __DIR__ . '/../auth_check.php';
-require_once __DIR__ . '/../../core/database.php';
+require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../controllers/userController.php';
 
 $page_title = 'Manajemen User';
@@ -174,20 +174,6 @@ if (isset($_POST['add_user'])) {
                     } else {
                         throw new Exception('Gagal membuat personil user');
                     }
-                } elseif ($role === 'mahasiswa') {
-                    $insert_mahasiswa = "INSERT INTO mahasiswa (nama, email, nim, created_at) 
-                                        VALUES ($1, $2, $3, NOW()) RETURNING id";
-                    $mahasiswa_result = pg_query_params($conn, $insert_mahasiswa, array(
-                        $username, // Default nama = username
-                        $email,
-                        'AUTO' . time() // Generate dummy NIM
-                    ));
-                    
-                    if ($mahasiswa_result) {
-                        $reference_id = pg_fetch_result($mahasiswa_result, 0, 0);
-                    } else {
-                        throw new Exception('Gagal membuat mahasiswa user');
-                    }
                 }
                 
                 // Now insert into users table with reference_id
@@ -359,7 +345,7 @@ include '../includes/admin_sidebar.php';
                         <option value="">Semua Role</option>
                         <option value="admin" <?php echo $role_filter === 'admin' ? 'selected' : ''; ?>>Admin</option>
                         <option value="personil" <?php echo $role_filter === 'personil' ? 'selected' : ''; ?>>Personil</option>
-                        <option value="mahasiswa" <?php echo $role_filter === 'mahasiswa' ? 'selected' : ''; ?>>Mahasiswa</option>
+                        <option value="personil" <?php echo $role_filter === 'personil' ? 'selected' : ''; ?>>Personil</option>
                     </select>
                 </div>
                 
@@ -428,7 +414,7 @@ include '../includes/admin_sidebar.php';
                                 $role_badges = [
                                     'admin' => 'bg-danger',
                                     'personil' => 'bg-primary',
-                                    'mahasiswa' => 'bg-success'
+                                    'personil' => 'bg-primary'
                                 ];
                                 $badge_class = $role_badges[$user['role']] ?? 'bg-secondary';
                                 ?>
@@ -564,7 +550,7 @@ include '../includes/admin_sidebar.php';
                         <select class="form-select" id="edit_role" name="role" required>
                             <option value="admin">Admin</option>
                             <option value="personil">Personil</option>
-                            <option value="mahasiswa">Mahasiswa</option>
+                            <option value="personil">Personil</option>
                         </select>
                         <div class="form-text">Role menentukan hak akses user</div>
                     </div>
@@ -638,7 +624,7 @@ include '../includes/admin_sidebar.php';
                             <option value="">-- Pilih Role --</option>
                             <option value="admin">Admin</option>
                             <option value="personil">Personil</option>
-                            <option value="mahasiswa">Mahasiswa</option>
+                            <option value="personil">Personil</option>
                         </select>
                         <div class="form-text">Role menentukan hak akses user</div>
                     </div>
