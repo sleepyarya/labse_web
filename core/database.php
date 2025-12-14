@@ -2,20 +2,22 @@
 // Core: Database Connection Handler
 
 // --- KONFIGURASI DOCKER ---
-if (!defined('DB_HOST')) define('DB_HOST', 'db_postgres'); 
+if (!defined('DB_HOST')) define('DB_HOST', 'db_postgres');
 if (!defined('DB_PORT')) define('DB_PORT', '5432');
 if (!defined('DB_NAME')) define('DB_NAME', 'labse');
 if (!defined('DB_USER')) define('DB_USER', 'user');
 if (!defined('DB_PASS')) define('DB_PASS', 'userpass');
 
 // Base URL (Port 8888 sesuai Nginx di Docker)
-define('BASE_URL', 'http://localhost:8888/labse_web');
-function getConnection() {
+// Base URL (Port 8888 sesuai Nginx di Docker)
+if (!defined('BASE_URL')) define('BASE_URL', 'http://localhost:8888/labse_web');
+function getConnection()
+{
     $conn_string = "host=" . DB_HOST . " port=" . DB_PORT . " dbname=" . DB_NAME . " user=" . DB_USER . " password=" . DB_PASS;
-    
+
     // Menggunakan @ untuk menyembunyikan warning php standar
     $conn = @pg_connect($conn_string);
-    
+
     if (!$conn) {
         // FIX: Gunakan error_get_last() karena pg_last_error() error jika tidak ada koneksi
         $error = error_get_last();
@@ -43,4 +45,3 @@ function getConnection() {
 
 $conn = getConnection();
 date_default_timezone_set('Asia/Jakarta');
-?>

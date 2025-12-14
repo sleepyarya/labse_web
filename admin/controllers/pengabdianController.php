@@ -43,7 +43,9 @@ class PengabdianController
 
                     if (in_array($ext, $allowed)) {
                         $new_filename = 'pengabdian_' . time() . '_' . uniqid() . '.' . $ext;
-                        $upload_dir = '../public/uploads/pengabdian/';
+                        
+                        // FIXED: Gunakan path yang konsisten (tanpa /public/)
+                        $upload_dir = '../uploads/pengabdian/';
 
                         // Create directory if not exists
                         if (!file_exists($upload_dir)) {
@@ -75,7 +77,7 @@ class PengabdianController
                     $result = pg_query_params($this->conn, $query, $params);
 
                     if ($result) {
-                        // Arahkan ke halaman manage pengabdian
+                        // FIXED: Redirect menggunakan BASE_URL
                         header('Location: ' . BASE_URL . '/admin/manage_pengabdian.php?success=add');
                         exit();
                     } else {
@@ -140,7 +142,9 @@ class PengabdianController
 
                     if (in_array($ext, $allowed)) {
                         $new_filename = 'pengabdian_' . time() . '_' . uniqid() . '.' . $ext;
-                        $upload_dir = '../public/uploads/pengabdian/';
+                        
+                        // FIXED: Path upload disamakan
+                        $upload_dir = '../uploads/pengabdian/';
 
                         // Create directory if not exists
                         if (!file_exists($upload_dir)) {
@@ -166,7 +170,8 @@ class PengabdianController
                     $result = pg_query_params($this->conn, $query, array($judul, $deskripsi, $tanggal, $lokasi, $penyelenggara, $gambar, $id));
 
                     if ($result) {
-                        header('Location: ../admin/views/manage_pengabdian.php?success=edit');
+                        // FIXED: Redirect menggunakan BASE_URL agar konsisten
+                        header('Location: ' . BASE_URL . '/admin/manage_pengabdian.php?success=edit');
                         exit();
                     } else {
                         $error = 'Gagal mengupdate pengabdian: ' . pg_last_error($this->conn);
@@ -193,19 +198,21 @@ class PengabdianController
                 $delete_result = pg_query_params($this->conn, $delete_query, array($id));
 
                 if ($delete_result) {
-                    // Delete image file
-                    if ($pengabdian['gambar'] && file_exists('../public/uploads/pengabdian/' . $pengabdian['gambar'])) {
-                        unlink('../public/uploads/pengabdian/' . $pengabdian['gambar']);
+                    // FIXED: Path hapus disamakan dengan path upload
+                    if ($pengabdian['gambar'] && file_exists('../uploads/pengabdian/' . $pengabdian['gambar'])) {
+                        unlink('../uploads/pengabdian/' . $pengabdian['gambar']);
                     }
-                    header('Location: ../admin/views/manage_pengabdian.php?success=delete');
+                    
+                    // FIXED: Redirect ke halaman utama admin
+                    header('Location: ' . BASE_URL . '/admin/manage_pengabdian.php?success=delete');
                 } else {
-                    header('Location: ../admin/views/manage_pengabdian.php?error=delete');
+                    header('Location: ' . BASE_URL . '/admin/manage_pengabdian.php?error=delete');
                 }
             } else {
-                header('Location: ../admin/views/manage_pengabdian.php?error=notfound');
+                header('Location: ' . BASE_URL . '/admin/manage_pengabdian.php?error=notfound');
             }
         } else {
-            header('Location: ../admin/views/manage_pengabdian.php?error=invalid');
+            header('Location: ' . BASE_URL . '/admin/manage_pengabdian.php?error=invalid');
         }
         exit();
     }
