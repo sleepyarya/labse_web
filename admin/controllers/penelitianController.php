@@ -14,6 +14,19 @@ class PenelitianController {
         $this->conn = $conn;
     }
     
+    public function getKategoriList() {
+        $query = "SELECT id, nama_kategori FROM kategori_penelitian WHERE is_active = TRUE ORDER BY nama_kategori ASC";
+        $result = pg_query($this->conn, $query);
+        
+        $list = [];
+        if ($result) {
+            while ($row = pg_fetch_assoc($result)) {
+                $list[] = $row;
+            }
+        }
+        return $list;
+    }
+
     // Add new penelitian
     public function add() {
         $error = '';

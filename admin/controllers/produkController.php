@@ -14,6 +14,20 @@ class ProdukController {
         $this->conn = $conn;
     }
     
+    public function getKategoriList() {
+        // Perhatikan nama tabelnya: kategori_produk
+        $query = "SELECT id, nama_kategori FROM kategori_produk WHERE is_active = TRUE ORDER BY nama_kategori ASC";
+        $result = pg_query($this->conn, $query);
+        
+        $list = [];
+        if ($result) {
+            while ($row = pg_fetch_assoc($result)) {
+                $list[] = $row;
+            }
+        }
+        return $list;
+    }
+    
     // Add produk - admin can assign to any personil
     public function add() {
         $error = '';

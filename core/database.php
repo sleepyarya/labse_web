@@ -2,11 +2,11 @@
 // Core: Database Connection Handler
 
 // --- KONFIGURASI DOCKER ---
-define('DB_HOST', 'db_postgres');  // Nama service database di docker-compose
-define('DB_PORT', '5432');         // Port internal container
-define('DB_NAME', 'labse');
-define('DB_USER', 'user');
-define('DB_PASS', 'userpass');
+if (!defined('DB_HOST')) define('DB_HOST', 'db_postgres'); 
+if (!defined('DB_PORT')) define('DB_PORT', '5432');
+if (!defined('DB_NAME')) define('DB_NAME', 'labse');
+if (!defined('DB_USER')) define('DB_USER', 'user');
+if (!defined('DB_PASS')) define('DB_PASS', 'userpass');
 
 // Base URL (Port 8888 sesuai Nginx di Docker)
 define('BASE_URL', 'http://localhost:8888/labse_web');

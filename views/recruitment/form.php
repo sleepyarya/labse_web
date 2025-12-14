@@ -42,8 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
             // --- PANGGIL STORED PROCEDURE ---
-            $query = "CALL sp_register_mahasiswa($1, $2, $3, $4, $5, $6)";
-            $params = array($nama, $nim, $jurusan, $email, $hashed_password, $alasan);
+            $query = "CALL sp_register_mahasiswa($1, $2, $3, $4, $5)";
+            $params = array($nama, $nim, $jurusan, $email, $alasan); 
             
             $result = pg_query_params($conn, $query, $params);
             
