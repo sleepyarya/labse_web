@@ -36,7 +36,8 @@ class ProdukController {
             $nama_produk = pg_escape_string($this->conn, trim($_POST['nama_produk']));
             $deskripsi = pg_escape_string($this->conn, trim($_POST['deskripsi']));
             $tahun = isset($_POST['tahun']) ? (int)$_POST['tahun'] : date('Y');
-            $kategori = pg_escape_string($this->conn, trim($_POST['kategori']));
+            // FIX: Ambil kategori_id (integer) dari form
+            $kategori_id = isset($_POST['kategori']) ? (int)$_POST['kategori'] : null;
             $teknologi = pg_escape_string($this->conn, trim($_POST['teknologi']));
             $link_demo = pg_escape_string($this->conn, trim($_POST['link_demo']));
             $link_repository = pg_escape_string($this->conn, trim($_POST['link_repository']));
@@ -63,19 +64,20 @@ class ProdukController {
                 
                 if (empty($error)) {
                    // Menggunakan Function Database
-                   // Urutan parameter: nama_produk, deskripsi, kategori, tahun, teknologi, gambar, link_demo, link_repository, personil_id
-                    $query = "SELECT sp_create_produk($1, $2, $3, $4, $5, $6, $7, $8, $9)";
+                   // Urutan parameter: nama_produk, deskripsi, kategori, tahun, teknologi, gambar, link_demo, link_repository, personil_id, kategori_id
+                    $query = "SELECT sp_create_produk($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)";
 
                 $params = array(
                     $nama_produk, 
                     $deskripsi, 
-                    $kategori, 
+                    "", // String kosong untuk nama kategori
                             (int)$tahun, 
                             $teknologi, 
                             $gambar, 
                             $link_demo, 
                             $link_repository, 
-                            $personil_id
+                            $personil_id,
+                            $kategori_id
                         );
 
                     $result = pg_query_params($this->conn, $query, $params);

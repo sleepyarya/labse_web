@@ -23,25 +23,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nim = trim($_POST['nim']);
     $jurusan = trim($_POST['jurusan']);
     $email = trim($_POST['email']);
-    $password = trim($_POST['password']); // Input baru
+    // Password dihapus dari input form, default 12345 (di-handle di DB/SP atau client info)
     $alasan = trim($_POST['alasan']);
     
-    if (empty($nama) || empty($nim) || empty($jurusan) || empty($email) || empty($password) || empty($alasan)) {
+    if (empty($nama) || empty($nim) || empty($jurusan) || empty($email) || empty($alasan)) {
         $error = 'Semua field harus diisi!';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Format email tidak valid!';
-    } elseif (strlen($password) < 6) {
-        $error = 'Password minimal 6 karakter!';
     } else {
         // Cek Duplikat NIM dulu
         $check = pg_query_params($conn, "SELECT COUNT(*) FROM mahasiswa WHERE nim = $1", array($nim));
         if (pg_fetch_result($check, 0, 0) > 0) {
             $error = 'NIM sudah terdaftar!';
         } else {
-            // Hash Password
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
             // --- PANGGIL STORED PROCEDURE ---
+            // SP sp_register_mahasiswa handling password internally or params needs update? 
+            // Existing code passed 5 params: $nama, $nim, $jurusan, $email, $alasan (NO password param in existing code call!)
+            // So we just keep it as is.
             $query = "CALL sp_register_mahasiswa($1, $2, $3, $4, $5)";
             $params = array($nama, $nim, $jurusan, $email, $alasan); 
             
@@ -175,6 +173,9 @@ include '../../includes/navbar.php';
                                 <a href="index.php" class="btn btn-outline-secondary">
                                     <i class="bi bi-arrow-left me-2"></i>Kembali
                                 </a>
+                            </div>
+                            <div class="alert alert-info mt-3 mb-0">
+                                <i class="bi bi-info-circle me-2"></i>Password default akun Anda adalah <strong>12345</strong>
                             </div>
                         </form>
                     </div>

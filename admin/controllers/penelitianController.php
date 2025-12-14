@@ -36,7 +36,8 @@ class PenelitianController {
             $judul = pg_escape_string($this->conn, trim($_POST['judul']));
             $deskripsi = pg_escape_string($this->conn, trim($_POST['deskripsi']));
             $tahun = isset($_POST['tahun']) ? (int)$_POST['tahun'] : date('Y');
-            $kategori = pg_escape_string($this->conn, trim($_POST['kategori']));
+            // FIX: Ambil kategori_id (integer) dari form, bukan kategori (string)
+            $kategori_id = isset($_POST['kategori']) ? (int)$_POST['kategori'] : null;
             $abstrak = pg_escape_string($this->conn, trim($_POST['abstrak']));
             $link_publikasi = pg_escape_string($this->conn, trim($_POST['link_publikasi']));
             $personil_id = isset($_POST['personil_id']) && !empty($_POST['personil_id']) ? (int)$_POST['personil_id'] : null;
@@ -86,23 +87,25 @@ class PenelitianController {
                     }
                 }
                 
-                // Insert to database
+                // Insert to database using Stored Procedure
                 if (empty($error)) {
-                    $query = "SELECT sp_create_penelitian($1, $2, $3, $4, $5, $6, $7, $8, $9) as new_id";
+                    // sp_create_penelitian with 10 parameters
+                    $query = "SELECT sp_create_penelitian($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) as new_id";
 
-                $params = array(
-                    $judul, 
-                    $deskripsi, 
-                    (int)$tahun, 
-                    $kategori, 
-                    $abstrak, 
-                    $gambar, 
-                    $file_pdf, 
-                    $link_publikasi, 
-                    $personil_id
-                );
+                    $params = array(
+                        $judul, 
+                        $deskripsi, 
+                        (int)$tahun, 
+                        "", // String kosong untuk nama kategori
+                        $abstrak, 
+                        $gambar, 
+                        $file_pdf, 
+                        $link_publikasi, 
+                        $personil_id,
+                        $kategori_id // Integer, ambil dari form
+                    );
 
-                $result = pg_query_params($this->conn, $query, $params);
+                    $result = pg_query_params($this->conn, $query, $params);
                     
                     if ($result) {
                         header('Location: ' . BASE_URL . '/admin/manage_penelitian.php?success=add');
