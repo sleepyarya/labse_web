@@ -44,8 +44,8 @@ class ArtikelController {
         $success = false;
         
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $judul = pg_escape_string($this->conn, trim($_POST['judul']));
-            $isi = pg_escape_string($this->conn, trim($_POST['isi']));
+            $judul = pg_escape_string($this->conn, trim($_POST['judul'] ?? ''));
+            $isi = pg_escape_string($this->conn, trim($_POST['isi'] ?? ''));
             
             // Handle personil selection
             $personil_id = !empty($_POST['personil_id']) ? (int)$_POST['personil_id'] : 'NULL';
@@ -60,7 +60,7 @@ class ArtikelController {
                 $personil_data = pg_fetch_assoc($result_personil);
                 $penulis = pg_escape_string($this->conn, $personil_data['nama']);
             } else {
-                $penulis = pg_escape_string($this->conn, trim($_POST['penulis']));
+                $penulis = pg_escape_string($this->conn, trim($_POST['penulis'] ?? ''));
             }
             
             // Validation
@@ -140,8 +140,8 @@ class ArtikelController {
         }
         
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $judul = pg_escape_string($this->conn, trim($_POST['judul']));
-            $isi = pg_escape_string($this->conn, trim($_POST['isi']));
+            $judul = pg_escape_string($this->conn, trim($_POST['judul'] ?? ''));
+            $isi = pg_escape_string($this->conn, trim($_POST['isi'] ?? ''));
             
             // Handle personil selection
             $personil_id = !empty($_POST['personil_id']) ? (int)$_POST['personil_id'] : 'NULL';
@@ -155,7 +155,7 @@ class ArtikelController {
                 $personil_data = pg_fetch_assoc($result_personil);
                 $penulis = pg_escape_string($this->conn, $personil_data['nama']);
             } else {
-                $penulis = pg_escape_string($this->conn, trim($_POST['penulis']));
+                $penulis = pg_escape_string($this->conn, trim($_POST['penulis'] ?? ''));
             }
             
             // Validation

@@ -34,6 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             // Verifikasi password
             if (password_verify($password, $user['password'])) {
+
+                session_unset();
                 // Regenerate session ID untuk keamanan
                 session_regenerate_id(true);
                 

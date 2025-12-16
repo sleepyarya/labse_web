@@ -33,14 +33,15 @@ class ProdukController {
         $error = '';
         
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $nama_produk = pg_escape_string($this->conn, trim($_POST['nama_produk']));
-            $deskripsi = pg_escape_string($this->conn, trim($_POST['deskripsi']));
+            $nama_produk = pg_escape_string($this->conn, trim($_POST['nama_produk'] ?? ''));
+            $deskripsi = pg_escape_string($this->conn, trim($_POST['deskripsi'] ?? ''));
             $tahun = isset($_POST['tahun']) ? (int)$_POST['tahun'] : date('Y');
-            // FIX: Ambil kategori_id (integer) dari form
-            $kategori_id = isset($_POST['kategori']) ? (int)$_POST['kategori'] : null;
-            $teknologi = pg_escape_string($this->conn, trim($_POST['teknologi']));
-            $link_demo = pg_escape_string($this->conn, trim($_POST['link_demo']));
-            $link_repository = pg_escape_string($this->conn, trim($_POST['link_repository']));
+            // FIX: Ambil kategori_id (integer) dari form, bukan kategori (string)
+            $kategori_id = isset($_POST['kategori_id']) ? (int)$_POST['kategori_id'] : null;
+            $kategori = ''; // Legacy string kategori - tidak dipakai lagi
+            $teknologi = pg_escape_string($this->conn, trim($_POST['teknologi'] ?? ''));
+            $link_demo = pg_escape_string($this->conn, trim($_POST['link_demo'] ?? ''));
+            $link_repository = pg_escape_string($this->conn, trim($_POST['link_repository'] ?? ''));
             $personil_id = isset($_POST['personil_id']) && !empty($_POST['personil_id']) ? (int)$_POST['personil_id'] : null;
             
             if (empty($nama_produk) || empty($deskripsi)) {
@@ -111,13 +112,15 @@ class ProdukController {
         }
         
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $nama_produk = pg_escape_string($this->conn, trim($_POST['nama_produk']));
-            $deskripsi = pg_escape_string($this->conn, trim($_POST['deskripsi']));
+            $nama_produk = pg_escape_string($this->conn, trim($_POST['nama_produk'] ?? ''));
+            $deskripsi = pg_escape_string($this->conn, trim($_POST['deskripsi'] ?? ''));
             $tahun = isset($_POST['tahun']) ? (int)$_POST['tahun'] : date('Y');
-            $kategori = pg_escape_string($this->conn, trim($_POST['kategori']));
-            $teknologi = pg_escape_string($this->conn, trim($_POST['teknologi']));
-            $link_demo = pg_escape_string($this->conn, trim($_POST['link_demo']));
-            $link_repository = pg_escape_string($this->conn, trim($_POST['link_repository']));
+            // FIX: Ambil kategori_id (integer) dari form, bukan kategori (string)
+            $kategori_id = isset($_POST['kategori_id']) ? (int)$_POST['kategori_id'] : null;
+            $kategori = ''; // Legacy string kategori - tidak dipakai lagi
+            $teknologi = pg_escape_string($this->conn, trim($_POST['teknologi'] ?? ''));
+            $link_demo = pg_escape_string($this->conn, trim($_POST['link_demo'] ?? ''));
+            $link_repository = pg_escape_string($this->conn, trim($_POST['link_repository'] ?? ''));
             $personil_id = isset($_POST['personil_id']) && !empty($_POST['personil_id']) ? (int)$_POST['personil_id'] : null;
             
             $gambar = $produk['gambar'];
@@ -138,11 +141,11 @@ class ProdukController {
                 }
             }
             
-            $query = "UPDATE produk SET nama_produk = $1, deskripsi = $2, tahun = $3, kategori = $4, teknologi = $5, 
+            $query = "UPDATE produk SET nama_produk = $1, deskripsi = $2, tahun = $3, kategori_id = $4, teknologi = $5, 
                       gambar = $6, link_demo = $7, link_repository = $8, personil_id = $9, updated_at = NOW() 
                       WHERE id = $10";
             $result = pg_query_params($this->conn, $query, array(
-                $nama_produk, $deskripsi, $tahun, $kategori, $teknologi, $gambar, $link_demo, $link_repository, $personil_id, $id
+                $nama_produk, $deskripsi, $tahun, $kategori_id, $teknologi, $gambar, $link_demo, $link_repository, $personil_id, $id
             ));
             
             if ($result) {

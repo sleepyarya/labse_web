@@ -33,13 +33,14 @@ class PenelitianController {
         $success = false;
         
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $judul = pg_escape_string($this->conn, trim($_POST['judul']));
-            $deskripsi = pg_escape_string($this->conn, trim($_POST['deskripsi']));
+            $judul = pg_escape_string($this->conn, trim($_POST['judul'] ?? ''));
+            $deskripsi = pg_escape_string($this->conn, trim($_POST['deskripsi'] ?? ''));
             $tahun = isset($_POST['tahun']) ? (int)$_POST['tahun'] : date('Y');
             // FIX: Ambil kategori_id (integer) dari form, bukan kategori (string)
-            $kategori_id = isset($_POST['kategori']) ? (int)$_POST['kategori'] : null;
-            $abstrak = pg_escape_string($this->conn, trim($_POST['abstrak']));
-            $link_publikasi = pg_escape_string($this->conn, trim($_POST['link_publikasi']));
+            $kategori_id = isset($_POST['kategori_id']) ? (int)$_POST['kategori_id'] : null;
+            $kategori = ''; // Legacy string kategori - tidak dipakai lagi
+            $abstrak = pg_escape_string($this->conn, trim($_POST['abstrak'] ?? ''));
+            $link_publikasi = pg_escape_string($this->conn, trim($_POST['link_publikasi'] ?? ''));
             $personil_id = isset($_POST['personil_id']) && !empty($_POST['personil_id']) ? (int)$_POST['personil_id'] : null;
             
             // Validation
@@ -139,12 +140,14 @@ class PenelitianController {
         }
         
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $judul = pg_escape_string($this->conn, trim($_POST['judul']));
-            $deskripsi = pg_escape_string($this->conn, trim($_POST['deskripsi']));
+            $judul = pg_escape_string($this->conn, trim($_POST['judul'] ?? ''));
+            $deskripsi = pg_escape_string($this->conn, trim($_POST['deskripsi'] ?? ''));
             $tahun = isset($_POST['tahun']) ? (int)$_POST['tahun'] : date('Y');
-            $kategori = pg_escape_string($this->conn, trim($_POST['kategori']));
-            $abstrak = pg_escape_string($this->conn, trim($_POST['abstrak']));
-            $link_publikasi = pg_escape_string($this->conn, trim($_POST['link_publikasi']));
+            // FIX: Ambil kategori_id (integer) dari form, bukan kategori (string)
+            $kategori_id = isset($_POST['kategori_id']) ? (int)$_POST['kategori_id'] : null;
+            $kategori = ''; // Legacy string kategori - tidak dipakai lagi
+            $abstrak = pg_escape_string($this->conn, trim($_POST['abstrak'] ?? ''));
+            $link_publikasi = pg_escape_string($this->conn, trim($_POST['link_publikasi'] ?? ''));
             $personil_id = isset($_POST['personil_id']) && !empty($_POST['personil_id']) ? (int)$_POST['personil_id'] : null;
             
             // Validation
@@ -194,11 +197,11 @@ class PenelitianController {
                 
                 // Update database - NO ownership check, admin can edit all
                 $query = "UPDATE hasil_penelitian 
-                          SET judul = $1, deskripsi = $2, tahun = $3, kategori = $4, abstrak = $5, 
+                          SET judul = $1, deskripsi = $2, tahun = $3, kategori_id = $4, abstrak = $5, 
                               gambar = $6, file_pdf = $7, link_publikasi = $8, personil_id = $9, updated_at = NOW() 
                           WHERE id = $10";
                 $result = pg_query_params($this->conn, $query, array(
-                    $judul, $deskripsi, $tahun, $kategori, $abstrak, $gambar, $file_pdf, $link_publikasi, $personil_id, $id
+                    $judul, $deskripsi, $tahun, $kategori_id, $abstrak, $gambar, $file_pdf, $link_publikasi, $personil_id, $id
                 ));
                 
                 if ($result) {

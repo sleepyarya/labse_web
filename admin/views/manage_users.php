@@ -549,7 +549,6 @@ include '../includes/admin_sidebar.php';
                         <select class="form-select" id="edit_role" name="role" required>
                             <option value="admin">Admin</option>
                             <option value="personil">Personil</option>
-                            <option value="personil">Personil</option>
                         </select>
                         <div class="form-text">Role menentukan hak akses user</div>
                     </div>
@@ -622,7 +621,6 @@ include '../includes/admin_sidebar.php';
                         <select class="form-select" name="role" required>
                             <option value="">-- Pilih Role --</option>
                             <option value="admin">Admin</option>
-                            <option value="personil">Personil</option>
                             <option value="personil">Personil</option>
                         </select>
                         <div class="form-text">Role menentukan hak akses user</div>
