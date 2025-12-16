@@ -223,7 +223,7 @@ class MahasiswaController {
             // Refresh dashboard stats agar angka pending berkurang di cache
             @pg_query($this->conn, "REFRESH MATERIALIZED VIEW mv_dashboard_stats");
             
-            return ['success' => true, 'message' => 'Mahasiswa berhasil disetujui & Akun Login diaktifkan!'];
+            return ['success' => true, 'message' => 'Mahasiswa berhasil disetujui '];
         } else {
             // Fallback manual jika SP gagal (misal belum dibuat)
             $manual_query = "UPDATE mahasiswa SET status_approval = 'approved', approved_by = $1, approved_at = NOW() WHERE id = $2";

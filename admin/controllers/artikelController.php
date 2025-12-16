@@ -1,8 +1,8 @@
 <?php
-// Controller: Artikel Controller
-// Description: Handles CRUD operations for artikel management
+// Controller: Artikel Controller (Admin)
+// Fix: Hybrid Saving (Simpan ID + Nama Kategori sekaligus)
 
-require_once __DIR__ . '/../../includes/config.php';
+require_once __DIR__ . '/../../core/database.php';
 require_once __DIR__ . '/../../core/session.php';
 
 class ArtikelController {
@@ -14,272 +14,205 @@ class ArtikelController {
         $this->conn = $conn;
     }
     
-    // Get list of personil for dropdown
-    public function getPersonilList() {
-        $query = "SELECT id, nama FROM personil ORDER BY nama ASC";
-        $result = pg_query($this->conn, $query);
-        $personil_list = [];
-        while ($row = pg_fetch_assoc($result)) {
-            $personil_list[] = $row;
-        }
-        return $personil_list;
-    }
-    
-    // Get list of kategori for dropdown
+    // Ambil daftar kategori untuk dropdown
     public function getKategoriList() {
-        $query = "SELECT id, nama_kategori, warna FROM kategori_artikel WHERE is_active = TRUE ORDER BY nama_kategori ASC";
+        $query = "SELECT id, nama_kategori FROM kategori_artikel WHERE is_active = TRUE ORDER BY nama_kategori ASC";
         $result = pg_query($this->conn, $query);
-        $kategori_list = [];
+        $list = [];
         if ($result) {
             while ($row = pg_fetch_assoc($result)) {
-                $kategori_list[] = $row;
+                $list[] = $row;
             }
         }
-        return $kategori_list;
+        return $list;
     }
 
-    // Add new artikel
+    public function getAllPersonil() {
+        $query = "SELECT id, nama FROM personil ORDER BY nama ASC";
+        $result = pg_query($this->conn, $query);
+        $personil = [];
+        while ($row = pg_fetch_assoc($result)) {
+            $personil[] = $row;
+        }
+        return $personil;
+    }
+
+    // Helper: Cari Nama Kategori berdasarkan ID
+    private function getNamaKategoriById($id) {
+        if (!$id) return '';
+        $query = "SELECT nama_kategori FROM kategori_artikel WHERE id = $1";
+        $result = pg_query_params($this->conn, $query, array($id));
+        if ($result && pg_num_rows($result) > 0) {
+            return pg_fetch_result($result, 0, 0);
+        }
+        return '';
+    }
+
+    // ADD DATA
     public function add() {
         $error = '';
-        $success = false;
         
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $judul = pg_escape_string($this->conn, trim($_POST['judul'] ?? ''));
             $isi = pg_escape_string($this->conn, trim($_POST['isi'] ?? ''));
+            $penulis = pg_escape_string($this->conn, trim($_POST['penulis'] ?? ''));
             
-            // Handle personil selection
-            $personil_id = !empty($_POST['personil_id']) ? (int)$_POST['personil_id'] : 'NULL';
+            // LOGIKA HYBRID
+            $kategori_id = isset($_POST['kategori_id']) && !empty($_POST['kategori_id']) ? (int)$_POST['kategori_id'] : null;
+            $kategori_text = $this->getNamaKategoriById($kategori_id); // Cari nama kategorinya
             
-            // Handle kategori selection
-            $kategori_id = !empty($_POST['kategori_id']) ? (int)$_POST['kategori_id'] : null;
+            $personil_id = isset($_POST['personil_id']) && !empty($_POST['personil_id']) ? (int)$_POST['personil_id'] : null;
             
-            // If personil selected, use their name. Otherwise use manual input
-            if ($personil_id !== 'NULL') {
-                $query_personil = "SELECT nama FROM personil WHERE id = $1";
-                $result_personil = pg_query_params($this->conn, $query_personil, array($personil_id));
-                $personil_data = pg_fetch_assoc($result_personil);
-                $penulis = pg_escape_string($this->conn, $personil_data['nama']);
+            if (empty($judul) || empty($isi)) {
+                $error = 'Judul dan isi artikel wajib diisi!';
             } else {
-                $penulis = pg_escape_string($this->conn, trim($_POST['penulis'] ?? ''));
-            }
-            
-            // Validation
-            if (empty($judul) || empty($isi) || empty($penulis)) {
-                $error = 'Judul, isi, dan penulis wajib diisi!';
-            } else {
-                // Handle file upload
+                // Upload Gambar
                 $gambar = '';
                 if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
-                    $allowed = ['jpg', 'jpeg', 'png', 'gif'];
-                    $filename = $_FILES['gambar']['name'];
-                    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-                    
-                    if (in_array($ext, $allowed)) {
+                    $ext = strtolower(pathinfo($_FILES['gambar']['name'], PATHINFO_EXTENSION));
+                    if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])) {
                         $new_filename = 'artikel_' . time() . '_' . uniqid() . '.' . $ext;
-                        // FIX: Use correct absolute path
-                        $upload_dir = __DIR__ . '/../../public/uploads/artikel/';
-                        
-                        // Create directory if not exists
-                        if (!file_exists($upload_dir)) {
-                            mkdir($upload_dir, 0777, true);
-                        }
-                        
-                        if (move_uploaded_file($_FILES['gambar']['tmp_name'], $upload_dir . $new_filename)) {
-                            $gambar = $new_filename;
-                        }
-                    } else {
-                        $error = 'Format file tidak diizinkan. Gunakan JPG, PNG, atau GIF.';
+                        $upload_dir = '../public/uploads/artikel/';
+                        if (!file_exists($upload_dir)) mkdir($upload_dir, 0777, true);
+                        move_uploaded_file($_FILES['gambar']['tmp_name'], $upload_dir . $new_filename);
+                        $gambar = $new_filename;
                     }
                 }
                 
-                // Insert to database
-                if (empty($error)) {
-                    $query = "INSERT INTO artikel (judul, isi, penulis, gambar, personil_id, kategori_id) 
-                              VALUES ($1, $2, $3, $4, $5, $6)";
-                    
-                    // Handle NULL for personil_id correctly in pg_query_params
-                    $params = array($judul, $isi, $penulis, $gambar);
-                    if ($personil_id === 'NULL') {
-                        $params[] = null;
-                    } else {
-                        $params[] = $personil_id;
-                    }
-                    $params[] = $kategori_id;
-                    
-                    $result = pg_query_params($this->conn, $query, $params);
-                    
-                    if ($result) {
-                        header('Location: ../views/manage_artikel.php?success=add');
-                        exit();
-                    } else {
-                        $error = 'Gagal menambahkan artikel: ' . pg_last_error($this->conn);
-                    }
+                // Query INSERT (Pastikan kolom kategori_id ada di database artikel Anda)
+                // Jika error, cek apakah tabel artikel sudah punya kolom kategori_id
+                $query = "INSERT INTO artikel 
+                          (judul, isi, penulis, gambar, personil_id, kategori_id, created_at, updated_at)
+                          VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())";
+
+                $result = pg_query_params($this->conn, $query, array(
+                    $judul, $isi, $penulis, $gambar, $personil_id, $kategori_id
+                ));
+                
+                if ($result) {
+                    header('Location: manage_artikel.php?success=add');
+                    exit();
+                } else {
+                    $error = 'Gagal menambahkan artikel: ' . pg_last_error($this->conn);
                 }
             }
         }
-        
-        return ['error' => $error, 'success' => $success];
+        return ['error' => $error];
     }
     
-    // Edit artikel
+    // EDIT DATA
     public function edit($id) {
         $error = '';
-        $success = false;
         $artikel = null;
         
-        // Get artikel data
         if ($id) {
             $query = "SELECT * FROM artikel WHERE id = $1";
             $result = pg_query_params($this->conn, $query, array($id));
             $artikel = pg_fetch_assoc($result);
-            
             if (!$artikel) {
-                $error = 'Artikel tidak ditemukan!';
-                return ['error' => $error, 'artikel' => null];
+                return ['error' => 'Data tidak ditemukan!', 'artikel' => null];
             }
         }
         
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $judul = pg_escape_string($this->conn, trim($_POST['judul'] ?? ''));
             $isi = pg_escape_string($this->conn, trim($_POST['isi'] ?? ''));
+            $penulis = pg_escape_string($this->conn, trim($_POST['penulis'] ?? ''));
             
-            // Handle personil selection
-            $personil_id = !empty($_POST['personil_id']) ? (int)$_POST['personil_id'] : 'NULL';
+            $kategori_id = isset($_POST['kategori_id']) && !empty($_POST['kategori_id']) ? (int)$_POST['kategori_id'] : null;
+            // Artikel mungkin tidak punya kolom teks 'kategori' legacy, jadi kita fokus ID saja
             
-            // Handle kategori selection
-            $kategori_id = !empty($_POST['kategori_id']) ? (int)$_POST['kategori_id'] : null;
+            $personil_id = isset($_POST['personil_id']) && !empty($_POST['personil_id']) ? (int)$_POST['personil_id'] : null;
             
-            if ($personil_id !== 'NULL') {
-                $query_personil = "SELECT nama FROM personil WHERE id = $1";
-                $result_personil = pg_query_params($this->conn, $query_personil, array($personil_id));
-                $personil_data = pg_fetch_assoc($result_personil);
-                $penulis = pg_escape_string($this->conn, $personil_data['nama']);
+            if (empty($judul)) {
+                $error = 'Judul wajib diisi!';
             } else {
-                $penulis = pg_escape_string($this->conn, trim($_POST['penulis'] ?? ''));
-            }
-            
-            // Validation
-            if (empty($judul) || empty($isi) || empty($penulis)) {
-                $error = 'Judul, isi, dan penulis wajib diisi!';
-            } else {
-                // Handle file upload
-                $gambar = $artikel['gambar']; // Keep existing image by default
+                $gambar = $artikel['gambar'];
                 if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
-                    $allowed = ['jpg', 'jpeg', 'png', 'gif'];
-                    $filename = $_FILES['gambar']['name'];
-                    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-                    
-                    if (in_array($ext, $allowed)) {
+                    $ext = strtolower(pathinfo($_FILES['gambar']['name'], PATHINFO_EXTENSION));
+                    if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])) {
                         $new_filename = 'artikel_' . time() . '_' . uniqid() . '.' . $ext;
-                        // FIX: Use correct absolute path
-                        $upload_dir = __DIR__ . '/../../public/uploads/artikel/';
-                        
-                        // Create directory if not exists
-                        if (!file_exists($upload_dir)) {
-                            mkdir($upload_dir, 0777, true);
-                        }
-                        
-                        if (move_uploaded_file($_FILES['gambar']['tmp_name'], $upload_dir . $new_filename)) {
-                            // Delete old image
-                            if ($artikel['gambar'] && file_exists($upload_dir . $artikel['gambar'])) {
-                                unlink($upload_dir . $artikel['gambar']);
-                            }
-                            $gambar = $new_filename;
-                        }
-                    } else {
-                        $error = 'Format file tidak diizinkan. Gunakan JPG, PNG, atau GIF.';
+                        $upload_dir = '../public/uploads/artikel/';
+                        move_uploaded_file($_FILES['gambar']['tmp_name'], $upload_dir . $new_filename);
+                        if ($gambar && file_exists($upload_dir . $gambar)) unlink($upload_dir . $gambar);
+                        $gambar = $new_filename;
                     }
                 }
                 
-                // Update database
-                if (empty($error)) {
-                    $query = "UPDATE artikel SET judul = $1, isi = $2, penulis = $3, gambar = $4, personil_id = $5, kategori_id = $6, updated_at = NOW() 
-                              WHERE id = $7";
-                    
-                    $params = array($judul, $isi, $penulis, $gambar);
-                    if ($personil_id === 'NULL') {
-                        $params[] = null;
-                    } else {
-                        $params[] = $personil_id;
-                    }
-                    $params[] = $kategori_id;
-                    $params[] = $id;
-                    
-                    $result = pg_query_params($this->conn, $query, $params);
-                    
-                    if ($result) {
-                        header('Location: ../views/manage_artikel.php?success=edit');
-                        exit();
-                    } else {
-                        $error = 'Gagal mengupdate artikel: ' . pg_last_error($this->conn);
-                    }
+                $query = "UPDATE artikel 
+                          SET judul = $1, isi = $2, penulis = $3, gambar = $4, 
+                              personil_id = $5, kategori_id = $6, updated_at = NOW() 
+                          WHERE id = $7";
+                          
+                $result = pg_query_params($this->conn, $query, array(
+                    $judul, $isi, $penulis, $gambar, $personil_id, $kategori_id, $id
+                ));
+                
+                if ($result) {
+                    header('Location: manage_artikel.php?success=edit');
+                    exit();
+                } else {
+                    $error = 'Gagal update: ' . pg_last_error($this->conn);
                 }
             }
         }
         
-        return ['error' => $error, 'success' => $success, 'artikel' => $artikel];
+        return ['error' => $error, 'artikel' => $artikel];
     }
-    
-    // Delete artikel
-    public function delete($id) {
-        if ($id) {
-            // Get artikel data first to delete image
-            $query = "SELECT gambar FROM artikel WHERE id = $1";
-            $result = pg_query_params($this->conn, $query, array($id));
-            $artikel = pg_fetch_assoc($result);
-            
-            if ($artikel) {
-                // Delete from database
-                $delete_query = "DELETE FROM artikel WHERE id = $1";
-                $delete_result = pg_query_params($this->conn, $delete_query, array($id));
-                
-                if ($delete_result) {
-                    // Delete image file
-                    // FIX: Use correct public path
-                    if ($artikel['gambar'] && file_exists('../public/uploads/artikel/' . $artikel['gambar'])) {
-                        unlink('../public/uploads/artikel/' . $artikel['gambar']);
-                    }
-                    header('Location: ../views/manage_artikel.php?success=delete');
-                } else {
-                    header('Location: ../views/manage_artikel.php?error=delete');
-                }
-            } else {
-                header('Location: ../views/manage_artikel.php?error=notfound');
-            }
-        } else {
-            header('Location: ../views/manage_artikel.php?error=invalid');
-        }
-        exit();
-    }
-    
-    // Get all artikel with pagination
+
     public function getAll($page = 1, $limit = 10, $search = '') {
         $offset = ($page - 1) * $limit;
+        $where = $search ? "WHERE a.judul ILIKE '%$search%'" : '';
         
-        // Search functionality
-        $where = $search ? "WHERE judul ILIKE '%$search%' OR penulis ILIKE '%$search%' OR isi ILIKE '%$search%'" : '';
-        
-        // Get total records
-        $count_query = "SELECT COUNT(*) as total FROM artikel $where";
-        $count_result = pg_query($this->conn, $count_query);
-        $total_records = pg_fetch_assoc($count_result)['total'];
+        $count_query = "SELECT COUNT(*) as total FROM artikel a $where";
+        $total_records = pg_fetch_assoc(pg_query($this->conn, $count_query))['total'];
         $total_pages = ceil($total_records / $limit);
         
-        // Get artikel data
-        $query = "SELECT * FROM artikel $where ORDER BY created_at DESC LIMIT $limit OFFSET $offset";
+        $query = "SELECT a.*, p.nama as personil_nama, k.nama_kategori as kat_nama 
+                  FROM artikel a
+                  LEFT JOIN personil p ON a.personil_id = p.id
+                  LEFT JOIN kategori_artikel k ON a.kategori_id = k.id
+                  $where 
+                  ORDER BY a.created_at DESC 
+                  LIMIT $limit OFFSET $offset";
         $result = pg_query($this->conn, $query);
         
-        $articles = [];
+        $items = [];
         while ($row = pg_fetch_assoc($result)) {
-            $articles[] = $row;
+            $items[] = $row;
         }
         
         return [
-            'articles' => $articles,
-            'total_records' => $total_records,
-            'total_pages' => $total_pages,
+            'items' => $items, 
+            'total_records' => $total_records, 
+            'total_pages' => $total_pages, 
             'current_page' => $page
         ];
+    }
+    
+    public function delete($id) {
+        if ($id) {
+            $q_img = "SELECT gambar FROM artikel WHERE id = $1";
+            $res_img = pg_query_params($this->conn, $q_img, array($id));
+            $img = pg_fetch_result($res_img, 0, 0);
+
+            $q = "DELETE FROM artikel WHERE id = $1";
+            if (pg_query_params($this->conn, $q, array($id))) {
+                if ($img && file_exists('../public/uploads/artikel/' . $img)) {
+                    unlink('../public/uploads/artikel/' . $img);
+                }
+                header('Location: manage_artikel.php?success=delete');
+            } else {
+                header('Location: manage_artikel.php?error=delete');
+            }
+            exit();
+        }
+    }
+    
+    public function getById($id) {
+        $query = "SELECT * FROM artikel WHERE id = $1";
+        $result = pg_query_params($this->conn, $query, array($id));
+        return pg_fetch_assoc($result);
     }
 }
 ?>
