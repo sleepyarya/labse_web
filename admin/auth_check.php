@@ -35,6 +35,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 $referer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
 
 // Jika ini halaman index.php atau root admin
+/*
 if (in_array($current_page, ['index.php', ''])) {
     // Cek apakah ada flag "fresh_login" 
     $is_fresh_login = isset($_SESSION['fresh_login']) && $_SESSION['fresh_login'] === true;
@@ -57,6 +58,8 @@ if (in_array($current_page, ['index.php', ''])) {
         $_SESSION['fresh_login'] = false;
     }
 }
+
+*/
 
 // Update last activity time
 $_SESSION['admin_last_activity'] = time();

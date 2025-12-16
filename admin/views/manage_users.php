@@ -162,8 +162,8 @@ if (isset($_POST['add_user'])) {
                         throw new Exception('Gagal membuat admin user');
                     }
                 } elseif ($role === 'personil') {
-                    $insert_personil = "INSERT INTO personil (nama, email, is_member, created_at) 
-                                      VALUES ($1, $2, TRUE, NOW()) RETURNING id";
+                    $insert_personil = "INSERT INTO personil (nama, email, jabatan, is_member, created_at) 
+                             VALUES ($1, $2, 'Anggota', TRUE, NOW()) RETURNING id";
                     $personil_result = pg_query_params($conn, $insert_personil, array(
                         $username, // Default nama = username
                         $email
@@ -344,7 +344,6 @@ include '../includes/admin_sidebar.php';
                     <select class="form-select" id="role" name="role">
                         <option value="">Semua Role</option>
                         <option value="admin" <?php echo $role_filter === 'admin' ? 'selected' : ''; ?>>Admin</option>
-                        <option value="personil" <?php echo $role_filter === 'personil' ? 'selected' : ''; ?>>Personil</option>
                         <option value="personil" <?php echo $role_filter === 'personil' ? 'selected' : ''; ?>>Personil</option>
                     </select>
                 </div>

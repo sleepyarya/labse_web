@@ -174,9 +174,6 @@ include '../../includes/navbar.php';
                                     <i class="bi bi-arrow-left me-2"></i>Kembali
                                 </a>
                             </div>
-                            <div class="alert alert-info mt-3 mb-0">
-                                <i class="bi bi-info-circle me-2"></i>Password default akun Anda adalah <strong>12345</strong>
-                            </div>
                         </form>
                     </div>
                 </div>

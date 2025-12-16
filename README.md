@@ -112,8 +112,6 @@ labse_web/
 │   ├── includes/            # Member header, footer, sidebar
 │   └── *.php                # Member pages (dashboard, my_*, edit_*, add_*)
 │
-├── student/                 # Student Area - Area Mahasiswa
-│   └── *.php                # Student pages dan features
 │
 ├── views/                   # Public Views - Komponen Landing Page
 │   ├── artikel/             # Artikel views (index, detail)
