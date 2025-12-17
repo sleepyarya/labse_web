@@ -1,0 +1,215 @@
+<?php
+require_once '../../includes/config.php';
+$page_title = 'Recruitment';
+
+// Check recruitment status
+$recruitment_query = "SELECT is_open, message FROM recruitment_settings WHERE id = 1";
+$recruitment_result = pg_query($conn, $recruitment_query);
+$recruitment_settings = pg_fetch_assoc($recruitment_result);
+$is_recruitment_open = ($recruitment_settings && ($recruitment_settings['is_open'] == 't' || $recruitment_settings['is_open'] == '1'));
+$recruitment_message = $recruitment_settings ? $recruitment_settings['message'] : 'Maaf, Lab SE sedang tidak membuka recruitment saat ini.';
+
+// Check if redirected from form with error
+$show_closed_error = isset($_GET['error']) && $_GET['error'] == 'closed';
+
+include '../../includes/header.php';
+include '../../includes/navbar.php';
+
+// Get all approved students from database (only show approved students to public)
+$query = "SELECT * FROM mahasiswa WHERE status_approval = 'approved' ORDER BY created_at DESC";
+$result = pg_query($conn, $query);
+?>
+
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container text-center">
+        <h1 data-aos="fade-down">Recruitment Lab SE</h1>
+        <p class="lead" data-aos="fade-up" data-aos-delay="100">Bergabunglah bersama kami untuk mengembangkan kemampuan software engineering</p>
+    </div>
+</div>
+
+<?php if ($show_closed_error): ?>
+<section class="content-section pt-0">
+    <div class="container">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Recruitment sedang ditutup.</strong> Anda tidak dapat mengakses form pendaftaran saat ini.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
+<!-- Call to Action -->
+<?php if ($is_recruitment_open): ?>
+<section class="content-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card bg-primary text-white" data-aos="zoom-in">
+                    <div class="card-body p-5 text-center">
+                        <h2 class="mb-4">Buka Peluang Baru di Lab Software Engineering!</h2>
+                        <p class="lead mb-4">Kami mencari mahasiswa yang passionate dan bersemangat untuk belajar dan berkembang bersama dalam bidang software engineering.</p>
+                        <a href="form.php" class="btn btn-light btn-lg">
+                            <i class="bi bi-pencil-square me-2"></i>Daftar Sekarang
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<?php else: ?>
+<section class="content-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="alert alert-warning p-5 text-center" role="alert" data-aos="zoom-in">
+                    <i class="bi bi-exclamation-circle" style="font-size: 3rem;"></i>
+                    <h3 class="mt-3 mb-3"><?php echo htmlspecialchars($recruitment_message); ?></h3>
+                    <p class="mb-0">Pantau terus halaman ini untuk informasi pembukaan recruitment selanjutnya.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
+<!-- Benefits Section -->
+<?php
+// Fetch recruitment benefits content from database
+$benefits_content = [];
+$benefits_query = "SELECT key_name, content_value FROM landing_page_content WHERE section_name = 'recruitment'";
+$benefits_result = pg_query($conn, $benefits_query);
+while ($row = pg_fetch_assoc($benefits_result)) {
+    $benefits_content[$row['key_name']] = $row['content_value'];
+}
+
+// Helper function to get benefit content with default fallback
+function getBenefitContent($key, $content, $default = '') {
+    return isset($content[$key]) && !empty($content[$key]) ? $content[$key] : $default;
+}
+
+// Default values
+$default_benefits = [
+    'benefits_title' => 'Apa yang Anda Dapatkan?',
+    'benefit1_icon' => 'bi-book',
+    'benefit1_title' => 'Pelatihan Berkualitas',
+    'benefit1_desc' => 'Akses ke workshop, training, dan mentoring dari expert',
+    'benefit2_icon' => 'bi-laptop',
+    'benefit2_title' => 'Proyek Real',
+    'benefit2_desc' => 'Terlibat dalam proyek nyata dengan industri dan penelitian',
+    'benefit3_icon' => 'bi-award',
+    'benefit3_title' => 'Sertifikasi',
+    'benefit3_desc' => 'Kesempatan mendapat sertifikasi internasional',
+    'benefit4_icon' => 'bi-people',
+    'benefit4_title' => 'Networking',
+    'benefit4_desc' => 'Membangun jaringan dengan profesional dan mahasiswa lain'
+];
+?>
+<section class="content-section bg-light-section">
+    <div class="container">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <h2 class="section-title"><?php echo htmlspecialchars(getBenefitContent('benefits_title', $benefits_content, $default_benefits['benefits_title'])); ?></h2>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="100">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="bi <?php echo htmlspecialchars(getBenefitContent('benefit1_icon', $benefits_content, $default_benefits['benefit1_icon'])); ?> text-primary" style="font-size: 3rem;"></i>
+                        <h5 class="mt-3"><?php echo htmlspecialchars(getBenefitContent('benefit1_title', $benefits_content, $default_benefits['benefit1_title'])); ?></h5>
+                        <p class="text-muted"><?php echo htmlspecialchars(getBenefitContent('benefit1_desc', $benefits_content, $default_benefits['benefit1_desc'])); ?></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="200">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="bi <?php echo htmlspecialchars(getBenefitContent('benefit2_icon', $benefits_content, $default_benefits['benefit2_icon'])); ?> text-primary" style="font-size: 3rem;"></i>
+                        <h5 class="mt-3"><?php echo htmlspecialchars(getBenefitContent('benefit2_title', $benefits_content, $default_benefits['benefit2_title'])); ?></h5>
+                        <p class="text-muted"><?php echo htmlspecialchars(getBenefitContent('benefit2_desc', $benefits_content, $default_benefits['benefit2_desc'])); ?></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="300">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="bi <?php echo htmlspecialchars(getBenefitContent('benefit3_icon', $benefits_content, $default_benefits['benefit3_icon'])); ?> text-primary" style="font-size: 3rem;"></i>
+                        <h5 class="mt-3"><?php echo htmlspecialchars(getBenefitContent('benefit3_title', $benefits_content, $default_benefits['benefit3_title'])); ?></h5>
+                        <p class="text-muted"><?php echo htmlspecialchars(getBenefitContent('benefit3_desc', $benefits_content, $default_benefits['benefit3_desc'])); ?></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="400">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="bi <?php echo htmlspecialchars(getBenefitContent('benefit4_icon', $benefits_content, $default_benefits['benefit4_icon'])); ?> text-primary" style="font-size: 3rem;"></i>
+                        <h5 class="mt-3"><?php echo htmlspecialchars(getBenefitContent('benefit4_title', $benefits_content, $default_benefits['benefit4_title'])); ?></h5>
+                        <p class="text-muted"><?php echo htmlspecialchars(getBenefitContent('benefit4_desc', $benefits_content, $default_benefits['benefit4_desc'])); ?></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Registered Students -->
+<section class="content-section">
+    <div class="container">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <h2 class="section-title">Mahasiswa yang Sudah Diterima</h2>
+            <p class="lead text-muted">Bergabung dengan <?php echo pg_num_rows($result); ?> mahasiswa yang telah diterima di Lab SE</p>
+        </div>
+        
+        <?php if (pg_num_rows($result) > 0): ?>
+        <div class="row g-4">
+            <?php
+            $delay = 0;
+            while ($row = pg_fetch_assoc($result)) {
+                $delay += 50;
+                $avatar_url = "https://ui-avatars.com/api/?name=" . urlencode($row['nama']) . "&size=100&background=random";
+                ?>
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="<?php echo $delay; ?>">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <img src="<?php echo $avatar_url; ?>" alt="<?php echo htmlspecialchars($row['nama']); ?>" class="rounded-circle me-3" style="width: 60px; height: 60px;">
+                                <div>
+                                    <h6 class="mb-1"><?php echo htmlspecialchars($row['nama']); ?></h6>
+                                    <p class="text-muted small mb-0">
+                                        <i class="bi bi-mortarboard me-1"></i><?php echo htmlspecialchars($row['jurusan']); ?>
+                                    </p>
+                                    <p class="text-muted small mb-0">
+                                        <i class="bi bi-credit-card-2-front me-1"></i><?php echo htmlspecialchars($row['nim']); ?>
+                                    </p>
+                                </div>
+                            </div>
+                            <hr>
+                            <p class="text-muted small mb-0"><i class="bi bi-quote"></i> <?php echo htmlspecialchars(substr($row['alasan'], 0, 100)); ?>...</p>
+                        </div>
+                    </div>
+                </div>
+                <?php
+            }
+            ?>
+        </div>
+        <?php else: ?>
+        <div class="text-center" data-aos="fade-up">
+            <p class="lead text-muted">Belum ada mahasiswa yang mendaftar. Jadilah yang pertama!</p>
+        </div>
+        <?php endif; ?>
+        
+        <?php if ($is_recruitment_open): ?>
+        <div class="text-center mt-5" data-aos="fade-up">
+            <a href="form.php" class="btn btn-primary btn-lg">
+                <i class="bi bi-plus-circle me-2"></i>Daftar Bergabung
+            </a>
+        </div>
+        <?php endif; ?>
+    </div>
+</section>
+
+<?php
+pg_close($conn);
+include '../../includes/footer.php';
+?>

@@ -1,0 +1,31 @@
+# ============================================
+# 📁 IGNORE FILES FOR LABSE_WEB (PHP + PostgreSQL)
+# ============================================
+
+# Local environment files
+.env
+*.env
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE / Editor folders
+.vscode/
+.idea/
+*.log
+
+# PHP cache or temporary files
+vendor/
+composer.lock
+*.bak
+*.tmp
+*.swp
+
+# Node or frontend assets (if added later)
+node_modules/
+npm-debug.log*
+
+# Uploaded images or dynamic files (optional)
+uploads/
+cache/

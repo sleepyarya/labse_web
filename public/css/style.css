@@ -1,0 +1,808 @@
+/* Color Scheme: Light Blue, White, Soft Gray */
+:root {
+    --primary-color: #4A90E2;
+    --secondary-color: #68BBE3;
+    --light-bg: #F5F8FA;
+    --dark-text: #2C3E50;
+    --light-gray: #E8EEF2;
+    --white: #FFFFFF;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--dark-text);
+    background-color: var(--white);
+    overflow-x: hidden;
+}
+
+/* Smooth Scroll */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Navbar Styles */
+.navbar {
+    transition: all 0.3s ease;
+    padding: 1rem 0;
+}
+
+.navbar.scrolled {
+    background-color: var(--white) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    color: var(--primary-color) !important;
+    transition: all 0.3s ease;
+}
+
+.navbar-brand:hover {
+    transform: scale(1.05);
+}
+
+.nav-link {
+    color: var(--dark-text) !important;
+    font-weight: 500;
+    margin: 0 0.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 3px;
+    bottom: -1px;
+    left: 50%;
+    background-color: var(--primary-color);
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+    border-radius: 2px;
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+    width: 85%;
+}
+
+/* Ensure active state is visible */
+.nav-link.active {
+    color: var(--primary-color) !important;
+    font-weight: 600;
+}
+
+/* Hero Section */
+.hero-section {
+    background: var(--white);
+    min-height: 90vh;
+    display: flex;
+    align-items: center;
+    color: var(--dark);
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(74, 144, 226, 0.05) 0%, rgba(104, 187, 227, 0.05) 100%);
+    z-index: 0;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: var(--primary-color);
+}
+
+.hero-subtitle {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+    color: var(--text-color);
+    opacity: 0.85;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: none;
+    padding: 12px 30px;
+    font-weight: 600;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.btn-primary:hover {
+    background-color: var(--secondary-color);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(74, 144, 226, 0.3);
+}
+
+.btn-outline-primary {
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+    background-color: transparent;
+    padding: 12px 30px;
+    font-weight: 600;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    color: var(--white);
+    border-color: var(--primary-color);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(74, 144, 226, 0.3);
+}
+
+/* Ensure all buttons have proper icon alignment */
+.btn i,
+.btn-primary i,
+.btn-outline-primary i,
+.btn-secondary i {
+    flex-shrink: 0;
+}
+
+/* Icon on left side of text */
+.btn i.me-2,
+.btn i.me-1,
+.btn i.me-3 {
+    margin-right: 8px;
+    margin-left: 0;
+}
+
+/* Icon on right side of text */
+.btn i.ms-2,
+.btn i.ms-1,
+.btn i.ms-3 {
+    margin-left: 8px;
+    margin-right: 0;
+}
+
+/* Fix for buttons without text (icon only) */
+.btn i:only-child {
+    margin: 0;
+}
+
+/* Button size variants - consistent across all devices */
+.btn-sm {
+    padding: 8px 16px;
+    font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-lg {
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Outline button variants */
+.btn-outline-info,
+.btn-outline-success,
+.btn-outline-danger,
+.btn-outline-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-radius: 50px;
+    padding: 10px 24px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-info:hover,
+.btn-outline-success:hover,
+.btn-outline-danger:hover,
+.btn-outline-secondary:hover {
+    transform: translateY(-2px);
+}
+
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+}
+
+.card-img-top {
+    height: 200px;
+    object-fit: cover;
+}
+
+/* Section Styles */
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--dark-text);
+    margin-bottom: 3rem;
+    position: relative;
+    display: inline-block;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    border-radius: 2px;
+}
+
+/* Content Sections */
+.content-section {
+    padding: 80px 0;
+}
+
+.bg-light-section {
+    background-color: var(--light-bg);
+}
+
+/* Personil Card */
+.personil-card {
+    text-align: center;
+    padding: 2rem;
+}
+
+.personil-img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 5px solid var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+/* Blog Card */
+.blog-card-img {
+    height: 250px;
+    object-fit: cover;
+}
+
+/* Form Styles */
+.form-control,
+.form-select {
+    border-radius: 10px;
+    border: 2px solid var(--light-gray);
+    padding: 12px 20px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+}
+
+/* Footer */
+footer {
+    position: relative;
+}
+
+footer a:hover {
+    color: var(--secondary-color) !important;
+    transition: all 0.3s ease;
+}
+
+.social-icons a {
+    transition: all 0.3s ease;
+}
+
+.social-icons a:hover {
+    transform: scale(1.2);
+}
+
+/* Page Header */
+.page-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: var(--white);
+    padding: 100px 0 60px;
+    margin-bottom: 50px;
+}
+
+.page-header h1 {
+    font-size: 3rem;
+    font-weight: 700;
+}
+
+/* Badge */
+.badge {
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+/* Timeline */
+.timeline-item {
+    position: relative;
+    padding-left: 50px;
+    margin-bottom: 40px;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 30px;
+    height: 30px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    border: 5px solid var(--light-bg);
+}
+
+.timeline-item::after {
+    content: '';
+    position: absolute;
+    left: 14px;
+    top: 30px;
+    width: 2px;
+    height: 100%;
+    background-color: var(--light-gray);
+}
+
+.timeline-item:last-child::after {
+    display: none;
+}
+
+/* Loading Animation */
+.spinner-border-custom {
+    width: 3rem;
+    height: 3rem;
+    border-width: 0.3em;
+}
+
+/* =========================================
+   Responsive Styles
+   ========================================= */
+
+/* Large Tablets & Small Laptops (max-width: 991px) */
+@media (max-width: 991px) {
+    .hero-title {
+        font-size: 2.8rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1.3rem;
+    }
+
+    .section-title {
+        font-size: 2.2rem;
+    }
+
+    .hero-section {
+        min-height: auto;
+        padding: 60px 0;
+        text-align: center;
+    }
+
+    .hero-content {
+        margin-bottom: 3rem;
+        /* Center content on tablet/mobile */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .hero-section .row {
+        flex-direction: column-reverse;
+        /* Put text on top if desired, or keep default */
+    }
+
+    /* However, usually hero image is better on top or below depending on design. 
+       If row is not reversed, image is on right (desktop) -> bottom (mobile).
+       Let's keep standard stacking: Text (col-lg-6 first) -> Image (col-lg-6 second).
+       On mobile: Text will be on top, Image on bottom.
+    */
+}
+
+/* Tablets & Large Phones (max-width: 768px) */
+@media (max-width: 768px) {
+
+    /* Navbar tweaks found in navbar.php are good, adding general tweaks here */
+    .navbar-brand {
+        font-size: 1.25rem;
+    }
+
+    .hero-title {
+        font-size: 2.2rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1.1rem;
+    }
+
+    .section-title {
+        font-size: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .page-header {
+        padding: 60px 0 40px;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+    }
+
+    .content-section {
+        padding: 50px 0;
+    }
+
+    /* Cards adjustments */
+    .card {
+        margin-bottom: 1rem;
+    }
+
+    .card-img-top {
+        height: 180px;
+    }
+
+    /* Buttons */
+    .btn-lg {
+        padding: 10px 20px;
+        font-size: 1rem;
+    }
+
+    /* Footer - ensure it's visible on tablets */
+    footer {
+        padding-bottom: 2rem !important;
+        margin-bottom: 0;
+    }
+
+    /* Add extra padding to last section before footer */
+    section:last-of-type {
+        padding-bottom: 60px !important;
+    }
+
+    /* ===== Article Detail Page - Tablet Responsive ===== */
+
+    /* Page header title sizing */
+    .page-header .display-4 {
+        font-size: 2.5rem;
+    }
+
+    /* Article content card padding */
+    article .card-body {
+        padding: 3rem !important;
+    }
+
+    /* Share buttons spacing */
+    .article-content .btn {
+        margin: 0 4px;
+    }
+}
+
+/* Mobile Phones (max-width: 576px) */
+@media (max-width: 576px) {
+    .hero-title {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 1.75rem;
+    }
+
+    /* Stack buttons on very small screens */
+    .hero-content .btn {
+        width: 100%;
+        margin-bottom: 10px;
+        margin-right: 0 !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    /* Ensure icon spacing is consistent */
+    .btn i {
+        margin-right: 8px !important;
+    }
+
+    /* Fix any button with icon alignment issues */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    /* Specific fix for hero buttons */
+    .hero-content .btn-lg {
+        padding: 12px 24px;
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+
+    /* Image sizing */
+    .hero-section img {
+        max-width: 80% !important;
+        /* Override inline style */
+        height: auto;
+        margin-top: 20px;
+    }
+
+    /* Adjust specific card icons size */
+    .bi {
+        font-size: 2rem !important;
+        /* Force smaller icons if they are too big */
+    }
+
+    /* Revert specific icons that need to be small back to normal if needed, 
+       but the big icons in About section (3rem) should be smaller. */
+    .card-body .bi[style*="font-size: 3rem"] {
+        font-size: 2.5rem !important;
+    }
+
+    .page-header {
+        padding: 50px 0 30px;
+    }
+
+    .page-header h1 {
+        font-size: 1.75rem;
+    }
+
+    .navbar-logo {
+        /* Enforce strictly on very small screens if needed */
+        max-height: 40px;
+    }
+
+    /* Footer - mobile specific fixes with aggressive approach */
+    footer {
+        padding: 3rem 0 6rem 0 !important;
+        padding-bottom: max(6rem, env(safe-area-inset-bottom, 6rem)) !important;
+        margin-top: 4rem !important;
+        margin-bottom: 0 !important;
+    }
+
+    footer .container {
+        padding-bottom: 3rem !important;
+    }
+
+    /* Ensure ALL sections have enough space before footer - Multiple selectors */
+    section.content-section:last-child,
+    section:last-of-type,
+    .content-section:last-of-type,
+    body>section:last-of-type {
+        padding-bottom: 150px !important;
+        margin-bottom: 3rem !important;
+    }
+
+    /* Footer columns stack better on mobile */
+    footer .row>div {
+        margin-bottom: 1.5rem !important;
+    }
+
+    /* Extra space for body to ensure footer visibility */
+    body {
+        padding-bottom: max(env(safe-area-inset-bottom, 30px), 30px) !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* Ensure minimum heights */
+    html,
+    body {
+        min-height: 100vh;
+    }
+
+    /* Main wrapper for pages with footer issues */
+    .main-wrapper {
+        min-height: 80vh !important;
+        padding-bottom: 10rem !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* ===== Article Detail Page - Mobile Responsive ===== */
+
+    /* Article header - reduce padding */
+    .page-header {
+        padding: 40px 0 30px !important;
+    }
+
+    /* Article header badges responsive */
+    .page-header .badge {
+        font-size: 0.7rem !important;
+        padding: 4px 10px !important;
+        margin: 4px !important;
+        display: inline-block;
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Badge container - allow wrapping */
+    .page-header .mt-4 {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .page-header h1,
+    .page-header .display-4 {
+        font-size: 1.5rem !important;
+        line-height: 1.3;
+        margin-bottom: 1rem;
+        padding: 0 15px;
+    }
+
+    /* Article content card - reduce padding */
+    article .card-body {
+        padding: 1.5rem !important;
+    }
+
+    /* Article content text */
+    .article-content p {
+        font-size: 0.95rem !important;
+        line-height: 1.7;
+        margin-bottom: 1rem;
+    }
+
+    /* Lead paragraphs - not too large on mobile */
+    .article-content p.lead {
+        font-size: 1rem !important;
+    }
+
+    /* HR spacing */
+    .article-content hr {
+        margin: 2rem 0 !important;
+    }
+
+    /* Author info section - better mobile layout */
+    .article-content .d-flex.align-items-center {
+        flex-direction: row !important;
+        align-items: flex-start !important;
+        text-align: left !important;
+    }
+
+    .article-content .d-flex.align-items-center img {
+        width: 60px !important;
+        height: 60px !important;
+    }
+
+    .article-content .d-flex.align-items-center .flex-grow-1 {
+        margin-left: 1rem !important;
+        margin-top: 0 !important;
+    }
+
+    .article-content .d-flex.align-items-center h5 {
+        font-size: 1rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .article-content .d-flex.align-items-center p {
+        font-size: 0.9rem !important;
+        margin-bottom: 0.25rem !important;
+    }
+
+    /* Share buttons section - better spacing */
+    .article-content .d-flex.justify-content-between {
+        flex-direction: column !important;
+        text-align: center !important;
+        gap: 1.5rem;
+    }
+
+    .article-content .d-flex.justify-content-between h5 {
+        font-size: 1rem !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* Share buttons - wrap and center */
+    .article-content .d-flex.justify-content-between>div {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    /* Share button sizing - slightly larger for better tap targets */
+    .article-content .btn.btn-outline-primary,
+    .article-content .btn.btn-outline-info,
+    .article-content .btn.btn-outline-success,
+    .article-content .btn.btn-outline-danger {
+        width: 50px;
+        height: 50px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        border-width: 2px;
+    }
+
+    .article-content .btn i {
+        font-size: 1.25rem;
+        margin: 0 !important;
+    }
+
+    /* Back button - full width on mobile */
+    .text-center .btn.btn-outline-primary {
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+        display: flex;
+    }
+
+    /* Related articles - ensure cards stack nicely */
+    .hover-card {
+        margin-bottom: 1.5rem;
+    }
+
+    .hover-card .card-body {
+        padding: 1.5rem !important;
+    }
+
+    /* Card title sizing */
+    .hover-card .card-title {
+        font-size: 1rem !important;
+        line-height: 1.4;
+        margin-bottom: 0.75rem !important;
+    }
+
+    /* Small text in cards */
+    .hover-card .text-muted.small {
+        font-size: 0.8rem !important;
+    }
+
+    /* Badge positioning in article cards */
+    .position-absolute.badge {
+        font-size: 0.7rem !important;
+        padding: 3px 8px !important;
+    }
+
+    /* Card images */
+    .hover-card img.card-img-top {
+        height: 180px !important;
+    }
+}
