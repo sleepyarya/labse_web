@@ -2,7 +2,6 @@
 // Admin Manage Artikel View
 require_once __DIR__ . '/../auth_check.php';
 require_once __DIR__ . '/../../includes/config.php';
-require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../controllers/artikelController.php';
 
 // Prevent caching
@@ -24,10 +23,15 @@ $search = isset($_GET['search']) ? $_GET['search'] : '';
 
 // Get artikel data
 $result = $controller->getAll($page, 10, $search);
-$articles = $result['articles'];
-$total_pages = $result['total_pages'];
-$current_page = $result['current_page'];
-$total_records = $result['total_records'];
+
+// --- PERBAIKAN UTAMA: Hapus duplikat dan gunakan null coalescing ---
+// Ambil 'articles' atau 'items', default array kosong
+$articles = $result['articles'] ?? $result['items'] ?? [];
+
+// Ambil data paging dengan default value
+$total_pages = $result['total_pages'] ?? 1;
+$current_page = $result['current_page'] ?? 1;
+$total_records = $result['total_records'] ?? 0;
 
 // Get kategori list for mapping
 $kategori_map = [];
@@ -44,26 +48,22 @@ include '../includes/admin_header.php';
 include '../includes/admin_sidebar.php';
 ?>
 
-<!-- Main Content -->
 <div class="admin-content">
     
-    <!-- Top Bar -->
     <div class="admin-topbar">
         <div>
             <h4 class="mb-0">Kelola Artikel</h4>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="index.php">Dashboard</a></li>
                     <li class="breadcrumb-item active">Kelola Artikel</li>
                 </ol>
             </nav>
         </div>
     </div>
     
-    <!-- Content -->
     <div class="container-fluid">
         
-        <!-- Success/Error Messages -->
         <?php if ($success): ?>
         <div class="alert alert-success alert-dismissible fade show">
             <i class="bi bi-check-circle me-2"></i>
@@ -93,7 +93,6 @@ include '../includes/admin_sidebar.php';
         </div>
         <?php endif; ?>
         
-        <!-- Action Bar -->
         <div class="card mb-4">
             <div class="card-body">
                 <div class="row align-items-center">
@@ -112,7 +111,6 @@ include '../includes/admin_sidebar.php';
             </div>
         </div>
         
-        <!-- Search Bar -->
         <div class="card mb-4">
             <div class="card-body">
                 <form method="GET" class="row g-3">
@@ -130,10 +128,9 @@ include '../includes/admin_sidebar.php';
             </div>
         </div>
         
-        <!-- Artikel Table -->
         <div class="card">
             <div class="card-body">
-                <?php if (count($articles) > 0): ?>
+                <?php if (!empty($articles) && count($articles) > 0): ?>
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead class="table-light">
@@ -150,8 +147,8 @@ include '../includes/admin_sidebar.php';
                             <?php foreach ($articles as $row): ?>
                             <tr>
                                 <td>
-                                    <?php if ($row['gambar']): ?>
-                                        <img src="<?php echo BASE_URL; ?>/public/uploads/artikel/<?php echo htmlspecialchars($row['gambar']); ?>" 
+                                    <?php if (!empty($row['gambar'])): ?>
+                                        <img src="<?php echo BASE_URL; ?>/public/uploads/artikel/<?php echo htmlspecialchars($row['gambar'] ?? ''); ?>" 
                                              class="rounded" width="60" height="40" style="object-fit: cover;"
                                              onerror="this.style.display='none';">
                                     <?php else: ?>
@@ -162,10 +159,10 @@ include '../includes/admin_sidebar.php';
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <strong><?php echo htmlspecialchars($row['judul']); ?></strong>
+                                    <strong><?php echo htmlspecialchars($row['judul'] ?? ''); ?></strong>
                                     <br>
                                     <small class="text-muted">
-                                        <?php echo substr(strip_tags($row['isi']), 0, 80) . '...'; ?>
+                                        <?php echo substr(strip_tags($row['isi'] ?? ''), 0, 80) . '...'; ?>
                                     </small>
                                 </td>
                                 <td>
@@ -174,23 +171,28 @@ include '../includes/admin_sidebar.php';
                                     if ($kat_id && isset($kategori_map[$kat_id])): 
                                         $kat = $kategori_map[$kat_id];
                                     ?>
-                                        <span class="badge" style="background-color: <?php echo htmlspecialchars($kat['warna']); ?>;">
-                                            <?php echo htmlspecialchars($kat['nama_kategori']); ?>
+                                        <span class="badge" style="background-color: <?php echo htmlspecialchars($kat['warna'] ?? '#6c757d'); ?>;">
+                                            <?php echo htmlspecialchars($kat['nama_kategori'] ?? ''); ?>
                                         </span>
                                     <?php else: ?>
                                         <span class="badge bg-secondary">-</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><?php echo htmlspecialchars($row['penulis']); ?></td>
+                                <td><?php echo htmlspecialchars($row['penulis'] ?? ''); ?></td>
                                 <td>
-                                    <?php echo date('d M Y', strtotime($row['created_at'])); ?>
-                                    <br>
-                                    <small class="text-muted"><?php echo date('H:i', strtotime($row['created_at'])); ?></small>
+                                    <?php 
+                                    if (!empty($row['created_at'])) {
+                                        echo date('d M Y', strtotime($row['created_at']));
+                                        echo '<br><small class="text-muted">' . date('H:i', strtotime($row['created_at'])) . '</small>';
+                                    } else {
+                                        echo '-';
+                                    }
+                                    ?>
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-sm btn-outline-info view-article-btn" 
-                                                data-article='<?php echo htmlspecialchars(json_encode($row)); ?>' 
+                                                data-article='<?php echo htmlspecialchars(json_encode($row), ENT_QUOTES, 'UTF-8'); ?>' 
                                                 title="Detail">
                                             <i class="bi bi-eye"></i>
                                         </button>
@@ -199,7 +201,7 @@ include '../includes/admin_sidebar.php';
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                         <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                onclick="confirmDelete(<?php echo $row['id']; ?>, '<?php echo htmlspecialchars($row['judul']); ?>')" 
+                                                onclick="confirmDelete(<?php echo $row['id']; ?>, '<?php echo htmlspecialchars($row['judul'] ?? ''); ?>')" 
                                                 title="Hapus">
                                             <i class="bi bi-trash"></i>
                                         </button>
@@ -211,7 +213,6 @@ include '../includes/admin_sidebar.php';
                     </table>
                 </div>
                 
-                <!-- Pagination -->
                 <?php if ($total_pages > 1): ?>
                 <nav class="mt-4">
                     <ul class="pagination justify-content-center">
@@ -259,9 +260,7 @@ include '../includes/admin_sidebar.php';
     </div>
     
 </div>
-<!-- End Admin Content -->
 
-<!-- Detail Modal -->
 <div class="modal fade" id="articleDetailModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -270,8 +269,7 @@ include '../includes/admin_sidebar.php';
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="articleDetailContent">
-                <!-- Content will be loaded here -->
-            </div>
+                </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
             </div>
@@ -280,16 +278,8 @@ include '../includes/admin_sidebar.php';
 </div>
 
 <script>
-// Debug: Pastikan script dimuat
-console.log('Article management script loaded at:', new Date());
-
-// Wait for DOM to be ready
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM ready, setting up event listeners');
-    
-    // Add event listeners to all view article buttons
     const viewButtons = document.querySelectorAll('.view-article-btn');
-    console.log('Found', viewButtons.length, 'view buttons');
     
     viewButtons.forEach(function(button) {
         button.addEventListener('click', function(e) {
@@ -298,7 +288,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             try {
                 const articleData = JSON.parse(this.getAttribute('data-article'));
-                console.log('Button clicked, article data:', articleData);
                 showArticleDetail(articleData);
             } catch (error) {
                 console.error('Error parsing article data:', error);
@@ -315,11 +304,17 @@ function confirmDelete(id, judul) {
 }
 
 function showArticleDetail(data) {
-    console.log('showArticleDetail called with data:', data);
-    
     const baseUrl = '<?php echo BASE_URL; ?>';
     
     try {
+        // Handle null values in JS
+        const judul = data.judul || '';
+        const penulis = data.penulis || '';
+        const isi = data.isi || '';
+        const dateStr = data.created_at ? new Date(data.created_at).toLocaleDateString('id-ID', {
+            year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        }) : '-';
+
         const content = `
             <div class="row mb-3">
                 <div class="col-md-4">
@@ -331,20 +326,14 @@ function showArticleDetail(data) {
                     }
                 </div>
                 <div class="col-md-8">
-                    <h4 class="mb-3">${data.judul}</h4>
+                    <h4 class="mb-3">${judul}</h4>
                     <div class="row mb-2">
                         <div class="col-sm-4"><strong>Penulis:</strong></div>
-                        <div class="col-sm-8">${data.penulis}</div>
+                        <div class="col-sm-8">${penulis}</div>
                     </div>
                     <div class="row mb-2">
                         <div class="col-sm-4"><strong>Tanggal Publish:</strong></div>
-                        <div class="col-sm-8">${new Date(data.created_at).toLocaleDateString('id-ID', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        })}</div>
+                        <div class="col-sm-8">${dateStr}</div>
                     </div>
                 </div>
             </div>
@@ -353,20 +342,16 @@ function showArticleDetail(data) {
                 <div class="col-12">
                     <h6><strong>Isi Artikel:</strong></h6>
                     <div class="border rounded p-3 bg-light" style="max-height: 300px; overflow-y: auto;">
-                        ${data.isi}
+                        ${isi}
                     </div>
                 </div>
             </div>
         `;
         
         document.getElementById('articleDetailContent').innerHTML = content;
-        
-        // Show modal using Bootstrap 5
         const modalElement = document.getElementById('articleDetailModal');
         const modal = new bootstrap.Modal(modalElement);
         modal.show();
-        
-        console.log('Modal should be shown now');
         
     } catch (error) {
         console.error('Error in showArticleDetail:', error);

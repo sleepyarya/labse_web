@@ -1,6 +1,6 @@
 <?php
 // Controller: Artikel Controller (Admin)
-// Fix: Hybrid Saving (Simpan ID + Nama Kategori sekaligus)
+// Fix: Sinkronisasi nama fungsi getPersonilList dan Return Key 'articles'
 
 require_once __DIR__ . '/../../core/database.php';
 require_once __DIR__ . '/../../core/session.php';
@@ -14,7 +14,7 @@ class ArtikelController {
         $this->conn = $conn;
     }
     
-    // Ambil daftar kategori untuk dropdown
+    // Ambil daftar kategori
     public function getKategoriList() {
         $query = "SELECT id, nama_kategori FROM kategori_artikel WHERE is_active = TRUE ORDER BY nama_kategori ASC";
         $result = pg_query($this->conn, $query);
@@ -27,7 +27,8 @@ class ArtikelController {
         return $list;
     }
 
-    public function getAllPersonil() {
+    // PERBAIKAN: Ganti nama fungsi jadi 'getPersonilList' agar cocok dengan artikel_form.php
+    public function getPersonilList() {
         $query = "SELECT id, nama FROM personil ORDER BY nama ASC";
         $result = pg_query($this->conn, $query);
         $personil = [];
@@ -59,14 +60,13 @@ class ArtikelController {
             
             // LOGIKA HYBRID
             $kategori_id = isset($_POST['kategori_id']) && !empty($_POST['kategori_id']) ? (int)$_POST['kategori_id'] : null;
-            $kategori_text = $this->getNamaKategoriById($kategori_id); // Cari nama kategorinya
+            // $kategori_text = $this->getNamaKategoriById($kategori_id); // Opsional jika tabel artikel punya kolom teks kategori
             
             $personil_id = isset($_POST['personil_id']) && !empty($_POST['personil_id']) ? (int)$_POST['personil_id'] : null;
             
             if (empty($judul) || empty($isi)) {
                 $error = 'Judul dan isi artikel wajib diisi!';
             } else {
-                // Upload Gambar
                 $gambar = '';
                 if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
                     $ext = strtolower(pathinfo($_FILES['gambar']['name'], PATHINFO_EXTENSION));
@@ -79,8 +79,7 @@ class ArtikelController {
                     }
                 }
                 
-                // Query INSERT (Pastikan kolom kategori_id ada di database artikel Anda)
-                // Jika error, cek apakah tabel artikel sudah punya kolom kategori_id
+                // Query INSERT
                 $query = "INSERT INTO artikel 
                           (judul, isi, penulis, gambar, personil_id, kategori_id, created_at, updated_at)
                           VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())";
@@ -120,8 +119,6 @@ class ArtikelController {
             $penulis = pg_escape_string($this->conn, trim($_POST['penulis'] ?? ''));
             
             $kategori_id = isset($_POST['kategori_id']) && !empty($_POST['kategori_id']) ? (int)$_POST['kategori_id'] : null;
-            // Artikel mungkin tidak punya kolom teks 'kategori' legacy, jadi kita fokus ID saja
-            
             $personil_id = isset($_POST['personil_id']) && !empty($_POST['personil_id']) ? (int)$_POST['personil_id'] : null;
             
             if (empty($judul)) {
@@ -168,7 +165,7 @@ class ArtikelController {
         $total_records = pg_fetch_assoc(pg_query($this->conn, $count_query))['total'];
         $total_pages = ceil($total_records / $limit);
         
-        $query = "SELECT a.*, p.nama as personil_nama, k.nama_kategori as kat_nama 
+        $query = "SELECT a.*, p.nama as personil_nama, k.nama_kategori as kat_nama, k.warna as kat_warna 
                   FROM artikel a
                   LEFT JOIN personil p ON a.personil_id = p.id
                   LEFT JOIN kategori_artikel k ON a.kategori_id = k.id
@@ -182,8 +179,9 @@ class ArtikelController {
             $items[] = $row;
         }
         
+        // PERBAIKAN: Menggunakan key 'articles' agar sesuai View
         return [
-            'items' => $items, 
+            'articles' => $items, 
             'total_records' => $total_records, 
             'total_pages' => $total_pages, 
             'current_page' => $page
