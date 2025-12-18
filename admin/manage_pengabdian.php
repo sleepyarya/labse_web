@@ -128,13 +128,12 @@ include 'includes/admin_sidebar.php';
                                         <td><?php echo $no++; ?></td>
                                         <td>
                                             <?php if ($row['gambar']): ?>
-                                                <img src="<?php echo BASE_URL . '/public/uploads/pengabdian/' . htmlspecialchars($row['gambar']); ?>"
-                                                    alt="Gambar" class="img-thumbnail" style="width: 80px; height: 60px; object-fit: cover;">
+                                                <img src="<?php echo BASE_URL . '/uploads/pengabdian/' . htmlspecialchars($row['gambar']); ?>"
+                                                    alt="Gambar" class="img-thumbnail" style="width: 80px; height: 60px; object-fit: cover;"
+                                                    onerror="this.src='https://picsum.photos/seed/<?php echo $row['id']; ?>/600/400'">
                                             <?php else: ?>
-                                                <div class="bg-secondary text-white d-flex align-items-center justify-content-center"
-                                                    style="width: 80px; height: 60px; border-radius: 5px;">
-                                                    <i class="bi bi-image fs-5"></i>
-                                                </div>
+                                                <img src="https://picsum.photos/seed/<?php echo $row['id']; ?>/600/400"
+                                                    alt="Auto Generated" class="img-thumbnail" style="width: 80px; height: 60px; object-fit: cover;">
                                             <?php endif; ?>
                                         </td>
                                         <td>

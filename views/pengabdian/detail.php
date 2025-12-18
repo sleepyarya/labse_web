@@ -69,7 +69,7 @@ if (!$pengabdian) {
                         <!-- Image -->
                         <?php if ($pengabdian['gambar']): ?>
                         <div class="mb-4">
-                            <img src="<?php echo BASE_URL; ?>/public/uploads/pengabdian/<?php echo htmlspecialchars($pengabdian['gambar']); ?>" 
+                            <img src="<?php echo BASE_URL; ?>/uploads/pengabdian/<?php echo htmlspecialchars($pengabdian['gambar']); ?>" 
                                  class="img-fluid rounded shadow" alt="<?php echo htmlspecialchars($pengabdian['judul']); ?>"
                                  onerror="this.style.display='none'">
                         </div>
@@ -165,7 +165,7 @@ if (!$pengabdian) {
             <div class="col-md-4" data-aos="fade-up">
                 <div class="card h-100 border-0 shadow-sm hover-card">
                     <?php if ($recent['gambar']): ?>
-                    <img src="<?php echo BASE_URL; ?>/public/uploads/pengabdian/<?php echo htmlspecialchars($recent['gambar']); ?>" 
+                    <img src="<?php echo BASE_URL; ?>/uploads/pengabdian/<?php echo htmlspecialchars($recent['gambar']); ?>" 
                          class="card-img-top" style="height: 150px; object-fit: cover;" alt="<?php echo htmlspecialchars($recent['judul']); ?>"
                          onerror="this.src='<?php echo BASE_URL; ?>/public/img/no-image.png'">
                     <?php endif; ?>

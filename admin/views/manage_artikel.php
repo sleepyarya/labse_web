@@ -148,14 +148,12 @@ include '../includes/admin_sidebar.php';
                             <tr>
                                 <td>
                                     <?php if (!empty($row['gambar'])): ?>
-                                        <img src="<?php echo BASE_URL; ?>/public/uploads/artikel/<?php echo htmlspecialchars($row['gambar'] ?? ''); ?>" 
+                                        <img src="<?php echo BASE_URL; ?>/uploads/artikel/<?php echo htmlspecialchars($row['gambar'] ?? ''); ?>" 
                                              class="rounded" width="60" height="40" style="object-fit: cover;"
-                                             onerror="this.style.display='none';">
+                                             onerror="this.src='https://picsum.photos/seed/<?php echo $row['id']; ?>/600/400';">
                                     <?php else: ?>
-                                        <div class="bg-light rounded d-flex align-items-center justify-content-center" 
-                                             style="width: 60px; height: 40px;">
-                                            <i class="bi bi-image text-muted"></i>
-                                        </div>
+                                        <img src="https://picsum.photos/seed/<?php echo $row['id']; ?>/600/400" 
+                                             class="rounded" width="60" height="40" style="object-fit: cover;" alt="Auto Generated">
                                     <?php endif; ?>
                                 </td>
                                 <td>

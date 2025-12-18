@@ -93,14 +93,15 @@ $result = empty($params) ? pg_query($conn, $query) : pg_query_params($conn, $que
                     
                     <!-- Image -->
                     <?php if ($item['gambar']): ?>
-                    <img src="<?php echo BASE_URL; ?>/public/uploads/pengabdian/<?php echo htmlspecialchars($item['gambar']); ?>" 
+                    <img src="<?php echo BASE_URL; ?>/uploads/pengabdian/<?php echo htmlspecialchars($item['gambar']); ?>" 
                          class="card-img-top" alt="<?php echo htmlspecialchars($item['judul']); ?>"
                          style="height: 200px; object-fit: cover;"
-                         onerror="this.src='<?php echo BASE_URL; ?>/public/img/no-image.png'">
+                         onerror="this.src='https://picsum.photos/seed/<?php echo $item['id']; ?>/600/400'">
                     <?php else: ?>
-                    <div class="bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
-                        <i class="bi bi-image text-white" style="font-size: 3rem;"></i>
-                    </div>
+                    <!-- Auto Generated Image -->
+                    <img src="https://picsum.photos/seed/<?php echo $item['id']; ?>/600/400" 
+                         class="card-img-top" alt="<?php echo htmlspecialchars($item['judul']); ?>"
+                         style="height: 200px; object-fit: cover;">
                     <?php endif; ?>
                     
                     <div class="card-body d-flex flex-column">
