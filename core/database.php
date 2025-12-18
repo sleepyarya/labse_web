@@ -3,10 +3,10 @@
 
 // --- KONFIGURASI DOCKER ---
 if (!defined('DB_HOST')) define('DB_HOST', 'localhost');
-if (!defined('DB_PORT')) define('DB_PORT', '5432');
+if (!defined('DB_PORT')) define('DB_PORT', '5433');
 if (!defined('DB_NAME')) define('DB_NAME', 'labse');
-if (!defined('DB_USER')) define('DB_USER', 'postgres');
-if (!defined('DB_PASS')) define('DB_PASS', '123');
+if (!defined('DB_USER')) define('DB_USER', 'USER');
+if (!defined('DB_PASS')) define('DB_PASS', 'Nada140125@');
 
 // Base URL (Port 8888 sesuai Nginx di Docker)
 // Base URL (Port 8888 sesuai Nginx di Docker)
