@@ -86,13 +86,10 @@ if (isset($_POST['update_user'])) {
                 pg_query_params($conn, $pwd_query, array($hashed_password, $user_id));
             }
             
-            // Update original table based on role
+            // Update original table based on role (only admin kept synchronized)
             if ($role === 'admin') {
                 $update_original = "UPDATE admin_users SET username = $1, email = $2 WHERE id = $3";
                 pg_query_params($conn, $update_original, array($username, $email, $reference_id));
-            } elseif ($role === 'personil') {
-                $update_original = "UPDATE personil SET email = $1 WHERE id = $2";
-                pg_query_params($conn, $update_original, array($email, $reference_id));
             }
             
             if ($result) {
@@ -109,14 +106,14 @@ if (isset($_POST['update_user'])) {
     }
 }
 
-// Handle add user
+// Handle add user - only insert into `users` (do NOT create `personil` entries)
 if (isset($_POST['add_user'])) {
     $username = trim($_POST['username']);
     $email = trim($_POST['email']);
     $role = $_POST['role'];
     $password = trim($_POST['password']);
     $is_active = isset($_POST['is_active']) ? true : false;
-    
+
     // Validation
     if (empty($username) || empty($email) || empty($password)) {
         $error_message = 'Username, email, dan password tidak boleh kosong!';
@@ -125,80 +122,22 @@ if (isset($_POST['add_user'])) {
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error_message = 'Format email tidak valid!';
     } else {
-        // Check duplicate username/email - hanya cek di tabel users (yang aktif)
-        $check_username = "SELECT COUNT(*) as count FROM users WHERE username = $1";
-        $check_email = "SELECT COUNT(*) as count FROM users WHERE email = $1";
-        
-        $username_exists = pg_fetch_result(pg_query_params($conn, $check_username, array($username)), 0, 0);
-        $email_exists = pg_fetch_result(pg_query_params($conn, $check_email, array($email)), 0, 0);
-        
-        if ($username_exists > 0) {
-            $error_message = 'Username sudah digunakan!';
-        } elseif ($email_exists > 0) {
-            $error_message = 'Email sudah digunakan!';
-        } else {
-            // Hash password
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            
-            // Start transaction
-            pg_query($conn, "BEGIN");
-            
-            try {
-                $reference_id = null;
-                
-                // Create entry in original table first to get reference_id
-                if ($role === 'admin') {
-                    $insert_admin = "INSERT INTO admin_users (username, email, nama_lengkap, created_at) 
-                                   VALUES ($1, $2, $3, NOW()) RETURNING id";
-                    $admin_result = pg_query_params($conn, $insert_admin, array(
-                        $username,
-                        $email,
-                        $username // Default nama_lengkap = username
-                    ));
-                    
-                    if ($admin_result) {
-                        $reference_id = pg_fetch_result($admin_result, 0, 0);
-                    } else {
-                        throw new Exception('Gagal membuat admin user');
-                    }
-                } elseif ($role === 'personil') {
-                    $insert_personil = "INSERT INTO personil (nama, email, jabatan, is_member, created_at) 
-                             VALUES ($1, $2, 'Anggota', TRUE, NOW()) RETURNING id";
-                    $personil_result = pg_query_params($conn, $insert_personil, array(
-                        $username, // Default nama = username
-                        $email
-                    ));
-                    
-                    if ($personil_result) {
-                        $reference_id = pg_fetch_result($personil_result, 0, 0);
-                    } else {
-                        throw new Exception('Gagal membuat personil user');
-                    }
-                }
-                
-                // Now insert into users table with reference_id
-                $insert_query = "INSERT INTO users (username, email, role, password, reference_id, is_active, created_at) 
-                               VALUES ($1, $2, $3, $4, $5, $6, NOW())";
-                $result = pg_query_params($conn, $insert_query, array(
-                    $username,
-                    $email,
-                    $role,
-                    $hashed_password,
-                    $reference_id,
-                    $is_active ? 'TRUE' : 'FALSE'
-                ));
-                
-                if ($result) {
-                    pg_query($conn, "COMMIT");
-                    $success_message = 'User baru berhasil ditambahkan!';
-                } else {
-                    throw new Exception('Gagal menambahkan ke tabel users');
-                }
-                
-            } catch (Exception $e) {
-                pg_query($conn, "ROLLBACK");
-                $error_message = 'Gagal menambahkan user baru: ' . $e->getMessage();
+        // Use controller store which only inserts into `users`
+        $result = $userController->store([
+            'username' => $username,
+            'email' => $email,
+            'password' => $password,
+            'role' => $role
+        ]);
+
+        if ($result['success']) {
+            // Apply is_active if unchecked
+            if (!$is_active) {
+                pg_query_params($conn, "UPDATE users SET is_active = FALSE WHERE username = $1", array($username));
             }
+            $success_message = $result['message'];
+        } else {
+            $error_message = $result['message'];
         }
     }
 }
@@ -404,7 +343,7 @@ include '../includes/admin_sidebar.php';
                             <td><?php echo htmlspecialchars($user['email']); ?></td>
                             <td>
                                 <?php echo htmlspecialchars($user['full_name'] ?? '-'); ?>
-                                <?php if ($user['additional_info']): ?>
+                                <?php if (isset($user['additional_info']) && $user['additional_info']): ?>
                                     <br><small class="text-muted"><?php echo htmlspecialchars($user['additional_info']); ?></small>
                                 <?php endif; ?>
                             </td>

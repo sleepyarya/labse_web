@@ -62,15 +62,18 @@ class PersonilController {
                 $is_member = isset($_POST['is_member']) && $_POST['is_member'] == '1';
                 $password = null;
                 $hashed_password = null;
-                
+
                 if ($is_member) {
+                    // If admin supplied a password use it (must be >=6 chars); otherwise we'll auto-generate later
                     $password = trim($_POST['password'] ?? '');
-                    if (empty($password)) {
-                        $error = 'Password wajib diisi untuk member!';
-                    } elseif (strlen($password) < 6) {
-                        $error = 'Password minimal 6 karakter!';
+                    if (!empty($password)) {
+                        if (strlen($password) < 6) {
+                            $error = 'Password minimal 6 karakter!';
+                        } else {
+                            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+                        }
                     } else {
-                        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+                        // no error here; password will be auto-generated after insert
                     }
                 }
                 
@@ -91,20 +94,45 @@ class PersonilController {
                         $personil_id = pg_fetch_result($result, 0, 0);
                         
                         // Jika is_member, sinkronkan ke tabel users
-                        if ($is_member && $hashed_password) {
-                            $username = $this->userSyncService->generateUsername($email, 'personil');
+                        if ($is_member) {
+                            // If password provided by admin, use it. Otherwise auto-generate username and default password.
+                            if (empty($password)) {
+                                // generate username from first word of name + '123'
+                                $parts = preg_split('/\s+/', $nama);
+                                $first = strtolower($parts[0] ?? 'user');
+                                $first = iconv('UTF-8', 'ASCII//TRANSLIT', $first);
+                                $first = preg_replace('/[^a-z0-9]/', '', $first);
+                                if ($first === '') $first = 'user';
+                                $base_username = substr($first, 0, 30) . '123';
+
+                                // ensure uniqueness
+                                $username = $base_username;
+                                $attempt = 0;
+                                while ($this->userSyncService->isUsernameExists($username) && $attempt < 1000) {
+                                    $attempt++;
+                                    $username = $base_username . $attempt;
+                                }
+                                // default password = '123456'
+                                $password = '123456';
+                                $hashed_password = null; // let UserSyncService hash it
+                            } else {
+                                // admin provided a password; use provided username generation fallback
+                                $username = $this->userSyncService->generateUsername($email, 'personil');
+                                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+                            }
+
                             $sync_success = $this->userSyncService->syncUser(
                                 $username,
                                 $email,
-                                $hashed_password,
+                                $password,
                                 'personil',
                                 $personil_id,
                                 false
                             );
                             
-                            if (!$sync_success) {
-                                error_log("Failed to sync personil to users table: ID {$personil_id}");
-                            }
+                        if (!$sync_success) {
+                            error_log("Failed to sync personil to users table: ID {$personil_id}");
+                        }
                         }
                         
                         header('Location: ../views/manage_personil.php?success=add');

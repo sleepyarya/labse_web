@@ -81,6 +81,29 @@ include '../includes/admin_sidebar.php';
                             </div>
                             
                             <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="1" id="is_member" name="is_member" <?php echo ($personil && $personil['is_member']) ? 'checked' : (!isset($_POST['is_member']) ? '' : 'checked'); ?>>
+                                    <label class="form-check-label" for="is_member">
+                                        Buat akun login untuk Personil (member)
+                                    </label>
+                                </div>
+                                <div class="form-text">Centang untuk membuat akun login. Jika dikosongkan, tidak akan dibuat akun.</div>
+                            </div>
+
+                            <div id="accountPreview" style="display: none;" class="mb-3">
+                                <label class="form-label">Preview Akun (otomatis)</label>
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text">Username</span>
+                                    <input type="text" id="preview_username" class="form-control" readonly>
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-text">Password</span>
+                                    <input type="text" id="preview_password" class="form-control" readonly>
+                                </div>
+                                <div class="form-text mt-1"> Password default = 123456.</div>
+                            </div>
+                            
+                            <div class="mb-3">
                                 <label class="form-label">Deskripsi</label>
                                 <textarea name="deskripsi" class="form-control" rows="4" 
                                           placeholder="Deskripsi singkat tentang personil (opsional)"><?php echo $personil ? htmlspecialchars($personil['deskripsi']) : (isset($_POST['deskripsi']) ? htmlspecialchars($_POST['deskripsi']) : ''); ?></textarea>
@@ -161,6 +184,36 @@ document.getElementById('fotoInput').addEventListener('change', function(event) 
         previewContainer.style.display = 'none';
     }
 });
+
+// Auto-generate username preview and password when creating personil
+function generatePreview() {
+    const nameEl = document.querySelector('input[name="nama"]');
+    const isMemberEl = document.getElementById('is_member');
+    const previewBox = document.getElementById('accountPreview');
+    const previewUsername = document.getElementById('preview_username');
+    const previewPassword = document.getElementById('preview_password');
+
+    if (!nameEl) return;
+    const name = nameEl.value.trim();
+    if (isMemberEl && isMemberEl.checked && name) {
+        // first word, lowercase, remove non-alnum
+        let first = name.split(/\s+/)[0].toLowerCase();
+        try { first = first.normalize('NFD').replace(/\p{Diacritic}/gu, ''); } catch(e) {}
+        first = first.replace(/[^a-z0-9]/g, '');
+        if (!first) first = 'user';
+        const username = first.substring(0,30) + '123';
+        previewUsername.value = username;
+        previewPassword.value = '123456';
+        previewBox.style.display = 'block';
+    } else {
+        previewBox.style.display = 'none';
+    }
+}
+
+document.querySelector('input[name="nama"]').addEventListener('input', generatePreview);
+document.getElementById('is_member').addEventListener('change', generatePreview);
+// initialize on load
+generatePreview();
 </script>
 
 <?php

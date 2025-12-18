@@ -1,27 +1,25 @@
 <?php
 // Controller: User Management Controller
-// Description: Handles user management operations for all roles
+// Description: Handles user management operations for all roles - Modified to decouple from Personnel table
 
 require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../../core/session.php';
-require_once __DIR__ . '/../../core/UserSyncService.php';
+// UserSyncService dinonaktifkan untuk mencegah sinkronisasi otomatis ke tabel personil/mahasiswa
+// require_once __DIR__ . '/../../core/UserSyncService.php';
 
 class UserController {
     
     private $conn;
-    private $userSyncService;
     
     public function __construct() {
         global $conn;
         $this->conn = $conn;
-        $this->userSyncService = new UserSyncService($conn);
     }
     
     // Get all users with details
     public function getAll($page = 1, $limit = 10, $search = '', $role_filter = '') {
         $offset = ($page - 1) * $limit;
         
-        // Build WHERE clause
         $where_conditions = [];
         $params = [];
         $param_count = 1;
@@ -40,35 +38,21 @@ class UserController {
         
         $where_sql = !empty($where_conditions) ? 'WHERE ' . implode(' AND ', $where_conditions) : '';
         
-        // Get total records
+        // Total records query
         $count_query = "SELECT COUNT(*) as total FROM users u {$where_sql}";
-        if (!empty($params)) {
-            $count_result = pg_query_params($this->conn, $count_query, $params);
-        } else {
-            $count_result = pg_query($this->conn, $count_query);
-        }
+        $count_result = !empty($params) ? pg_query_params($this->conn, $count_query, $params) : pg_query($this->conn, $count_query);
         $total_records = pg_fetch_assoc($count_result)['total'];
         $total_pages = ceil($total_records / $limit);
         
-        // Get users with details
+        // Get users with details (Melihat profil jika ada, tapi tidak mewajibkan)
         $query = "SELECT 
-                    u.id,
-                    u.username,
-                    u.email,
-                    u.role,
-                    u.reference_id,
-                    u.is_active,
-                    u.last_login,
-                    u.created_at,
+                    u.id, u.username, u.email, u.role, u.reference_id, u.is_active, 
+                    u.last_login, u.created_at,
                     CASE 
                         WHEN u.role = 'admin' THEN au.nama_lengkap
                         WHEN u.role = 'personil' THEN p.nama
                         WHEN u.role = 'mahasiswa' THEN m.nama
-                    END as full_name,
-                    CASE 
-                        WHEN u.role = 'personil' THEN p.jabatan
-                        WHEN u.role = 'mahasiswa' THEN m.nim
-                    END as additional_info
+                    END as full_name
                   FROM users u
                   LEFT JOIN admin_users au ON u.role = 'admin' AND u.reference_id = au.id
                   LEFT JOIN personil p ON u.role = 'personil' AND u.reference_id = p.id
@@ -77,11 +61,7 @@ class UserController {
                   ORDER BY u.created_at DESC
                   LIMIT {$limit} OFFSET {$offset}";
         
-        if (!empty($params)) {
-            $result = pg_query_params($this->conn, $query, $params);
-        } else {
-            $result = pg_query($this->conn, $query);
-        }
+        $result = !empty($params) ? pg_query_params($this->conn, $query, $params) : pg_query($this->conn, $query);
         
         $users = [];
         while ($row = pg_fetch_assoc($result)) {
@@ -96,176 +76,94 @@ class UserController {
         ];
     }
     
-    // Get user by ID
-    public function getById($id) {
-        $query = "SELECT 
-                    u.*,
-                    CASE 
-                        WHEN u.role = 'admin' THEN au.nama_lengkap
-                        WHEN u.role = 'personil' THEN p.nama
-                        WHEN u.role = 'mahasiswa' THEN m.nama
-                    END as full_name
-                  FROM users u
-                  LEFT JOIN admin_users au ON u.role = 'admin' AND u.reference_id = au.id
-                  LEFT JOIN personil p ON u.role = 'personil' AND u.reference_id = p.id
-                  LEFT JOIN mahasiswa m ON u.role = 'mahasiswa' AND u.reference_id = m.id
-                  WHERE u.id = $1";
+    // Create New User (HANYA MASUK KE TABEL USERS)
+    public function store($data) {
+        $username = $data['username'];
+        $email = $data['email'];
+        $password = password_hash($data['password'], PASSWORD_DEFAULT);
+        $role = $data['role'];
+
+        // Cek apakah username/email sudah ada
+        $check = pg_query_params($this->conn, "SELECT id FROM users WHERE username = $1 OR email = $2", [$username, $email]);
+        if (pg_num_rows($check) > 0) {
+            return ['success' => false, 'message' => 'Username atau Email sudah terdaftar!'];
+        }
+
+        $query = "INSERT INTO users (username, email, password, role, is_active, created_at) 
+                  VALUES ($1, $2, $3, $4, TRUE, NOW())";
         
+        $result = pg_query_params($this->conn, $query, [$username, $email, $password, $role]);
+
+        if ($result) {
+            return ['success' => true, 'message' => 'User berhasil ditambahkan. Data tidak akan masuk ke tabel personil secara otomatis.'];
+        } else {
+            return ['success' => false, 'message' => 'Gagal menambahkan user.'];
+        }
+    }
+
+    public function getById($id) {
+        $query = "SELECT u.* FROM users u WHERE u.id = $1";
         $result = pg_query_params($this->conn, $query, array($id));
         return pg_fetch_assoc($result);
     }
     
-    // Toggle user active status
     public function toggleActive($id) {
-        // Get current status
         $query = "SELECT is_active, role, reference_id FROM users WHERE id = $1";
         $result = pg_query_params($this->conn, $query, array($id));
         $user = pg_fetch_assoc($result);
         
-        if (!$user) {
-            return ['success' => false, 'message' => 'User tidak ditemukan!'];
-        }
+        if (!$user) return ['success' => false, 'message' => 'User tidak ditemukan!'];
         
-        // Prevent deactivating self
-        if ($user['role'] === 'admin' && 
-            isset($_SESSION['admin_id']) && 
-            $_SESSION['admin_id'] == $user['reference_id']) {
-            return ['success' => false, 'message' => 'Tidak bisa menonaktifkan akun sendiri!'];
-        }
-        
-        // Toggle status
         $new_status = ($user['is_active'] === 't') ? 'FALSE' : 'TRUE';
         $update_query = "UPDATE users SET is_active = {$new_status} WHERE id = $1";
         $update_result = pg_query_params($this->conn, $update_query, array($id));
         
-        if ($update_result) {
-            $status_text = ($new_status === 'TRUE') ? 'diaktifkan' : 'dinonaktifkan';
-            return ['success' => true, 'message' => "User berhasil {$status_text}!"];
-        } else {
-            return ['success' => false, 'message' => 'Gagal mengubah status user!'];
-        }
+        return $update_result ? ['success' => true, 'message' => 'Status user diperbarui!'] : ['success' => false, 'message' => 'Gagal ubah status!'];
     }
     
-    // Reset password
     public function resetPassword($id, $new_password) {
-        if (strlen($new_password) < 6) {
-            return ['success' => false, 'message' => 'Password minimal 6 karakter!'];
-        }
-        
-        // Get user info
-        $query = "SELECT role, reference_id FROM users WHERE id = $1";
-        $result = pg_query_params($this->conn, $query, array($id));
-        $user = pg_fetch_assoc($result);
-        
-        if (!$user) {
-            return ['success' => false, 'message' => 'User tidak ditemukan!'];
-        }
-        
-        // Hash password
+        if (strlen($new_password) < 6) return ['success' => false, 'message' => 'Password minimal 6 karakter!'];
         $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-        
-        // Update password in users table
         $update_users = "UPDATE users SET password = $1 WHERE id = $2";
-        $result1 = pg_query_params($this->conn, $update_users, array($hashed_password, $id));
-        
-        if ($result1) {
-            return ['success' => true, 'message' => 'Password berhasil direset!'];
-        } else {
-            return ['success' => false, 'message' => 'Gagal reset password!'];
-        }
+        $result = pg_query_params($this->conn, $update_users, array($hashed_password, $id));
+        return $result ? ['success' => true, 'message' => 'Password berhasil direset!'] : ['success' => false, 'message' => 'Gagal reset password!'];
     }
     
-    // Delete user
+    // Delete User (Diedit agar tidak menghapus data di tabel Personil/Mahasiswa)
     public function delete($id) {
-        // Get user info
         $query = "SELECT role, reference_id FROM users WHERE id = $1";
         $result = pg_query_params($this->conn, $query, array($id));
         $user = pg_fetch_assoc($result);
         
-        if (!$user) {
-            return ['success' => false, 'message' => 'User tidak ditemukan!'];
-        }
+        if (!$user) return ['success' => false, 'message' => 'User tidak ditemukan!'];
         
-        // Prevent self-deletion
-        if ($user['role'] === 'admin' && 
-            isset($_SESSION['admin_id']) && 
-            $_SESSION['admin_id'] == $user['reference_id']) {
-            return ['success' => false, 'message' => 'Tidak bisa menghapus akun sendiri!'];
-        }
-        
-        // Check if last admin
+        // Mencegah hapus admin terakhir
         if ($user['role'] === 'admin') {
-            $count_query = "SELECT COUNT(*) as count FROM users WHERE role = 'admin' AND is_active = TRUE";
-            $count_result = pg_query($this->conn, $count_query);
-            $count = pg_fetch_assoc($count_result)['count'];
-            
-            if ($count <= 1) {
-                return ['success' => false, 'message' => 'Tidak bisa menghapus admin terakhir!'];
-            }
+            $count = pg_fetch_result(pg_query($this->conn, "SELECT COUNT(*) FROM users WHERE role = 'admin'"), 0, 0);
+            if ($count <= 1) return ['success' => false, 'message' => 'Tidak bisa menghapus admin terakhir!'];
         }
         
-        // Start transaction for safe deletion
-        pg_query($this->conn, "BEGIN");
+        // HANYA hapus dari tabel users. Referensi di tabel personil/mahasiswa dibiarkan tetap ada.
+        $delete_query = "DELETE FROM users WHERE id = $1";
+        $delete_result = pg_query_params($this->conn, $delete_query, array($id));
         
-        try {
-            // Delete from original table first based on role and reference_id
-            if ($user['role'] === 'admin' && $user['reference_id']) {
-                $delete_original = "DELETE FROM admin_users WHERE id = $1";
-                $result_original = pg_query_params($this->conn, $delete_original, array($user['reference_id']));
-                $affected = pg_affected_rows($result_original);
-                if ($result_original === false) {
-                    throw new Exception('Gagal menghapus dari tabel admin_users');
-                }
-            } elseif ($user['role'] === 'personil' && $user['reference_id']) {
-                $delete_original = "DELETE FROM personil WHERE id = $1";
-                $result_original = pg_query_params($this->conn, $delete_original, array($user['reference_id']));
-                $affected = pg_affected_rows($result_original);
-                if ($result_original === false) {
-                    throw new Exception('Gagal menghapus dari tabel personil');
-                }
-            } elseif ($user['role'] === 'mahasiswa' && $user['reference_id']) {
-                // Do not delete from mahasiswa table, as we are separating users from mahasiswa data.
-                // Just let the user deletion happen (removing login access).
-            }
-            
-            // Delete from users table
-            $delete_query = "DELETE FROM users WHERE id = $1";
-            $delete_result = pg_query_params($this->conn, $delete_query, array($id));
-            
-            if ($delete_result === false) {
-                throw new Exception('Gagal menghapus dari tabel users');
-            }
-            
-            pg_query($this->conn, "COMMIT");
-            return ['success' => true, 'message' => 'User berhasil dihapus!'];
-            
-        } catch (Exception $e) {
-            pg_query($this->conn, "ROLLBACK");
-            return ['success' => false, 'message' => 'Gagal menghapus user: ' . $e->getMessage()];
+        if ($delete_result) {
+            return ['success' => true, 'message' => 'Akun login user berhasil dihapus. Data personil terkait tetap aman.'];
+        } else {
+            return ['success' => false, 'message' => 'Gagal menghapus akun user.'];
         }
     }
     
-    // Get statistics
     public function getStatistics() {
         $stats = [];
+        $stats['total'] = pg_fetch_result(pg_query($this->conn, "SELECT COUNT(*) FROM users"), 0, 0);
+        $stats['active'] = pg_fetch_result(pg_query($this->conn, "SELECT COUNT(*) FROM users WHERE is_active = TRUE"), 0, 0);
         
-        // Total users
-        $total_query = "SELECT COUNT(*) as total FROM users";
-        $stats['total'] = pg_fetch_result(pg_query($this->conn, $total_query), 0, 0);
-        
-        // Active users
-        $active_query = "SELECT COUNT(*) as active FROM users WHERE is_active = TRUE";
-        $stats['active'] = pg_fetch_result(pg_query($this->conn, $active_query), 0, 0);
-        
-        // By role
-        $role_query = "SELECT role, COUNT(*) as count FROM users GROUP BY role";
-        $role_result = pg_query($this->conn, $role_query);
-        
+        $role_result = pg_query($this->conn, "SELECT role, COUNT(*) as count FROM users GROUP BY role");
         $stats['by_role'] = [];
         while ($row = pg_fetch_assoc($role_result)) {
             $stats['by_role'][$row['role']] = $row['count'];
         }
-        
         return $stats;
     }
 }
