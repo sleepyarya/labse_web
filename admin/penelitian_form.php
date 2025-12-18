@@ -165,12 +165,13 @@ include 'includes/admin_sidebar.php';
                                     <?php if ($is_edit && $penelitian['gambar']): ?>
                                     <div class="mb-2">
                                         <img src="<?php echo BASE_URL . '/public/uploads/penelitian/' . htmlspecialchars($penelitian['gambar']); ?>" 
-                                             class="img-thumbnail" style="max-height: 150px;" alt="Current cover">
+                                             class="img-thumbnail" style="max-height: 150px;" alt="Current cover"
+                                             onerror="this.src='https://picsum.photos/seed/<?php echo $penelitian['id']; ?>/600/400'">
                                         <div class="form-text">Gambar saat ini</div>
                                     </div>
                                     <?php endif; ?>
                                     <input type="file" name="gambar" class="form-control" accept="image/*" id="gambarInput">
-                                    <small class="text-muted">JPG, PNG. Max: 5MB. <?php echo $is_edit ? 'Biarkan kosong jika tidak ingin mengubah.' : ''; ?></small>
+                                    <small class="text-muted">JPG, PNG, WEBP. Max: 5MB. <?php echo $is_edit ? 'Biarkan kosong jika tidak ingin mengubah.' : ''; ?></small>
                                     <div id="previewContainer" class="mt-2" style="display: none;">
                                         <img id="previewImage" src="" class="img-thumbnail" style="max-width: 200px;">
                                     </div>

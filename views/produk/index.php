@@ -139,11 +139,12 @@ $cat_result = pg_query($conn, $cat_query);
                     <img src="<?php echo BASE_URL; ?>/public/uploads/produk/<?php echo htmlspecialchars($item['gambar']); ?>" 
                          class="card-img-top" alt="<?php echo htmlspecialchars($item['nama_produk']); ?>"
                          style="height: 200px; object-fit: cover;"
-                         onerror="this.src='<?php echo BASE_URL; ?>/public/img/no-image.png'">
+                         onerror="this.src='https://picsum.photos/seed/<?php echo $item['id']; ?>/600/400'">
                     <?php else: ?>
-                    <div class="bg-gradient d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                        <i class="bi bi-box-seam text-white" style="font-size: 3rem;"></i>
-                    </div>
+                    <!-- Auto Generated Image -->
+                    <img src="https://picsum.photos/seed/<?php echo $item['id']; ?>/600/400" 
+                         class="card-img-top" alt="<?php echo htmlspecialchars($item['nama_produk']); ?>"
+                         style="height: 200px; object-fit: cover;">
                     <?php endif; ?>
                     
                     <div class="card-body d-flex flex-column">

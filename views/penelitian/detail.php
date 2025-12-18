@@ -78,7 +78,7 @@ if (!$penelitian) {
                         <div class="mb-4">
                             <img src="<?php echo BASE_URL; ?>/uploads/penelitian/<?php echo htmlspecialchars($penelitian['gambar']); ?>" 
                                  class="img-fluid rounded shadow" alt="<?php echo htmlspecialchars($penelitian['judul']); ?>"
-                                 onerror="this.style.display='none'">
+                                 onerror="this.src='https://picsum.photos/seed/<?php echo $penelitian['id']; ?>/800/600'">
                         </div>
                         <?php endif; ?>
                         
@@ -210,11 +210,11 @@ if (!$penelitian) {
                     <?php if ($recent['gambar']): ?>
                     <img src="<?php echo BASE_URL; ?>/uploads/penelitian/<?php echo htmlspecialchars($recent['gambar']); ?>" 
                          class="card-img-top" style="height: 150px; object-fit: cover;" alt="<?php echo htmlspecialchars($recent['judul']); ?>"
-                         onerror="this.src='<?php echo BASE_URL; ?>/public/img/no-image.png'">
+                         onerror="this.src='https://picsum.photos/seed/<?php echo $recent['id']; ?>/600/400'">
                     <?php else: ?>
-                    <div class="bg-gradient d-flex align-items-center justify-content-center" style="height: 150px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                        <i class="bi bi-journal-text text-white" style="font-size: 2rem;"></i>
-                    </div>
+                    <!-- Auto Generated Image -->
+                     <img src="https://picsum.photos/seed/<?php echo $recent['id']; ?>/600/400" 
+                         class="card-img-top" style="height: 150px; object-fit: cover;" alt="<?php echo htmlspecialchars($recent['judul']); ?>">
                     <?php endif; ?>
                     <div class="card-body">
                         <h6 class="card-title"><?php echo htmlspecialchars($recent['judul']); ?></h6>

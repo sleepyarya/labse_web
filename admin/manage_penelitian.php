@@ -8,8 +8,11 @@ $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $limit = 10;
 
+// Ensure $conn is available for pg functions if needed directly, though controller uses it.
+// $conn is included via config.php
+
 $data = $controller->getAll($page, $limit, $search);
-$items = $data['items'];
+$items = $data['items']; // This should be compatible with the view loop
 
 include 'includes/admin_header.php';
 include 'includes/admin_sidebar.php';
@@ -48,21 +51,19 @@ include 'includes/admin_sidebar.php';
                             <?php 
                             $no = ($page - 1) * $limit + 1;
                             foreach ($items as $row): 
-                                // FIX PATH GAMBAR
-                                $img_name = $row['gambar'];
-                                $web_path = "public/uploads/penelitian/" . $img_name;
-                                $abs_path = __DIR__ . "/../public/uploads/penelitian/" . $img_name;
-
-                                if (!empty($img_name) && file_exists($abs_path)) {
-                                    $final_img = "../" . $web_path;
-                                } else {
-                                    $final_img = "https://ui-avatars.com/api/?name=" . urlencode($row['judul']) . "&background=f0f0f0&color=999&size=128";
-                                }
                             ?>
                             <tr>
                                 <td class="ps-4"><?= $no++ ?></td>
                                 <td>
-                                    <img src="<?= $final_img ?>" class="rounded shadow-sm border" style="width: 50px; height: 70px; object-fit: cover;">
+                                    <?php if ($row['gambar']): ?>
+                                    <img src="<?= BASE_URL ?>/public/uploads/penelitian/<?= htmlspecialchars($row['gambar']) ?>" 
+                                         class="rounded shadow-sm border" style="width: 50px; height: 70px; object-fit: cover;"
+                                         onerror="this.src='https://picsum.photos/seed/<?= $row['id'] ?>/600/400'">
+                                    <?php else: ?>
+                                    <img src="https://picsum.photos/seed/<?= $row['id'] ?>/600/400" 
+                                         class="rounded shadow-sm border" style="width: 50px; height: 70px; object-fit: cover;"
+                                         alt="Auto Generated">
+                                    <?php endif; ?>
                                 </td>
                                 <td>
                                     <div class="fw-bold text-dark"><?= htmlspecialchars($row['judul']) ?></div>
@@ -90,4 +91,7 @@ include 'includes/admin_sidebar.php';
     </div>
 </div>
 
-<?php include 'includes/admin_footer.php'; ?>
+<?php
+pg_close($conn);
+include 'includes/admin_footer.php'; 
+?>

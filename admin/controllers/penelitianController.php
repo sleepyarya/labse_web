@@ -87,7 +87,7 @@ class PenelitianController {
             $judul = trim($_POST['judul']);
             $kategori_id = !empty($_POST['kategori_id']) ? intval($_POST['kategori_id']) : null;
             
-            $gambar = $this->uploadFile('gambar', ['jpg', 'jpeg', 'png'], 'penelitian_');
+            $gambar = $this->uploadFile('gambar', ['jpg', 'jpeg', 'png', 'webp'], 'penelitian_');
             $file_pdf = $this->uploadFile('file_pdf', ['pdf'], 'doc_');
 
             $query = "INSERT INTO hasil_penelitian (judul, deskripsi, tahun, abstrak, gambar, file_pdf, link_publikasi, personil_id, kategori_id, created_at, updated_at) 
@@ -115,7 +115,7 @@ class PenelitianController {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $gambar = $penelitian['gambar'];
             if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
-                $new_img = $this->uploadFile('gambar', ['jpg', 'jpeg', 'png'], 'penelitian_');
+                $new_img = $this->uploadFile('gambar', ['jpg', 'jpeg', 'png', 'webp'], 'penelitian_');
                 if ($new_img) {
                     if ($gambar && file_exists($this->upload_dir . $gambar)) unlink($this->upload_dir . $gambar);
                     $gambar = $new_img;
