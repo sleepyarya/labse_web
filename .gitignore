@@ -29,3 +29,5 @@ npm-debug.log*
 # Uploaded images or dynamic files (optional)
 uploads/
 cache/
+core/database.php
+includes/config.php
