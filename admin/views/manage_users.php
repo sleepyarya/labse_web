@@ -113,7 +113,6 @@ if (isset($_POST['add_user'])) {
     $role = $_POST['role'];
     $password = trim($_POST['password']);
     $is_active = isset($_POST['is_active']) ? true : false;
-
     // Validation
     if (empty($username) || empty($email) || empty($password)) {
         $error_message = 'Username, email, dan password tidak boleh kosong!';
