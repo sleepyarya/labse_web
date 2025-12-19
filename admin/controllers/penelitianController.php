@@ -90,19 +90,26 @@ class PenelitianController {
             $gambar = $this->uploadFile('gambar', ['jpg', 'jpeg', 'png', 'webp'], 'penelitian_');
             $file_pdf = $this->uploadFile('file_pdf', ['pdf'], 'doc_');
 
-            $query = "INSERT INTO hasil_penelitian (judul, deskripsi, tahun, abstrak, gambar, file_pdf, link_publikasi, personil_id, kategori_id, created_at, updated_at) 
-                      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())";
+            $query = "SELECT sp_create_penelitian($1, $2, $3, $4, $5, $6, $7, $8, $9)";
             
             $params = [
-                $judul, trim($_POST['deskripsi']), intval($_POST['tahun']), 
-                trim($_POST['abstrak']), $gambar, $file_pdf, trim($_POST['link_publikasi']), 
-                !empty($_POST['personil_id']) ? intval($_POST['personil_id']) : null, $kategori_id
+                $judul, 
+                trim($_POST['deskripsi']), 
+                intval($_POST['tahun']), 
+                $kategori_id, // Parameter 4: kategori_id
+                trim($_POST['abstrak']), 
+                $gambar, 
+                $file_pdf, 
+                trim($_POST['link_publikasi']), 
+                !empty($_POST['personil_id']) ? intval($_POST['personil_id']) : null
             ];
 
             if (pg_query_params($this->conn, $query, $params)) {
                 header('Location: manage_penelitian.php?success=add');
                 exit();
-            } else { $error = "Gagal menyimpan data."; }
+            } else { 
+                $error = "Gagal menyimpan data: " . pg_last_error($this->conn); 
+            }
         }
         return ['error' => $error];
     }

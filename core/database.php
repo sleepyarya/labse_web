@@ -3,14 +3,15 @@
 
 // --- KONFIGURASI DOCKER ---
 if (!defined('DB_HOST')) define('DB_HOST', 'localhost');
-if (!defined('DB_PORT')) define('DB_PORT', '5433');
+if (!defined('DB_PORT')) define('DB_PORT', '5432');
 if (!defined('DB_NAME')) define('DB_NAME', 'labse');
-if (!defined('DB_USER')) define('DB_USER', 'USER');
-if (!defined('DB_PASS')) define('DB_PASS', 'Nada140125@');
+if (!defined('DB_USER')) define('DB_USER', 'postgres');
+if (!defined('DB_PASS')) define('DB_PASS', '123');
+
 
 // Base URL (Port 8888 sesuai Nginx di Docker)
 // Base URL (Port 8888 sesuai Nginx di Docker)
-if (!defined('BASE_URL')) define('BASE_URL', 'http://localhost:8888/labse_web');
+if (!defined('BASE_URL')) define('BASE_URL', 'http://localhost/labse_web');
 function getConnection()
 {
     $conn_string = "host=" . DB_HOST . " port=" . DB_PORT . " dbname=" . DB_NAME . " user=" . DB_USER . " password=" . DB_PASS;

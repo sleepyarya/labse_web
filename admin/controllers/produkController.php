@@ -82,23 +82,22 @@ class ProdukController {
                     }
                 }
                 
-                // Query INSERT (Simpan nama_produk, kategori (text), dan kategori_id)
-                $query = "INSERT INTO produk 
-                          (nama_produk, deskripsi, kategori, kategori_id, tahun, gambar, link_demo, link_repository, teknologi, personil_id, created_at, updated_at)
-                          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())";
+                // Query INSERT (Simpan nama_produk, deskripsi, kategori, tahun, teknologi, gambar, link_demo, link_repository, personil_id)
+                $query = "SELECT sp_create_produk($1, $2, $3, $4, $5, $6, $7, $8, $9)";
 
-                $result = pg_query_params($this->conn, $query, array(
-                    $nama_produk, 
-                    $deskripsi, 
-                    $kategori_text, // Simpan teks agar muncul di view lama
-                    $kategori_id,   // Simpan ID untuk relasi baru
-                    $tahun, 
-                    $gambar, 
-                    $link_demo, 
-                    $link_repository, 
-                    $teknologi, 
-                    $personil_id
-                ));
+                $params = array(
+                    $nama_produk,     // $1
+                    $deskripsi,       // $2
+                    $kategori_text,   // $3 (Kategori text) - Note: SP doesn't support category_id yet
+                    $tahun,           // $4
+                    $teknologi,       // $5
+                    $gambar,          // $6
+                    $link_demo,       // $7
+                    $link_repository, // $8
+                    $personil_id      // $9
+                );
+                
+                $result = pg_query_params($this->conn, $query, $params);
                 
                 if ($result) {
                     header('Location: manage_produk.php?success=add');

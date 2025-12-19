@@ -216,7 +216,7 @@ CREATE OR REPLACE FUNCTION sp_create_penelitian(
     p_judul VARCHAR,
     p_deskripsi TEXT,
     p_tahun INTEGER,
-    p_kategori VARCHAR DEFAULT NULL,
+    p_kategori_id INTEGER DEFAULT NULL,
     p_abstrak TEXT DEFAULT NULL,
     p_gambar VARCHAR DEFAULT NULL,
     p_file_pdf VARCHAR DEFAULT NULL,
@@ -238,12 +238,12 @@ BEGIN
     
     -- Insert
     INSERT INTO hasil_penelitian (
-        judul, deskripsi, tahun, kategori, abstrak, 
+        judul, deskripsi, tahun, kategori_id, abstrak, 
         gambar, file_pdf, link_publikasi, personil_id, 
         created_at, updated_at
     )
     VALUES (
-        p_judul, p_deskripsi, p_tahun, p_kategori, p_abstrak,
+        p_judul, p_deskripsi, p_tahun, p_kategori_id, p_abstrak,
         p_gambar, p_file_pdf, p_link_publikasi, p_personil_id,
         NOW(), NOW()
     )
